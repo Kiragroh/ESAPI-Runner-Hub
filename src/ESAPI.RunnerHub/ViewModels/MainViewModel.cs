@@ -203,6 +203,14 @@ namespace EsapiRunnerHub.ViewModels
                 return;
             }
 
+            if (card.Definition.LaunchKind == LaunchKind.EclipsePlugin)
+            {
+                notificationText = card.Name + " runs inside Eclipse. Open it from Tools > Scripts.";
+                TechnicalLog.Current.Write("INFO", "eclipse_plugin_reference", card.Id, null);
+                RaisePropertyChanged(nameof(NotificationText));
+                return;
+            }
+
             try
             {
                 var request = ArgumentComposer.Compose(card.Definition, selectedPatient, withPatient);

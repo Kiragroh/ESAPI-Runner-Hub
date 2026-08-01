@@ -95,6 +95,10 @@ Enabled=true
             TestHarness.AssertTrue(referenceVisibility != null, "ApplicationCardViewModel.ReferenceVisibility is missing.");
             TestHarness.AssertEqual("Visible", referenceVisibility.GetValue(card, null).ToString());
             TestHarness.AssertContains(card.ModeLabel, "Eclipse");
+
+            viewModel.StartWithoutPatientCommand.Execute(card);
+            TestHarness.AssertEqual(0, viewModel.Processes.Count);
+            TestHarness.AssertContains(viewModel.NotificationText, "inside Eclipse");
         }
 
         private static MainViewModel CreateViewModel()
