@@ -6,6 +6,7 @@ $repoRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $solution = Join-Path $repoRoot 'ESAPI-Runner-Hub.sln'
 $distRoot = Join-Path $repoRoot 'dist'
 $packageRoot = Join-Path $distRoot 'package'
+$portableSettings = Join-Path $distRoot 'settings.ini'
 $zipName = 'ESAPI-Runner-Hub-v0.1.0-win-x64.zip'
 $zipPath = Join-Path $distRoot $zipName
 
@@ -32,6 +33,10 @@ $expectedDist = [System.IO.Path]::GetFullPath((Join-Path $repoRoot 'dist'))
 if ([System.IO.Path]::GetFullPath($distRoot) -ne $expectedDist -or -not $distRoot.StartsWith($repoRoot + [System.IO.Path]::DirectorySeparatorChar)) {
     throw 'Resolved dist path is outside the repository.'
 }
+$preservedSettings = $null
+if (Test-Path -LiteralPath $portableSettings -PathType Leaf) {
+    $preservedSettings = [System.IO.File]::ReadAllBytes($portableSettings)
+}
 if (Test-Path -LiteralPath $distRoot) {
     Remove-Item -LiteralPath $distRoot -Recurse -Force
 }
@@ -50,6 +55,10 @@ $copies = @{
 foreach ($source in $copies.Keys) {
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Release source missing: $source" }
     Copy-Item -LiteralPath $source -Destination $copies[$source]
+}
+Copy-Item -LiteralPath (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe') -Destination (Join-Path $distRoot 'ESAPI-Runner-Hub.exe')
+if ($null -ne $preservedSettings) {
+    [System.IO.File]::WriteAllBytes($portableSettings, $preservedSettings)
 }
 
 $manifestPath = Join-Path $packageRoot 'PACKAGE-SHA256SUMS.txt'
