@@ -6,6 +6,7 @@ namespace EsapiRunnerHub.Tests
         {
             ProjectShapeTests.Register();
             ConfigurationTests.Register();
+            PatientSearchTests.Register();
             return TestHarness.Run();
         }
     }

@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="ConfigurationTests.cs" />
+    <Compile Include="PatientSearchTests.cs" />
     <Compile Include="ProjectShapeTests.cs" />
     <Compile Include="TestHarness.cs" />
   </ItemGroup>
