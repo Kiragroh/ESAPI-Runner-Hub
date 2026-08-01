@@ -74,6 +74,12 @@ namespace EsapiRunnerHub.ViewModels
             set { workingConfiguration.Hub.PathProbeTimeoutMs = value; RaisePropertyChanged(); UpdateValidation(); }
         }
 
+        public string LogDirectory
+        {
+            get { return workingConfiguration.Hub.LogDirectory; }
+            set { workingConfiguration.Hub.LogDirectory = value; RaisePropertyChanged(); }
+        }
+
         public ApplicationDefinition SelectedApplication
         {
             get { return selectedApplication; }

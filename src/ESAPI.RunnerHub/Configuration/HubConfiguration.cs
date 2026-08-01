@@ -11,6 +11,7 @@ namespace EsapiRunnerHub.Configuration
             SearchMaxResults = 10;
             SearchDebounceMs = 150;
             PathProbeTimeoutMs = 1500;
+            LogDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs";
             ExtraValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
@@ -21,6 +22,8 @@ namespace EsapiRunnerHub.Configuration
         public int SearchMaxResults { get; set; }
         public int SearchDebounceMs { get; set; }
         public int PathProbeTimeoutMs { get; set; }
+        public string LogDirectory { get; set; }
+        public string ResolvedLogDirectory { get; internal set; }
         public IDictionary<string, string> ExtraValues { get; private set; }
     }
 
@@ -47,6 +50,7 @@ namespace EsapiRunnerHub.Configuration
             var baseDirectory = Path.GetDirectoryName(fullSourcePath);
             Hub.ResolvedEsapiApiAssembly = ResolvePath(baseDirectory, Hub.EsapiApiAssembly);
             Hub.ResolvedEsapiTypesAssembly = ResolvePath(baseDirectory, Hub.EsapiTypesAssembly);
+            Hub.ResolvedLogDirectory = ResolvePath(baseDirectory, Hub.LogDirectory);
             foreach (var application in Applications)
             {
                 application.ResolvePaths(baseDirectory);
@@ -78,4 +82,3 @@ namespace EsapiRunnerHub.Configuration
         public bool IsValid { get { return Errors.Count == 0; } }
     }
 }
-

@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="ESAPI Runner Hub · Settings" Width="1080" Height="760" MinWidth="920" MinHeight="650"
-        WindowStartupLocation="CenterOwner" Background="#F4F1EA" FontFamily="Segoe UI">
+        WindowStartupLocation="CenterOwner" Background="#F4F1EA" FontFamily="Segoe UI"
+        Icon="pack://application:,,,/Assets/ESAPI-Runner-Hub.png">
     <Window.Resources>
         <Style TargetType="TextBox">
             <Setter Property="Padding" Value="9,7" /><Setter Property="Margin" Value="0,4,0,10" />
@@ -84,6 +85,8 @@
                                 <StackPanel Grid.Column="2"><TextBlock Text="Debounce (ms)" FontWeight="SemiBold" /><TextBox Text="{Binding SearchDebounceMs}" /></StackPanel>
                                 <StackPanel Grid.Column="4"><TextBlock Text="Path timeout (ms)" FontWeight="SemiBold" /><TextBox Text="{Binding PathProbeTimeoutMs}" /></StackPanel>
                             </Grid>
+                            <TextBlock Text="Technical log directory" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding LogDirectory, UpdateSourceTrigger=PropertyChanged}" ToolTip="No patient IDs, names, search text, or expanded arguments are logged." />
                         </StackPanel>
                     </Border>
 

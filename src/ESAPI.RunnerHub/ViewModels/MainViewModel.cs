@@ -7,6 +7,7 @@ using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Infrastructure;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
+using EsapiRunnerHub.Privacy;
 
 namespace EsapiRunnerHub.ViewModels
 {
@@ -212,6 +213,7 @@ namespace EsapiRunnerHub.ViewModels
             catch (Exception exception)
             {
                 notificationText = card.Name + " could not be started: " + exception.Message;
+                TechnicalLog.Current.Write("ERROR", "child_start_failed", card.Id, exception);
             }
 
             RaisePropertyChanged(nameof(NotificationText));

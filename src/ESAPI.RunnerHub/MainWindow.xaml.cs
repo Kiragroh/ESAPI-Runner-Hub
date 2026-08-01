@@ -9,6 +9,7 @@ using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Esapi;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
+using EsapiRunnerHub.Privacy;
 using EsapiRunnerHub.ViewModels;
 
 namespace EsapiRunnerHub
@@ -56,6 +57,7 @@ namespace EsapiRunnerHub
             var initialPatients = smoke ? SyntheticPatients() : Enumerable.Empty<PatientRecord>();
             var viewModel = new MainViewModel(configuration, initialPatients);
             DataContext = viewModel;
+            TechnicalLog.Configure(configuration.Hub.ResolvedLogDirectory);
 
             if (smoke)
             {
@@ -69,6 +71,9 @@ namespace EsapiRunnerHub
                     patientResult.IsAvailable
                         ? "ESAPI ready · " + patientResult.Patients.Count + " patients cached"
                         : "ESAPI offline · catalogue available");
+                TechnicalLog.Current.Write(patientResult.IsAvailable ? "INFO" : "WARN",
+                    patientResult.IsAvailable ? "esapi_directory_loaded" : patientResult.ErrorCode,
+                    string.Empty, null);
             }
 
             var pathProbe = new PathProbe();
@@ -76,6 +81,12 @@ namespace EsapiRunnerHub
             {
                 var result = await pathProbe.ProbeAsync(card.Definition.ResolvedExecutable, configuration.Hub.PathProbeTimeoutMs);
                 Dispatcher.Invoke(() => viewModel.UpdateApplicationReadiness(card.Id, result));
+                if (result.Readiness != PathReadiness.Ready)
+                {
+                    TechnicalLog.Current.Write("WARN",
+                        result.Readiness == PathReadiness.Missing ? "executable_missing" : "network_path_unavailable",
+                        card.Id, null);
+                }
             });
             await Task.WhenAll(probes);
         }

@@ -9,3 +9,4 @@ dist/
 *.suo
 *.pdb
 settings.ini
+tmp/

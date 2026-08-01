@@ -86,6 +86,7 @@ namespace EsapiRunnerHub.Configuration
             Append(builder, "SearchMaxResults", configuration.Hub.SearchMaxResults.ToString(CultureInfo.InvariantCulture));
             Append(builder, "SearchDebounceMs", configuration.Hub.SearchDebounceMs.ToString(CultureInfo.InvariantCulture));
             Append(builder, "PathProbeTimeoutMs", configuration.Hub.PathProbeTimeoutMs.ToString(CultureInfo.InvariantCulture));
+            Append(builder, "LogDirectory", configuration.Hub.LogDirectory);
             AppendExtras(builder, configuration.Hub.ExtraValues);
 
             foreach (var application in configuration.Applications.OrderBy(app => app.SortOrder).ThenBy(app => app.Name, StringComparer.OrdinalIgnoreCase))
@@ -165,6 +166,7 @@ namespace EsapiRunnerHub.Configuration
                     case "searchmaxresults": hub.SearchMaxResults = ParseInt(pair.Key, pair.Value); break;
                     case "searchdebouncems": hub.SearchDebounceMs = ParseInt(pair.Key, pair.Value); break;
                     case "pathprobetimeoutms": hub.PathProbeTimeoutMs = ParseInt(pair.Key, pair.Value); break;
+                    case "logdirectory": hub.LogDirectory = pair.Value; break;
                     default: hub.ExtraValues[pair.Key] = pair.Value; break;
                 }
             }
