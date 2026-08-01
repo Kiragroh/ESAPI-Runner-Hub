@@ -15,6 +15,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("optional and required cards follow patient context", AppliesPatientModes);
             TestHarness.Test("catalogue filters by category and text", FiltersCatalogue);
             TestHarness.Test("offline ESAPI state stays explicit", ShowsOfflineState);
+            TestHarness.Test("Eclipse plug-in cards are visible but never launched externally", KeepsPluginInsideEclipse);
         }
 
         private static void RetainsPatientContext()
@@ -67,6 +68,33 @@ namespace EsapiRunnerHub.Tests
             viewModel.SetEsapiStatus(false, "Offline · application catalogue remains available");
             TestHarness.AssertFalse(viewModel.IsEsapiAvailable);
             TestHarness.AssertContains(viewModel.EsapiStatusText, "Offline");
+        }
+
+        private static void KeepsPluginInsideEclipse()
+        {
+            var configuration = IniConfigurationStore.ParseText(@"
+[Application.plugin]
+Name=Plan FieldNamer
+Category=Eclipse plug-ins
+Description=Runs inside Eclipse.
+Executable=plugins\Plan_FieldNamer.esapi.dll
+LaunchKind=EclipsePlugin
+PatientMode=None
+PatientTransport=None
+Enabled=true
+", @"C:\portable\settings.ini");
+            var viewModel = new MainViewModel(configuration, new List<PatientRecord>());
+            var card = viewModel.Applications.Single();
+            card.SetReadiness(PathReadiness.Ready, "Ready");
+            var referenceVisibility = card.GetType().GetProperty("ReferenceVisibility");
+            var withoutPatientVisibility = card.GetType().GetProperty("WithoutPatientVisibility");
+
+            TestHarness.AssertFalse(card.CanStartWithoutPatient);
+            TestHarness.AssertFalse(card.CanStartWithPatient);
+            TestHarness.AssertEqual("Collapsed", withoutPatientVisibility.GetValue(card, null).ToString());
+            TestHarness.AssertTrue(referenceVisibility != null, "ApplicationCardViewModel.ReferenceVisibility is missing.");
+            TestHarness.AssertEqual("Visible", referenceVisibility.GetValue(card, null).ToString());
+            TestHarness.AssertContains(card.ModeLabel, "Eclipse");
         }
 
         private static MainViewModel CreateViewModel()

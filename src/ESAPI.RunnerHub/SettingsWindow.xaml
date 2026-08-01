@@ -44,7 +44,7 @@
                     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                     <StackPanel>
                         <TextBlock Text="Applications" FontSize="18" FontWeight="SemiBold" />
-                        <TextBlock Text="Runner and standalone EXEs" Foreground="#6B7482" Margin="0,2,0,10" />
+                        <TextBlock Text="Runner, standalone EXEs and Eclipse plug-ins" Foreground="#6B7482" Margin="0,2,0,10" />
                     </StackPanel>
                     <ListBox Grid.Row="1" ItemsSource="{Binding Applications}" SelectedItem="{Binding SelectedApplication}" BorderThickness="0">
                         <ListBox.ItemTemplate>
@@ -107,7 +107,9 @@
                                 <StackPanel Grid.Column="2"><TextBlock Text="Sort order" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.SortOrder}" /></StackPanel>
                             </Grid>
                             <TextBlock Text="Description" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.Description}" AcceptsReturn="True" Height="58" TextWrapping="Wrap" />
-                            <TextBlock Text="Executable" FontWeight="SemiBold" />
+                            <TextBlock Text="Launch kind" FontWeight="SemiBold" />
+                            <ComboBox ItemsSource="{Binding LaunchKinds}" SelectedItem="{Binding SelectedApplication.LaunchKind}" />
+                            <TextBlock Text="Executable or plug-in file" FontWeight="SemiBold" />
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseExecutable_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
                                 <TextBox Text="{Binding SelectedApplication.Executable}" />

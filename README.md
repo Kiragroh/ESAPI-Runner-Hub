@@ -28,6 +28,7 @@ flowchart LR
 - No retained ESAPI patient, course, plan, or `ScriptContext` object.
 - Optional patient-ID transfer by argument or child-only environment variable.
 - Applications that require, optionally accept, or ignore a patient context.
+- Visible Eclipse plug-in cards for `.esapi.dll` and single-file scripts, clearly marked to start inside Eclipse rather than as external processes.
 - Multiple sequential or overlapping child processes; non-zero exits and crashes do not close the Hub.
 - Independent asynchronous path checks with explicit missing/local and unavailable/network states.
 - A graphical settings editor for the same portable `settings.ini` used at runtime.
@@ -70,13 +71,18 @@ Patient transports:
 - `Argument`: `{PatientId}` in `PatientArgumentTemplate` is replaced with a validated ID.
 - `Environment`: the ID is set only for the child under `PatientEnvironmentKey`.
 
+Launch kinds:
+
+- `Executable`: starts an isolated external `.exe` process.
+- `EclipsePlugin`: catalogues a `.esapi.dll` or `.cs` plug-in and shows that it must be opened from Eclipse under **Tools > Scripts**; the Hub never attempts to execute it externally.
+
 The fully expanded command line and environment value are never displayed or logged. See [settings.example.ini](settings.example.ini) for complete examples.
 
 ## ESAPI behavior
 
 The launcher has no compile-time reference to `VMS.TPS.*`. It loads the configured API assembly by reflection on a dedicated STA thread, calls `Application.CreateApplication()`, copies `PatientSummaries` into plain strings, and disposes the ESAPI application immediately. Local filtering then uses only detached records.
 
-Version 0.1 does not search courses/plans or pass live ESAPI objects to a child. A classic Eclipse plug-in DLL needs its own compatible runner EXE before it can be registered. A patient-aware standalone EXE must explicitly implement the configured argument or environment contract.
+Version 0.1 does not search courses/plans or pass live ESAPI objects to a child. Eclipse plug-ins can be listed in the catalogue, but remain inside the Eclipse `ScriptContext`; an external launch still requires a compatible runner EXE. A patient-aware standalone EXE must explicitly implement the configured argument or environment contract.
 
 ## Privacy and resilience
 

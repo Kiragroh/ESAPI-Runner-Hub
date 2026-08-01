@@ -58,6 +58,12 @@ namespace EsapiRunnerHub.Configuration
                     errors.Add(prefix + "Executable is required.");
                 }
 
+                if (application.LaunchKind == LaunchKind.EclipsePlugin &&
+                    (application.PatientMode != PatientMode.None || application.PatientTransport != PatientTransport.None))
+                {
+                    errors.Add(prefix + "EclipsePlugin entries must use PatientMode=None and PatientTransport=None because they run inside Eclipse.");
+                }
+
                 if (application.PatientMode == PatientMode.Required && application.PatientTransport == PatientTransport.None)
                 {
                     errors.Add(prefix + "PatientTransport is required when PatientMode is Required.");

@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.IO;
+using System.Linq;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.ViewModels;
 
@@ -11,6 +13,7 @@ namespace EsapiRunnerHub.Tests
         {
             TestHarness.Test("settings editor adds edits and deletes applications", AddsEditsAndDeletes);
             TestHarness.Test("settings editor validates and atomically reloads saved INI", SavesAndReloads);
+            TestHarness.Test("settings editor exposes executable and Eclipse plug-in kinds", ExposesLaunchKinds);
         }
 
         private static void AddsEditsAndDeletes()
@@ -56,6 +59,18 @@ namespace EsapiRunnerHub.Tests
                     Directory.Delete(directory, true);
                 }
             }
+        }
+
+        private static void ExposesLaunchKinds()
+        {
+            var path = Path.Combine(Path.GetTempPath(), "runner-hub-settings-" + Guid.NewGuid().ToString("N"), "settings.ini");
+            var viewModel = new SettingsViewModel(new HubConfiguration(), path);
+            var property = viewModel.GetType().GetProperty("LaunchKinds");
+
+            TestHarness.AssertTrue(property != null, "SettingsViewModel.LaunchKinds is missing.");
+            var values = ((IEnumerable)property.GetValue(viewModel, null)).Cast<object>().Select(value => value.ToString()).ToList();
+            TestHarness.AssertTrue(values.Contains("Executable"));
+            TestHarness.AssertTrue(values.Contains("EclipsePlugin"));
         }
     }
 }

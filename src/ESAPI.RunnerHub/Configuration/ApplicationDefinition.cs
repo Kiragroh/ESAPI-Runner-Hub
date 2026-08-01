@@ -18,12 +18,19 @@ namespace EsapiRunnerHub.Configuration
         Environment
     }
 
+    public enum LaunchKind
+    {
+        Executable,
+        EclipsePlugin
+    }
+
     public sealed class ApplicationDefinition
     {
         public ApplicationDefinition()
         {
             ExtraValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             Enabled = true;
+            LaunchKind = LaunchKind.Executable;
             PatientMode = PatientMode.None;
             PatientTransport = PatientTransport.None;
         }
@@ -35,6 +42,7 @@ namespace EsapiRunnerHub.Configuration
         public string Executable { get; set; }
         public string WorkingDirectory { get; set; }
         public string Arguments { get; set; }
+        public LaunchKind LaunchKind { get; set; }
         public PatientMode PatientMode { get; set; }
         public PatientTransport PatientTransport { get; set; }
         public string PatientArgumentTemplate { get; set; }

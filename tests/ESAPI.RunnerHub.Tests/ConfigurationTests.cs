@@ -9,6 +9,8 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
+            TestHarness.Test("Eclipse plug-in kind parses and round trips", ParsesEclipsePluginKind);
+            TestHarness.Test("Eclipse plug-ins cannot declare external patient transfer", RejectsPluginPatientTransfer);
             TestHarness.Test("INI parser resolves hub and application values", () =>
             {
                 var source = @"
@@ -104,6 +106,45 @@ Enabled=true
                     Directory.Delete(directory, true);
                 }
             });
+        }
+
+        private static void ParsesEclipsePluginKind()
+        {
+            var configuration = IniConfigurationStore.ParseText(@"
+[Application.plugin]
+Name=Plan FieldNamer
+Category=Eclipse plug-ins
+Description=Runs inside Eclipse.
+Executable=plugins\Plan_FieldNamer.esapi.dll
+LaunchKind=EclipsePlugin
+PatientMode=None
+PatientTransport=None
+Enabled=true
+", @"C:\portable\settings.ini");
+            var application = configuration.Applications.Single();
+            var launchKind = application.GetType().GetProperty("LaunchKind");
+
+            TestHarness.AssertTrue(launchKind != null, "ApplicationDefinition.LaunchKind is missing.");
+            TestHarness.AssertEqual("EclipsePlugin", launchKind.GetValue(application, null).ToString());
+            TestHarness.AssertContains(IniConfigurationStore.Serialize(configuration), "LaunchKind=EclipsePlugin");
+            TestHarness.AssertTrue(configuration.Validate().IsValid);
+        }
+
+        private static void RejectsPluginPatientTransfer()
+        {
+            var configuration = IniConfigurationStore.ParseText(@"
+[Application.plugin]
+Name=Plug-in
+Executable=plugins\Plugin.esapi.dll
+LaunchKind=EclipsePlugin
+PatientMode=Optional
+PatientTransport=Argument
+PatientArgumentTemplate=--patient {PatientId}
+", @"C:\portable\settings.ini");
+
+            var validation = configuration.Validate();
+            TestHarness.AssertFalse(validation.IsValid);
+            TestHarness.AssertTrue(validation.Errors.Any(error => error.Contains("EclipsePlugin")));
         }
     }
 }

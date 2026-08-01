@@ -2,6 +2,17 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.1.1] - 2026-08-01
+
+### Added
+
+- Eclipse plug-in catalogue entries for `.esapi.dll` and `.cs` tools, visibly separated from externally launchable executables.
+- Editable launch-kind selection in `settings.ini` and the graphical settings window.
+
+### Safety
+
+- Eclipse plug-ins never expose an external start action and cannot declare patient transfer because they require the live Eclipse `ScriptContext`.
+
 ## [0.1.0] - 2026-08-01
 
 ### Added

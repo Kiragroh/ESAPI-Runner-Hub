@@ -36,7 +36,7 @@ namespace EsapiRunnerHub
 
         private void BrowseExecutable_Click(object sender, RoutedEventArgs e)
         {
-            var path = BrowseFile("Executable applications|*.exe");
+            var path = BrowseFile("Supported targets|*.exe;*.esapi.dll;*.cs|Executable applications|*.exe|Eclipse plug-ins|*.esapi.dll;*.cs");
             if (path != null) viewModel.AssignExecutable(path);
         }
 

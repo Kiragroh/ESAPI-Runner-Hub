@@ -96,6 +96,7 @@ namespace EsapiRunnerHub.Configuration
                 Append(builder, "Name", application.Name);
                 Append(builder, "Category", application.Category);
                 Append(builder, "Description", application.Description);
+                Append(builder, "LaunchKind", application.LaunchKind.ToString());
                 Append(builder, "Executable", application.Executable);
                 Append(builder, "WorkingDirectory", application.WorkingDirectory);
                 Append(builder, "Arguments", application.Arguments);
@@ -184,6 +185,7 @@ namespace EsapiRunnerHub.Configuration
                     case "executable": application.Executable = pair.Value; break;
                     case "workingdirectory": application.WorkingDirectory = pair.Value; break;
                     case "arguments": application.Arguments = pair.Value; break;
+                    case "launchkind": application.LaunchKind = ParseEnum<LaunchKind>(pair.Key, pair.Value); break;
                     case "patientmode": application.PatientMode = ParseEnum<PatientMode>(pair.Key, pair.Value); break;
                     case "patienttransport": application.PatientTransport = ParseEnum<PatientTransport>(pair.Key, pair.Value); break;
                     case "patientargumenttemplate": application.PatientArgumentTemplate = pair.Value; break;

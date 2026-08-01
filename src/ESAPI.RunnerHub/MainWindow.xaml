@@ -210,6 +210,8 @@
                                             <Button Content="{Binding WithoutPatientLabel}" Command="{Binding DataContext.StartWithoutPatientCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding}" IsEnabled="{Binding CanStartWithoutPatient}" Visibility="{Binding WithoutPatientVisibility}"
                                                     Style="{StaticResource SecondaryButton}" />
+                                            <TextBlock Text="{Binding ReferenceHint}" Visibility="{Binding ReferenceVisibility}" Foreground="#7A5B18"
+                                                       Background="#FFF1C9" Padding="10,7" FontWeight="SemiBold" />
                                         </WrapPanel>
                                     </Grid>
                                 </Border>

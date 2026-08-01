@@ -23,6 +23,7 @@ namespace EsapiRunnerHub.ViewModels
             Applications = new ObservableCollection<ApplicationDefinition>(workingConfiguration.Applications);
             PatientModes = Enum.GetValues(typeof(PatientMode)).Cast<PatientMode>().ToList();
             PatientTransports = Enum.GetValues(typeof(PatientTransport)).Cast<PatientTransport>().ToList();
+            LaunchKinds = Enum.GetValues(typeof(LaunchKind)).Cast<LaunchKind>().ToList();
             SelectedApplication = Applications.FirstOrDefault();
             UpdateValidation();
         }
@@ -30,6 +31,7 @@ namespace EsapiRunnerHub.ViewModels
         public ObservableCollection<ApplicationDefinition> Applications { get; private set; }
         public IList<PatientMode> PatientModes { get; private set; }
         public IList<PatientTransport> PatientTransports { get; private set; }
+        public IList<LaunchKind> LaunchKinds { get; private set; }
         public HubConfiguration WorkingConfiguration { get { return workingConfiguration; } }
 
         public string SettingsPath

@@ -1,9 +1,19 @@
 {
-  "version": "0.1.0",
-  "build": 1,
+  "version": "0.1.1",
+  "build": 2,
   "lastUpdate": "2026-08-01",
-  "lastChange": "Erste öffentliche Version mit schneller ESAPI-Patientensuche, konfigurierbarem EXE-Katalog und isolierten Kindprozessen.",
+  "lastChange": "Live-Katalog unterstützt startbare ESAPI-EXEs und sichtbar getrennte Eclipse-Plugins aus dem gemeinsamen Plugin-Ordner.",
   "changelog": [
+    {
+      "build": 2,
+      "date": "2026-08-01",
+      "title": "ESAPI Runner Hub 0.1.1",
+      "changes": [
+        "LaunchKind unterscheidet externe EXEs von Eclipse-Plugins.",
+        "Plugin-Karten bleiben sichtbar, werden aber ausschließlich innerhalb von Eclipse gestartet.",
+        "LaunchKind ist in settings.ini und in der Settings-GUI bearbeitbar."
+      ]
+    },
     {
       "build": 1,
       "date": "2026-08-01",

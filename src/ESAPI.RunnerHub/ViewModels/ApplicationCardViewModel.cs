@@ -29,6 +29,7 @@ namespace EsapiRunnerHub.ViewModels
         {
             get
             {
+                if (Definition.LaunchKind == LaunchKind.EclipsePlugin) return "Eclipse plug-in";
                 if (Definition.PatientMode == PatientMode.Required) return "Patient required";
                 if (Definition.PatientMode == PatientMode.Optional && Definition.PatientTransport != PatientTransport.None) return "Patient optional";
                 return "No patient transfer";
@@ -37,25 +38,28 @@ namespace EsapiRunnerHub.ViewModels
 
         public string StatusText { get { return statusText; } }
         public bool IsReady { get { return readiness == PathReadiness.Ready; } }
-        public bool CanStartWithoutPatient { get { return IsReady && Definition.PatientMode != PatientMode.Required; } }
+        public bool CanStartWithoutPatient { get { return Definition.LaunchKind == LaunchKind.Executable && IsReady && Definition.PatientMode != PatientMode.Required; } }
         public bool CanStartWithPatient
         {
             get
             {
-                return IsReady && selectedPatient != null && Definition.PatientMode != PatientMode.None &&
+                return Definition.LaunchKind == LaunchKind.Executable && IsReady && selectedPatient != null && Definition.PatientMode != PatientMode.None &&
                        Definition.PatientTransport != PatientTransport.None;
             }
         }
 
         public Visibility WithPatientVisibility
         {
-            get { return Definition.PatientMode == PatientMode.None || Definition.PatientTransport == PatientTransport.None ? Visibility.Collapsed : Visibility.Visible; }
+            get { return Definition.LaunchKind == LaunchKind.EclipsePlugin || Definition.PatientMode == PatientMode.None || Definition.PatientTransport == PatientTransport.None ? Visibility.Collapsed : Visibility.Visible; }
         }
 
         public Visibility WithoutPatientVisibility
         {
-            get { return Definition.PatientMode == PatientMode.Required ? Visibility.Collapsed : Visibility.Visible; }
+            get { return Definition.LaunchKind == LaunchKind.EclipsePlugin || Definition.PatientMode == PatientMode.Required ? Visibility.Collapsed : Visibility.Visible; }
         }
+
+        public Visibility ReferenceVisibility { get { return Definition.LaunchKind == LaunchKind.EclipsePlugin ? Visibility.Visible : Visibility.Collapsed; } }
+        public string ReferenceHint { get { return "Available in Eclipse · Tools > Scripts"; } }
 
         public string WithPatientLabel
         {
