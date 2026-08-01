@@ -4,8 +4,8 @@ obj/
 TestResults/
 dist/
 .superpowers/
+.worktrees/
 *.user
 *.suo
 *.pdb
 settings.ini
-
