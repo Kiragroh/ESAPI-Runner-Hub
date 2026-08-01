@@ -11,6 +11,7 @@ namespace EsapiRunnerHub.Tests
         {
             TestHarness.Test("Eclipse plug-in kind parses and round trips", ParsesEclipsePluginKind);
             TestHarness.Test("Eclipse plug-ins cannot declare external patient transfer", RejectsPluginPatientTransfer);
+            TestHarness.Test("launch kind must match the configured target extension", RejectsMismatchedLaunchKind);
             TestHarness.Test("INI parser resolves hub and application values", () =>
             {
                 var source = @"
@@ -145,6 +146,32 @@ PatientArgumentTemplate=--patient {PatientId}
             var validation = configuration.Validate();
             TestHarness.AssertFalse(validation.IsValid);
             TestHarness.AssertTrue(validation.Errors.Any(error => error.Contains("EclipsePlugin")));
+        }
+
+        private static void RejectsMismatchedLaunchKind()
+        {
+            var executableAsPlugin = IniConfigurationStore.ParseText(@"
+[Application.tool]
+Name=Tool
+Executable=tool.exe
+LaunchKind=EclipsePlugin
+PatientMode=None
+PatientTransport=None
+", @"C:\portable\settings.ini").Validate();
+
+            var pluginAsExecutable = IniConfigurationStore.ParseText(@"
+[Application.plugin]
+Name=Plug-in
+Executable=Plugin.esapi.dll
+LaunchKind=Executable
+PatientMode=None
+PatientTransport=None
+", @"C:\portable\settings.ini").Validate();
+
+            TestHarness.AssertFalse(executableAsPlugin.IsValid);
+            TestHarness.AssertFalse(pluginAsExecutable.IsValid);
+            TestHarness.AssertTrue(executableAsPlugin.Errors.Any(error => error.Contains(".cs") && error.Contains(".esapi.dll")));
+            TestHarness.AssertTrue(pluginAsExecutable.Errors.Any(error => error.Contains(".exe")));
         }
     }
 }

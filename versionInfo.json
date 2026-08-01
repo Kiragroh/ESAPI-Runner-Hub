@@ -12,7 +12,8 @@
         "LaunchKind unterscheidet externe EXEs von Eclipse-Plugins.",
         "Plugin-Karten bleiben sichtbar, werden aber ausschließlich innerhalb von Eclipse gestartet.",
         "LaunchKind ist in settings.ini und in der Settings-GUI bearbeitbar.",
-        "Technische Logs erfassen Start sowie erfolgreichen oder fehlerhaften Prozessabschluss ohne Patienten- oder Argumentdaten."
+        "Technische Logs erfassen Start sowie erfolgreichen oder fehlerhaften Prozessabschluss ohne Patienten- oder Argumentdaten.",
+        "Zentrale Logs sind pro Hub-Prozess getrennt und bleiben bei Netzwerk- oder Berechtigungsfehlern ohne Einfluss auf gestartete Programme."
       ]
     },
     {

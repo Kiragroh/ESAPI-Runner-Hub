@@ -13,6 +13,9 @@ All notable changes to ESAPI Runner Hub are documented here.
 ### Safety
 
 - Eclipse plug-ins never expose an external start action and cannot declare patient transfer because they require the live Eclipse `ScriptContext`.
+- Launch kind and target extension are cross-validated, so plug-ins cannot accidentally appear as startable executables.
+- Central technical logs use one privacy-safe file per Hub process; unavailable log storage never interrupts application launches or exit handling.
+- Child processes that exit before event subscription are still reported as completed instead of remaining visually stuck as running.
 
 ## [0.1.0] - 2026-08-01
 

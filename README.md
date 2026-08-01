@@ -32,7 +32,7 @@ flowchart LR
 - Multiple sequential or overlapping child processes; non-zero exits and crashes do not close the Hub.
 - Independent asynchronous path checks with explicit missing/local and unavailable/network states.
 - A graphical settings editor for the same portable `settings.ini` used at runtime.
-- Privacy-safe technical logs without patient names, IDs, search text, expanded arguments, environment values, or child output.
+- Privacy-safe per-process technical logs without patient names, IDs, search text, expanded arguments, environment values, or child output; unavailable log storage never interrupts a launch.
 - Synthetic `--offline-ui-smoke` mode for screenshots and UI checks.
 - x64 .NET Framework 4.8 single-EXE launcher with its own window/taskbar icon.
 

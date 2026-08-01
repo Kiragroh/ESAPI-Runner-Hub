@@ -9,6 +9,7 @@ namespace EsapiRunnerHub.Tests
         public static void Register()
         {
             TestHarness.Test("technical logs retain categories but redact exception details", RedactsPatientDetails);
+            TestHarness.Test("technical log write failures never escape into application flow", ContainsWriteFailures);
             TestHarness.Test("crash report contains no patient or expanded arguments", RedactsCrashReport);
         }
 
@@ -50,6 +51,22 @@ namespace EsapiRunnerHub.Tests
             finally
             {
                 if (Directory.Exists(directory)) Directory.Delete(directory, true);
+            }
+        }
+
+        private static void ContainsWriteFailures()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "runner-hub-log-blocked-" + Guid.NewGuid().ToString("N"));
+            var log = new TechnicalLog(directory);
+            Directory.Delete(directory, true);
+            File.WriteAllText(directory, "This file deliberately blocks recreation of the log directory.");
+            try
+            {
+                log.Write("INFO", "child_started", "fixture", null);
+            }
+            finally
+            {
+                File.Delete(directory);
             }
         }
     }

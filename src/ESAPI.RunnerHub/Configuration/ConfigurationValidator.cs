@@ -57,6 +57,17 @@ namespace EsapiRunnerHub.Configuration
                 {
                     errors.Add(prefix + "Executable is required.");
                 }
+                else if (application.LaunchKind == LaunchKind.Executable &&
+                         !application.Executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    errors.Add(prefix + "Executable entries must target an .exe file.");
+                }
+                else if (application.LaunchKind == LaunchKind.EclipsePlugin &&
+                         !application.Executable.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
+                         !application.Executable.EndsWith(".esapi.dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    errors.Add(prefix + "EclipsePlugin entries must target a .cs or .esapi.dll file.");
+                }
 
                 if (application.LaunchKind == LaunchKind.EclipsePlugin &&
                     (application.PatientMode != PatientMode.None || application.PatientTransport != PatientTransport.None))

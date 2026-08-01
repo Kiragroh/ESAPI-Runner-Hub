@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,7 +16,7 @@ namespace EsapiRunnerHub.Privacy
         {
             var resolved = string.IsNullOrWhiteSpace(directory) ? DefaultDirectory() : Path.GetFullPath(directory);
             Directory.CreateDirectory(resolved);
-            FilePath = Path.Combine(resolved, "runner-hub.log");
+            FilePath = Path.Combine(resolved, "runner-hub-" + SafeToken(Environment.MachineName, "machine") + "-" + Process.GetCurrentProcess().Id + ".log");
         }
 
         public string FilePath { get; private set; }
@@ -42,17 +43,28 @@ namespace EsapiRunnerHub.Privacy
 
         public void Write(string level, string eventCode, string applicationId, Exception exception)
         {
-            var line = string.Join("\t", new[]
+            try
             {
-                DateTime.UtcNow.ToString("o"),
-                SafeToken(level, "INFO"),
-                SafeToken(eventCode, "technical_event"),
-                "app=" + SafeToken(applicationId, "-"),
-                "exception=" + (exception == null ? "-" : SafeToken(exception.GetType().Name, "Exception"))
-            }) + Environment.NewLine;
-            lock (sync)
+                var line = string.Join("\t", new[]
+                {
+                    DateTime.UtcNow.ToString("o"),
+                    SafeToken(level, "INFO"),
+                    SafeToken(eventCode, "technical_event"),
+                    "app=" + SafeToken(applicationId, "-"),
+                    "exception=" + (exception == null ? "-" : SafeToken(exception.GetType().Name, "Exception"))
+                }) + Environment.NewLine;
+                lock (sync)
+                {
+                    using (var stream = new FileStream(FilePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+                    using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
+                    {
+                        writer.Write(line);
+                    }
+                }
+            }
+            catch (Exception)
             {
-                File.AppendAllText(FilePath, line, new UTF8Encoding(false));
+                // Technical logging must never change application control flow.
             }
         }
 

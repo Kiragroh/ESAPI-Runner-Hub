@@ -16,6 +16,10 @@ namespace EsapiRunnerHub.ViewModels
             this.process = process;
             status = "Running";
             process.Exited += ProcessExited;
+            if (!process.IsRunning)
+            {
+                ProcessExited(process, EventArgs.Empty);
+            }
         }
 
         public string ApplicationName { get; private set; }
