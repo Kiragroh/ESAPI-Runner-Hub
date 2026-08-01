@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESAPI.RunnerHub.Tests", "te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeVms.Api", "tests\FakeVms.Api\FakeVms.Api.csproj", "{F202755D-496E-40E0-9B27-DAB49BB782A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnerFixture", "tests\RunnerFixture\RunnerFixture.csproj", "{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -26,6 +28,10 @@ Global
 		{F202755D-496E-40E0-9B27-DAB49BB782A1}.Debug|x64.Build.0 = Debug|x64
 		{F202755D-496E-40E0-9B27-DAB49BB782A1}.Release|x64.ActiveCfg = Release|x64
 		{F202755D-496E-40E0-9B27-DAB49BB782A1}.Release|x64.Build.0 = Release|x64
+		{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}.Debug|x64.ActiveCfg = Debug|x64
+		{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}.Debug|x64.Build.0 = Debug|x64
+		{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}.Release|x64.ActiveCfg = Release|x64
+		{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

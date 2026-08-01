@@ -56,6 +56,11 @@
     <Compile Include="Configuration\IniConfigurationStore.cs" />
     <Compile Include="Esapi\PatientDirectoryLoadResult.cs" />
     <Compile Include="Esapi\ReflectionPatientDirectoryLoader.cs" />
+    <Compile Include="Launching\ArgumentComposer.cs" />
+    <Compile Include="Launching\ChildProcessLauncher.cs" />
+    <Compile Include="Launching\LaunchRequest.cs" />
+    <Compile Include="Launching\PathProbe.cs" />
+    <Compile Include="Launching\RunningProcessInfo.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
