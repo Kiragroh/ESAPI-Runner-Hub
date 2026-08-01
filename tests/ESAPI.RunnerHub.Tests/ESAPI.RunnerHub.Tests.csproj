@@ -23,6 +23,7 @@
     <Compile Include="ConfigurationTests.cs" />
     <Compile Include="EsapiPatientDirectoryTests.cs" />
     <Compile Include="LaunchingTests.cs" />
+    <Compile Include="MainViewModelTests.cs" />
     <Compile Include="PatientSearchTests.cs" />
     <Compile Include="ProjectShapeTests.cs" />
     <Compile Include="TestHarness.cs" />
