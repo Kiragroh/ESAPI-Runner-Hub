@@ -50,6 +50,10 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Configuration\ApplicationDefinition.cs" />
+    <Compile Include="Configuration\ConfigurationValidator.cs" />
+    <Compile Include="Configuration\HubConfiguration.cs" />
+    <Compile Include="Configuration\IniConfigurationStore.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
@@ -57,4 +61,3 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
-

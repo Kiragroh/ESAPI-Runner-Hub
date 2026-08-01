@@ -20,8 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="ConfigurationTests.cs" />
     <Compile Include="ProjectShapeTests.cs" />
     <Compile Include="TestHarness.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ESAPI.RunnerHub\ESAPI.RunnerHub.csproj">
+      <Project>{154FE10C-5EE3-4162-BDA0-354412E26B77}</Project>
+      <Name>ESAPI.RunnerHub</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

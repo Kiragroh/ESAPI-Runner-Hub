@@ -5,8 +5,8 @@ namespace EsapiRunnerHub.Tests
         private static int Main()
         {
             ProjectShapeTests.Register();
+            ConfigurationTests.Register();
             return TestHarness.Run();
         }
     }
 }
-

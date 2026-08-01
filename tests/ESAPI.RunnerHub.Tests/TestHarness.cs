@@ -64,6 +64,42 @@ namespace EsapiRunnerHub.Tests
                 throw new InvalidOperationException("Expected text was not found: " + expected);
             }
         }
+
+        public static void AssertEqual<T>(T expected, T actual)
+        {
+            if (!EqualityComparer<T>.Default.Equals(expected, actual))
+            {
+                throw new InvalidOperationException("Expected " + expected + " but got " + actual + ".");
+            }
+        }
+
+        public static void AssertTrue(bool condition, string message = "Expected true.")
+        {
+            if (!condition)
+            {
+                throw new InvalidOperationException(message);
+            }
+        }
+
+        public static void AssertFalse(bool condition, string message = "Expected false.")
+        {
+            AssertTrue(!condition, message);
+        }
+
+        public static TException AssertThrows<TException>(Action action)
+            where TException : Exception
+        {
+            try
+            {
+                action();
+            }
+            catch (TException exception)
+            {
+                return exception;
+            }
+
+            throw new InvalidOperationException("Expected exception " + typeof(TException).Name + ".");
+        }
     }
 }
 
