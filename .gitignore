@@ -1,0 +1,11 @@
+.vs/
+bin/
+obj/
+TestResults/
+dist/
+.superpowers/
+*.user
+*.suo
+*.pdb
+settings.ini
+
