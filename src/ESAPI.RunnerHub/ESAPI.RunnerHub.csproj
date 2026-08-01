@@ -54,6 +54,8 @@
     <Compile Include="Configuration\ConfigurationValidator.cs" />
     <Compile Include="Configuration\HubConfiguration.cs" />
     <Compile Include="Configuration\IniConfigurationStore.cs" />
+    <Compile Include="Esapi\PatientDirectoryLoadResult.cs" />
+    <Compile Include="Esapi\ReflectionPatientDirectoryLoader.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
