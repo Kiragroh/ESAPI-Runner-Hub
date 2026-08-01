@@ -17,6 +17,7 @@ namespace EsapiRunnerHub
     {
         private readonly string[] arguments;
         private string settingsPath;
+        private bool smokeMode;
 
         public MainWindow()
             : this(Array.Empty<string>())
@@ -34,7 +35,12 @@ namespace EsapiRunnerHub
         {
             Loaded -= WindowLoaded;
             settingsPath = ResolveSettingsPath(arguments);
-            var smoke = arguments.Any(value => string.Equals(value, "--offline-ui-smoke", StringComparison.OrdinalIgnoreCase));
+            smokeMode = arguments.Any(value => string.Equals(value, "--offline-ui-smoke", StringComparison.OrdinalIgnoreCase));
+            await InitializeAsync(smokeMode);
+        }
+
+        private async Task InitializeAsync(bool smoke)
+        {
             HubConfiguration configuration;
             try
             {
@@ -74,10 +80,17 @@ namespace EsapiRunnerHub
             await Task.WhenAll(probes);
         }
 
-        private void Settings_Click(object sender, RoutedEventArgs e)
+        private async void Settings_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(this, "The settings editor is opening in the next implementation step.\n\nCurrent file:\n" + settingsPath,
-                "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
+            var current = DataContext as MainViewModel;
+            var configuration = current == null ? CreateEmptyConfiguration(settingsPath) : current.Configuration;
+            var window = new SettingsWindow(configuration, settingsPath) { Owner = this };
+            if (window.ShowDialog() == true)
+            {
+                settingsPath = window.SavedSettingsPath;
+                smokeMode = false;
+                await InitializeAsync(false);
+            }
         }
 
         private static HubConfiguration LoadConfiguration(string path)

@@ -10,6 +10,7 @@ namespace EsapiRunnerHub.Tests
             EsapiPatientDirectoryTests.Register();
             LaunchingTests.Register();
             MainViewModelTests.Register();
+            SettingsViewModelTests.Register();
             return TestHarness.Run();
         }
     }

@@ -1,0 +1,144 @@
+<Window x:Class="EsapiRunnerHub.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ESAPI Runner Hub · Settings" Width="1080" Height="760" MinWidth="920" MinHeight="650"
+        WindowStartupLocation="CenterOwner" Background="#F4F1EA" FontFamily="Segoe UI">
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="9,7" /><Setter Property="Margin" Value="0,4,0,10" />
+            <Setter Property="BorderBrush" Value="#D5D6D1" /><Setter Property="Background" Value="White" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Padding" Value="7,5" /><Setter Property="Margin" Value="0,4,0,10" />
+        </Style>
+        <Style x:Key="Action" TargetType="Button">
+            <Setter Property="Background" Value="#087F76" /><Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="14,9" />
+            <Setter Property="Margin" Value="5,0,0,0" /><Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style x:Key="SoftAction" TargetType="Button" BasedOn="{StaticResource Action}">
+            <Setter Property="Background" Value="#E5E9E6" /><Setter Property="Foreground" Value="#17243A" />
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="88" /><RowDefinition Height="*" /><RowDefinition Height="74" /></Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="#14243C" Padding="24,15">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Settings" Foreground="White" FontSize="24" FontWeight="SemiBold" />
+                    <TextBlock Text="All ESAPI and application paths are stored in this portable INI file." Foreground="#B8C7D9" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="SETTINGS FILE" Foreground="#91A8C1" FontSize="10" FontWeight="Bold" />
+                    <TextBlock Text="{Binding SettingsPath}" Foreground="White" FontSize="11" MaxWidth="520" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="20,16">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="290" /><ColumnDefinition Width="14" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="White" CornerRadius="9" BorderBrush="#E0DED8" BorderThickness="1" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Applications" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="Runner and standalone EXEs" Foreground="#6B7482" Margin="0,2,0,10" />
+                    </StackPanel>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Applications}" SelectedItem="{Binding SelectedApplication}" BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="6,5">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Id}" FontSize="11" Foreground="#6B7482" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal">
+                        <Button Content="Add" Click="Add_Click" Style="{StaticResource Action}" Margin="0" />
+                        <Button Content="Delete" Click="Delete_Click" Style="{StaticResource SoftAction}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Border Background="White" CornerRadius="9" BorderBrush="#E0DED8" BorderThickness="1" Padding="18" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="ESAPI patient search" FontSize="18" FontWeight="SemiBold" />
+                            <TextBlock Text="Leave both assembly fields empty to run the catalogue in offline mode." Foreground="#6B7482" Margin="0,2,0,10" />
+                            <TextBlock Text="API assembly" FontWeight="SemiBold" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseApi_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
+                                <TextBox Text="{Binding EsapiApiAssembly, UpdateSourceTrigger=PropertyChanged}" />
+                            </DockPanel>
+                            <TextBlock Text="Types assembly (optional)" FontWeight="SemiBold" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseTypes_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
+                                <TextBox Text="{Binding EsapiTypesAssembly, UpdateSourceTrigger=PropertyChanged}" />
+                            </DockPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="Max results" FontWeight="SemiBold" /><TextBox Text="{Binding SearchMaxResults}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Debounce (ms)" FontWeight="SemiBold" /><TextBox Text="{Binding SearchDebounceMs}" /></StackPanel>
+                                <StackPanel Grid.Column="4"><TextBlock Text="Path timeout (ms)" FontWeight="SemiBold" /><TextBox Text="{Binding PathProbeTimeoutMs}" /></StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="White" CornerRadius="9" BorderBrush="#E0DED8" BorderThickness="1" Padding="18">
+                        <Border.Style>
+                            <Style TargetType="Border"><Setter Property="IsEnabled" Value="True" /><Style.Triggers><DataTrigger Binding="{Binding SelectedApplication}" Value="{x:Null}"><Setter Property="IsEnabled" Value="False" /><Setter Property="Opacity" Value="0.5" /></DataTrigger></Style.Triggers></Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="Selected application" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10" />
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="Section ID" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.Id}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Display name" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.Name}" /></StackPanel>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="Category" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.Category}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Sort order" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.SortOrder}" /></StackPanel>
+                            </Grid>
+                            <TextBlock Text="Description" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.Description}" AcceptsReturn="True" Height="58" TextWrapping="Wrap" />
+                            <TextBlock Text="Executable" FontWeight="SemiBold" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseExecutable_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
+                                <TextBox Text="{Binding SelectedApplication.Executable}" />
+                            </DockPanel>
+                            <TextBlock Text="Working directory" FontWeight="SemiBold" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseDirectory_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
+                                <TextBox Text="{Binding SelectedApplication.WorkingDirectory}" />
+                            </DockPanel>
+                            <TextBlock Text="Base arguments" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.Arguments}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="Patient mode" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding PatientModes}" SelectedItem="{Binding SelectedApplication.PatientMode}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Patient transport" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding PatientTransports}" SelectedItem="{Binding SelectedApplication.PatientTransport}" /></StackPanel>
+                            </Grid>
+                            <TextBlock Text="Patient argument template" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.PatientArgumentTemplate}" ToolTip="Example: --patient-id {PatientId}" />
+                            <TextBlock Text="Patient environment key" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.PatientEnvironmentKey}" ToolTip="Example: RUNNER_PATIENT_ID" />
+                            <CheckBox Content="Application enabled" IsChecked="{Binding SelectedApplication.Enabled}" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#FFFDF8" BorderBrush="#DDD9D0" BorderThickness="0,1,0,0" Padding="20,14">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding ValidationSummary}" Foreground="#596578" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="650" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Save as…" Click="SaveAs_Click" Style="{StaticResource SoftAction}" Margin="0" />
+                    <Button Content="Cancel" IsCancel="True" Style="{StaticResource SoftAction}" />
+                    <Button Content="Save" Click="Save_Click" Style="{StaticResource Action}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
