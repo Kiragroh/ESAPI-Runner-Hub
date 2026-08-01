@@ -1,0 +1,19 @@
+{
+  "version": "0.1.0",
+  "build": 1,
+  "lastUpdate": "2026-08-01",
+  "lastChange": "Erste öffentliche Version mit schneller ESAPI-Patientensuche, konfigurierbarem EXE-Katalog und isolierten Kindprozessen.",
+  "changelog": [
+    {
+      "build": 1,
+      "date": "2026-08-01",
+      "title": "ESAPI Runner Hub 0.1.0",
+      "changes": [
+        "Patientenverzeichnis wird über eine vendorfreie Reflection-Schicht einmalig in einen lokalen Suchindex kopiert und die ESAPI-Anwendung sofort freigegeben.",
+        "Runner- und Standalone-EXEs lassen sich in settings.ini oder der GUI mit optionaler Argument- beziehungsweise Umgebungsübergabe konfigurieren.",
+        "Jede Anwendung startet in einem getrennten Prozess; Fehler und Abstürze eines Kindprozesses schließen den Hub nicht.",
+        "Offline-Simulator, synthetische Test-Assembly, Privacy-Logs, eigenes App-Icon und reproduzierbarer x64-Release-Build ergänzt."
+      ]
+    }
+  ]
+}

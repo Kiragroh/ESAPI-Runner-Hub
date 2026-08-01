@@ -12,6 +12,7 @@ namespace EsapiRunnerHub.Tests
             MainViewModelTests.Register();
             SettingsViewModelTests.Register();
             PrivacyDiagnosticsTests.Register();
+            ReleaseMetadataTests.Register();
             return TestHarness.Run();
         }
     }
