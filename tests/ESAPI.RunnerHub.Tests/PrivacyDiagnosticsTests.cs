@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using EsapiRunnerHub.Privacy;
 
 namespace EsapiRunnerHub.Tests
@@ -10,6 +12,7 @@ namespace EsapiRunnerHub.Tests
         {
             TestHarness.Test("technical logs retain categories but redact exception details", RedactsPatientDetails);
             TestHarness.Test("technical log write failures never escape into application flow", ContainsWriteFailures);
+            TestHarness.Test("technical logging performs no filesystem work on the caller", AvoidsCallerFilesystemIo);
             TestHarness.Test("crash report contains no patient or expanded arguments", RedactsCrashReport);
         }
 
@@ -21,7 +24,7 @@ namespace EsapiRunnerHub.Tests
                 var log = new TechnicalLog(directory);
                 log.Write("WARN", "network_path_unavailable", "review", new IOException("SYN-1001 Ada Example --patient-id SYN-1001"));
                 log.Write("WARN", "esapi_unavailable", string.Empty, null);
-                var text = File.ReadAllText(log.FilePath);
+                var text = WaitForLog(log.FilePath, "esapi_unavailable");
 
                 TestHarness.AssertContains(text, "network_path_unavailable");
                 TestHarness.AssertContains(text, "esapi_unavailable");
@@ -58,7 +61,6 @@ namespace EsapiRunnerHub.Tests
         {
             var directory = Path.Combine(Path.GetTempPath(), "runner-hub-log-blocked-" + Guid.NewGuid().ToString("N"));
             var log = new TechnicalLog(directory);
-            Directory.Delete(directory, true);
             File.WriteAllText(directory, "This file deliberately blocks recreation of the log directory.");
             try
             {
@@ -68,6 +70,44 @@ namespace EsapiRunnerHub.Tests
             {
                 File.Delete(directory);
             }
+        }
+
+        private static void AvoidsCallerFilesystemIo()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "runner-hub-log-lazy-" + Guid.NewGuid().ToString("N"));
+            var log = new TechnicalLog(directory);
+            TestHarness.AssertFalse(Directory.Exists(directory), "Logger construction unexpectedly touched the filesystem.");
+
+            File.WriteAllText(directory, "This file deliberately blocks recreation of the log directory.");
+            try
+            {
+                var timer = Stopwatch.StartNew();
+                log.Write("INFO", "child_started", "fixture", null);
+                timer.Stop();
+                TestHarness.AssertTrue(timer.ElapsedMilliseconds < 250, "Logging blocked the caller for " + timer.ElapsedMilliseconds + " ms.");
+                Thread.Sleep(100);
+            }
+            finally
+            {
+                File.Delete(directory);
+            }
+        }
+
+        private static string WaitForLog(string path, string expected)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(5);
+            while (DateTime.UtcNow < deadline)
+            {
+                if (File.Exists(path))
+                {
+                    var text = File.ReadAllText(path);
+                    if (text.Contains(expected)) return text;
+                }
+
+                Thread.Sleep(20);
+            }
+
+            throw new InvalidOperationException("Timed out waiting for technical log event: " + expected);
         }
     }
 }

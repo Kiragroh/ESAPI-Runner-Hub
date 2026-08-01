@@ -12,6 +12,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("Eclipse plug-in kind parses and round trips", ParsesEclipsePluginKind);
             TestHarness.Test("Eclipse plug-ins cannot declare external patient transfer", RejectsPluginPatientTransfer);
             TestHarness.Test("launch kind must match the configured target extension", RejectsMismatchedLaunchKind);
+            TestHarness.Test("launch kind validation supports whole-path environment variables", SupportsExpandedWholePath);
             TestHarness.Test("INI parser resolves hub and application values", () =>
             {
                 var source = @"
@@ -172,6 +173,41 @@ PatientTransport=None
             TestHarness.AssertFalse(pluginAsExecutable.IsValid);
             TestHarness.AssertTrue(executableAsPlugin.Errors.Any(error => error.Contains(".cs") && error.Contains(".esapi.dll")));
             TestHarness.AssertTrue(pluginAsExecutable.Errors.Any(error => error.Contains(".exe")));
+        }
+
+        private static void SupportsExpandedWholePath()
+        {
+            const string executableVariable = "ESAPI_RUNNER_HUB_TEST_EXE";
+            const string pluginVariable = "ESAPI_RUNNER_HUB_TEST_PLUGIN";
+            var previousExecutable = Environment.GetEnvironmentVariable(executableVariable);
+            var previousPlugin = Environment.GetEnvironmentVariable(pluginVariable);
+            try
+            {
+                Environment.SetEnvironmentVariable(executableVariable, TestHarness.PathFromRoot("tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe"));
+                Environment.SetEnvironmentVariable(pluginVariable, @"C:\portable\Plugin.esapi.dll");
+                var configuration = IniConfigurationStore.ParseText(@"
+[Application.tool]
+Name=Tool
+Executable=%ESAPI_RUNNER_HUB_TEST_EXE%
+LaunchKind=Executable
+PatientMode=None
+PatientTransport=None
+
+[Application.plugin]
+Name=Plug-in
+Executable=%ESAPI_RUNNER_HUB_TEST_PLUGIN%
+LaunchKind=EclipsePlugin
+PatientMode=None
+PatientTransport=None
+", @"C:\portable\settings.ini");
+
+                TestHarness.AssertTrue(configuration.Validate().IsValid);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(executableVariable, previousExecutable);
+                Environment.SetEnvironmentVariable(pluginVariable, previousPlugin);
+            }
         }
     }
 }

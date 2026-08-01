@@ -58,13 +58,13 @@ namespace EsapiRunnerHub.Configuration
                     errors.Add(prefix + "Executable is required.");
                 }
                 else if (application.LaunchKind == LaunchKind.Executable &&
-                         !application.Executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                         !ResolvedTarget(application).EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                 {
                     errors.Add(prefix + "Executable entries must target an .exe file.");
                 }
                 else if (application.LaunchKind == LaunchKind.EclipsePlugin &&
-                         !application.Executable.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
-                         !application.Executable.EndsWith(".esapi.dll", StringComparison.OrdinalIgnoreCase))
+                         !ResolvedTarget(application).EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
+                         !ResolvedTarget(application).EndsWith(".esapi.dll", StringComparison.OrdinalIgnoreCase))
                 {
                     errors.Add(prefix + "EclipsePlugin entries must target a .cs or .esapi.dll file.");
                 }
@@ -99,6 +99,13 @@ namespace EsapiRunnerHub.Configuration
             }
 
             return new ConfigurationValidationResult(errors);
+        }
+
+        private static string ResolvedTarget(ApplicationDefinition application)
+        {
+            return string.IsNullOrWhiteSpace(application.ResolvedExecutable)
+                ? Environment.ExpandEnvironmentVariables(application.Executable ?? string.Empty)
+                : application.ResolvedExecutable;
         }
     }
 }

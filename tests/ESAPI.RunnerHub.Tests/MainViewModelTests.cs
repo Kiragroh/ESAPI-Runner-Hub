@@ -135,6 +135,12 @@ Enabled=true
                     Thread.Sleep(20);
                 }
 
+                while ((!File.Exists(TechnicalLog.Current.FilePath) ||
+                        !File.ReadAllText(TechnicalLog.Current.FilePath).Contains("child_exit_ok")) && DateTime.UtcNow < deadline)
+                {
+                    Thread.Sleep(20);
+                }
+
                 var log = File.ReadAllText(TechnicalLog.Current.FilePath);
                 TestHarness.AssertContains(log, "child_started");
                 TestHarness.AssertContains(log, "child_exit_ok");
