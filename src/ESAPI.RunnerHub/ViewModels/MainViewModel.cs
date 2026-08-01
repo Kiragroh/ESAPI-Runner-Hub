@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Windows.Input;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Infrastructure;
@@ -215,6 +216,23 @@ namespace EsapiRunnerHub.ViewModels
             {
                 var request = ArgumentComposer.Compose(card.Definition, selectedPatient, withPatient);
                 var process = launcher.Start(request);
+                var lifecycleLog = TechnicalLog.Current;
+                lifecycleLog.Write("INFO", "child_started", card.Id, null);
+                var exitLogged = 0;
+                Action writeExit = () =>
+                {
+                    if (Interlocked.Exchange(ref exitLogged, 1) == 0)
+                    {
+                        lifecycleLog.Write(process.ExitCode.GetValueOrDefault() == 0 ? "INFO" : "WARN",
+                            process.ExitCode.GetValueOrDefault() == 0 ? "child_exit_ok" : "child_exit_nonzero",
+                            card.Id, null);
+                    }
+                };
+                process.Exited += (sender, args) => writeExit();
+                if (!process.IsRunning)
+                {
+                    writeExit();
+                }
                 Processes.Insert(0, new ProcessRowViewModel(card.Name, process));
                 notificationText = card.Name + " started in a separate process.";
             }

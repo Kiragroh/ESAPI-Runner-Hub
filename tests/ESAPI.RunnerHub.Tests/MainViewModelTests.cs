@@ -1,8 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
+using EsapiRunnerHub.Privacy;
 using EsapiRunnerHub.ViewModels;
 
 namespace EsapiRunnerHub.Tests
@@ -16,6 +20,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("catalogue filters by category and text", FiltersCatalogue);
             TestHarness.Test("offline ESAPI state stays explicit", ShowsOfflineState);
             TestHarness.Test("Eclipse plug-in cards are visible but never launched externally", KeepsPluginInsideEclipse);
+            TestHarness.Test("successful child launches and exits are logged technically", LogsChildLifecycle);
         }
 
         private static void RetainsPatientContext()
@@ -99,6 +104,47 @@ Enabled=true
             viewModel.StartWithoutPatientCommand.Execute(card);
             TestHarness.AssertEqual(0, viewModel.Processes.Count);
             TestHarness.AssertContains(viewModel.NotificationText, "inside Eclipse");
+        }
+
+        private static void LogsChildLifecycle()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "runner-hub-lifecycle-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                TechnicalLog.Configure(directory);
+                var fixture = TestHarness.PathFromRoot("tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
+                var configuration = new HubConfiguration();
+                configuration.Applications.Add(new ApplicationDefinition
+                {
+                    Id = "lifecycle",
+                    Name = "Lifecycle Fixture",
+                    Executable = fixture,
+                    Arguments = "--mode success",
+                    PatientMode = PatientMode.None,
+                    PatientTransport = PatientTransport.None,
+                    Enabled = true
+                });
+                var viewModel = new MainViewModel(configuration, new List<PatientRecord>());
+                var card = viewModel.Applications.Single();
+                card.SetReadiness(PathReadiness.Ready, "Ready");
+
+                viewModel.StartWithoutPatientCommand.Execute(card);
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (viewModel.Processes.Single().Status == "Running" && DateTime.UtcNow < deadline)
+                {
+                    Thread.Sleep(20);
+                }
+
+                var log = File.ReadAllText(TechnicalLog.Current.FilePath);
+                TestHarness.AssertContains(log, "child_started");
+                TestHarness.AssertContains(log, "child_exit_ok");
+                TestHarness.AssertContains(log, "app=lifecycle");
+            }
+            finally
+            {
+                TechnicalLog.Configure(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ESAPI Runner Hub", "Logs"));
+                if (Directory.Exists(directory)) Directory.Delete(directory, true);
+            }
         }
 
         private static MainViewModel CreateViewModel()

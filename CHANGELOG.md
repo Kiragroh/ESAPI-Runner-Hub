@@ -8,6 +8,7 @@ All notable changes to ESAPI Runner Hub are documented here.
 
 - Eclipse plug-in catalogue entries for `.esapi.dll` and `.cs` tools, visibly separated from externally launchable executables.
 - Editable launch-kind selection in `settings.ini` and the graphical settings window.
+- Privacy-safe lifecycle events for child start, successful exit, and non-zero exit in the configured technical log directory.
 
 ### Safety
 

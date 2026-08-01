@@ -86,7 +86,7 @@ Version 0.1 does not search courses/plans or pass live ESAPI objects to a child.
 
 ## Privacy and resilience
 
-Patient records and recent selections are not persisted. Logs contain UTC time, event category, configured application ID, and exception type only. Child stdout/stderr is not captured. A slow optional UNC path disables only its own application card.
+Patient records and recent selections are not persisted. Logs contain UTC time, event category, configured application ID, and exception type only. Child start, successful exit, and non-zero exit are recorded without arguments or patient context. Child stdout/stderr is not captured. A slow optional UNC path disables only its own application card.
 
 Crash isolation protects the Hub from child failures; it does not guarantee that every pair of ESAPI applications may safely access Eclipse concurrently. Follow the validation and concurrency requirements of each target application.
 
