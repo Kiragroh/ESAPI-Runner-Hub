@@ -11,9 +11,26 @@ namespace EsapiRunnerHub.Esapi
     public sealed class ReflectionPatientDirectoryLoader
     {
         private const string ApplicationTypeName = "VMS.TPS.Common.Model.API.Application";
+        private readonly IReadOnlyCollection<string> rtmRoots;
+
+        public ReflectionPatientDirectoryLoader()
+        {
+        }
+
+        public ReflectionPatientDirectoryLoader(IEnumerable<string> rtmRoots)
+        {
+            this.rtmRoots = (rtmRoots ?? Enumerable.Empty<string>()).ToList();
+        }
 
         public PatientDirectoryLoadResult Load(string apiAssemblyPath, string typesAssemblyPath)
         {
+            var locator = new EsapiAssemblyLocator();
+            var location = rtmRoots == null
+                ? locator.Locate(apiAssemblyPath, typesAssemblyPath)
+                : locator.Locate(apiAssemblyPath, typesAssemblyPath, rtmRoots);
+            apiAssemblyPath = location.ApiAssemblyPath;
+            typesAssemblyPath = location.TypesAssemblyPath;
+
             if (string.IsNullOrWhiteSpace(apiAssemblyPath) || !File.Exists(apiAssemblyPath))
             {
                 return PatientDirectoryLoadResult.Offline("assembly_missing", "ESAPI API assembly was not found.");

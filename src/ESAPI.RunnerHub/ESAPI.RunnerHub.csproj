@@ -67,6 +67,7 @@
     <Compile Include="Configuration\HubConfiguration.cs" />
     <Compile Include="Configuration\IniConfigurationStore.cs" />
     <Compile Include="Esapi\PatientDirectoryLoadResult.cs" />
+    <Compile Include="Esapi\EsapiAssemblyLocator.cs" />
     <Compile Include="Esapi\ReflectionPatientDirectoryLoader.cs" />
     <Compile Include="Infrastructure\ObservableObject.cs" />
     <Compile Include="Infrastructure\RelayCommand.cs" />

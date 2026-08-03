@@ -40,7 +40,7 @@ flowchart LR
 
 1. Download the Windows x64 release ZIP and extract it to a normal folder.
 2. Copy `settings.example.ini` to `settings.ini` next to `ESAPI-Runner-Hub.exe`.
-3. Open **Settings** in the Hub and select the local ESAPI API/Types assemblies and application EXEs.
+3. Open **Settings** in the Hub and select the local ESAPI API/Types assemblies and application EXEs. A valid configured pair is used first; if it is missing or outdated, the Hub automatically tries the highest complete local Varian RTM installation under Program Files.
 4. Save, then search for a patient or start an application without a patient as permitted by its card.
 
 An alternative settings file can be supplied explicitly:
@@ -80,7 +80,7 @@ The fully expanded command line and environment value are never displayed or log
 
 ## ESAPI behavior
 
-The launcher has no compile-time reference to `VMS.TPS.*`. It loads the configured API assembly by reflection on a dedicated STA thread, calls `Application.CreateApplication()`, copies `PatientSummaries` into plain strings, and disposes the ESAPI application immediately. Local filtering then uses only detached records.
+The launcher has no compile-time reference to `VMS.TPS.*`. It loads the configured API assembly by reflection on a dedicated STA thread, calls `Application.CreateApplication()`, copies `PatientSummaries` into plain strings, and disposes the ESAPI application immediately. Local filtering then uses only detached records. If the configured assembly pair is unavailable, it checks the locally installed Varian RTM versions in descending order and uses the first complete API/Types pair.
 
 Version 0.1 does not search courses/plans or pass live ESAPI objects to a child. Eclipse plug-ins can be listed in the catalogue, but remain inside the Eclipse `ScriptContext`; an external launch still requires a compatible runner EXE. A patient-aware standalone EXE must explicitly implement the configured argument or environment contract.
 

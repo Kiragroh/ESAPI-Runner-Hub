@@ -8,7 +8,7 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
-            TestHarness.Test("release metadata identifies version 0.1.1 build 2", HasReleaseMetadata);
+            TestHarness.Test("release metadata identifies version 0.1.2 build 3", HasReleaseMetadata);
             TestHarness.Test("public documentation and example settings contain no clinical paths", PublicFilesArePortable);
             TestHarness.Test("repository contains no vendor assemblies", HasNoVendorBinaries);
         }
@@ -19,9 +19,9 @@ namespace EsapiRunnerHub.Tests
             var changelog = File.ReadAllText(TestHarness.PathFromRoot("CHANGELOG.md"));
             var license = File.ReadAllText(TestHarness.PathFromRoot("LICENSE"));
 
-            TestHarness.AssertContains(version, "\"version\": \"0.1.1\"");
-            TestHarness.AssertContains(version, "\"build\": 2");
-            TestHarness.AssertContains(changelog, "0.1.1");
+            TestHarness.AssertContains(version, "\"version\": \"0.1.2\"");
+            TestHarness.AssertContains(version, "\"build\": 3");
+            TestHarness.AssertContains(changelog, "0.1.2");
             TestHarness.AssertContains(license, "MIT License");
         }
 

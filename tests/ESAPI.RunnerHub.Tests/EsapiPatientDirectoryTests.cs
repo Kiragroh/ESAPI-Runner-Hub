@@ -10,6 +10,7 @@ namespace EsapiRunnerHub.Tests
         {
             TestHarness.Test("ESAPI loader returns an offline result when assemblies are missing", MissingAssemblyIsOffline);
             TestHarness.Test("ESAPI loader copies synthetic patients and disposes application", LoadsAndDisposesApplication);
+            TestHarness.Test("ESAPI loader falls back to an installed RTM version", FallsBackToInstalledRtmVersion);
         }
 
         private static void MissingAssemblyIsOffline()
@@ -42,6 +43,27 @@ namespace EsapiRunnerHub.Tests
                 {
                     File.Delete(marker);
                 }
+            }
+        }
+
+        private static void FallsBackToInstalledRtmVersion()
+        {
+            var root = Path.Combine(Path.GetTempPath(), "esapi-runner-hub-loader-" + Guid.NewGuid().ToString("N"));
+            var apiDirectory = Path.Combine(root, "18.0", "esapi", "API");
+            Directory.CreateDirectory(apiDirectory);
+            var sourceApi = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Release/VMS.TPS.Common.Model.API.dll");
+            File.Copy(sourceApi, Path.Combine(apiDirectory, "VMS.TPS.Common.Model.API.dll"));
+            File.Copy(sourceApi, Path.Combine(apiDirectory, "VMS.TPS.Common.Model.Types.dll"));
+            try
+            {
+                var result = new ReflectionPatientDirectoryLoader(new[] { root }).Load("missing-api.dll", "missing-types.dll");
+
+                TestHarness.AssertTrue(result.IsAvailable, result.ErrorMessage);
+                TestHarness.AssertEqual(2, result.Patients.Count);
+            }
+            finally
+            {
+                Directory.Delete(root, true);
             }
         }
     }

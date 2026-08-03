@@ -2,6 +2,17 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.1.2] - 2026-08-03
+
+### Fixed
+
+- Missing or outdated configured ESAPI assembly paths now fall back to the highest complete local Varian RTM installation under Program Files.
+- Incomplete RTM installations are skipped, while an explicit valid API/Types pair remains authoritative.
+
+### Validation
+
+- Added synthetic regression coverage for configured-path precedence, version ordering, incomplete installations, and the complete reflection loader fallback.
+
 ## [0.1.1] - 2026-08-01
 
 ### Added

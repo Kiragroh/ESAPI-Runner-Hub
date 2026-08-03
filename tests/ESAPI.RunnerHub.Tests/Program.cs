@@ -7,6 +7,7 @@ namespace EsapiRunnerHub.Tests
             ProjectShapeTests.Register();
             ConfigurationTests.Register();
             PatientSearchTests.Register();
+            EsapiAssemblyLocatorTests.Register();
             EsapiPatientDirectoryTests.Register();
             LaunchingTests.Register();
             MainViewModelTests.Register();

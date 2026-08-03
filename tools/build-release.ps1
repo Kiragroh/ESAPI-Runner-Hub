@@ -7,7 +7,7 @@ $solution = Join-Path $repoRoot 'ESAPI-Runner-Hub.sln'
 $distRoot = Join-Path $repoRoot 'dist'
 $packageRoot = Join-Path $distRoot 'package'
 $portableSettings = Join-Path $distRoot 'settings.ini'
-$zipName = 'ESAPI-Runner-Hub-v0.1.1-win-x64.zip'
+$zipName = 'ESAPI-Runner-Hub-v0.1.2-win-x64.zip'
 $zipPath = Join-Path $distRoot $zipName
 
 function Resolve-MSBuild {
