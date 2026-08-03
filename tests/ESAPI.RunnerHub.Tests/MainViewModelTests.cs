@@ -135,13 +135,7 @@ Enabled=true
                     Thread.Sleep(20);
                 }
 
-                while ((!File.Exists(TechnicalLog.Current.FilePath) ||
-                        !File.ReadAllText(TechnicalLog.Current.FilePath).Contains("child_exit_ok")) && DateTime.UtcNow < deadline)
-                {
-                    Thread.Sleep(20);
-                }
-
-                var log = File.ReadAllText(TechnicalLog.Current.FilePath);
+                var log = WaitForSharedLog(TechnicalLog.Current.FilePath, "child_exit_ok", deadline);
                 TestHarness.AssertContains(log, "child_started");
                 TestHarness.AssertContains(log, "child_exit_ok");
                 TestHarness.AssertContains(log, "app=lifecycle");
@@ -151,6 +145,29 @@ Enabled=true
                 TechnicalLog.Configure(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ESAPI Runner Hub", "Logs"));
                 if (Directory.Exists(directory)) Directory.Delete(directory, true);
             }
+        }
+
+        private static string WaitForSharedLog(string path, string expected, DateTime deadline)
+        {
+            while (DateTime.UtcNow < deadline)
+            {
+                if (File.Exists(path))
+                {
+                    using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var reader = new StreamReader(stream))
+                    {
+                        var text = reader.ReadToEnd();
+                        if (text.Contains(expected))
+                        {
+                            return text;
+                        }
+                    }
+                }
+
+                Thread.Sleep(20);
+            }
+
+            throw new InvalidOperationException("Timed out waiting for technical log event: " + expected);
         }
 
         private static MainViewModel CreateViewModel()
