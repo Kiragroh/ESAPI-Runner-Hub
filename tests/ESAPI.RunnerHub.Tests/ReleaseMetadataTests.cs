@@ -9,6 +9,7 @@ namespace EsapiRunnerHub.Tests
         public static void Register()
         {
             TestHarness.Test("release metadata identifies version 0.1.2 build 3", HasReleaseMetadata);
+            TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("public documentation and example settings contain no clinical paths", PublicFilesArePortable);
             TestHarness.Test("repository contains no vendor assemblies", HasNoVendorBinaries);
         }
@@ -23,6 +24,13 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(version, "\"build\": 3");
             TestHarness.AssertContains(changelog, "0.1.2");
             TestHarness.AssertContains(license, "MIT License");
+        }
+
+        private static void PreservesPortableSettingsDirectory()
+        {
+            var script = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            TestHarness.AssertFalse(script.Contains("Remove-Item -LiteralPath $distRoot -Recurse"),
+                "The release build must not recursively delete dist because it owns the live settings.ini.");
         }
 
         private static void PublicFilesArePortable()

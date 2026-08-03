@@ -5,8 +5,6 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $solution = Join-Path $repoRoot 'ESAPI-Runner-Hub.sln'
 $distRoot = Join-Path $repoRoot 'dist'
-$packageRoot = Join-Path $distRoot 'package'
-$portableSettings = Join-Path $distRoot 'settings.ini'
 $zipName = 'ESAPI-Runner-Hub-v0.1.2-win-x64.zip'
 $zipPath = Join-Path $distRoot $zipName
 
@@ -21,6 +19,24 @@ function Resolve-MSBuild {
     throw 'MSBuild.exe with .NET Framework 4.8 support was not found.'
 }
 
+function Copy-FileWithRetry {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Destination
+    )
+
+    for ($attempt = 1; $attempt -le 10; $attempt++) {
+        try {
+            Copy-Item -LiteralPath $Source -Destination $Destination -Force
+            return
+        }
+        catch {
+            if ($attempt -eq 10) { throw }
+            Start-Sleep -Milliseconds 250
+        }
+    }
+}
+
 $msbuild = Resolve-MSBuild
 & $msbuild $solution /t:Rebuild /p:Configuration=Release /p:Platform=x64 /v:minimal
 if ($LASTEXITCODE -ne 0) { throw "Release build failed with exit code $LASTEXITCODE." }
@@ -33,48 +49,50 @@ $expectedDist = [System.IO.Path]::GetFullPath((Join-Path $repoRoot 'dist'))
 if ([System.IO.Path]::GetFullPath($distRoot) -ne $expectedDist -or -not $distRoot.StartsWith($repoRoot + [System.IO.Path]::DirectorySeparatorChar)) {
     throw 'Resolved dist path is outside the repository.'
 }
-$preservedSettings = $null
-if (Test-Path -LiteralPath $portableSettings -PathType Leaf) {
-    $preservedSettings = [System.IO.File]::ReadAllBytes($portableSettings)
-}
-if (Test-Path -LiteralPath $distRoot) {
-    Remove-Item -LiteralPath $distRoot -Recurse -Force
-}
-New-Item -ItemType Directory -Path (Join-Path $packageRoot 'assets'), (Join-Path $packageRoot 'docs') -Force | Out-Null
+$stagingRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("esapi-runner-hub-release-" + [Guid]::NewGuid().ToString('N'))
+$packageRoot = Join-Path $stagingRoot 'package'
+$stagedZip = Join-Path $stagingRoot $zipName
+try {
+    New-Item -ItemType Directory -Path (Join-Path $packageRoot 'assets'), (Join-Path $packageRoot 'docs'), $distRoot -Force | Out-Null
 
-$copies = @{
-    (Join-Path $repoRoot 'src\ESAPI.RunnerHub\bin\x64\Release\ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
-    (Join-Path $repoRoot 'settings.example.ini') = (Join-Path $packageRoot 'settings.example.ini')
-    (Join-Path $repoRoot 'README.md') = (Join-Path $packageRoot 'README.md')
-    (Join-Path $repoRoot 'LICENSE') = (Join-Path $packageRoot 'LICENSE')
-    (Join-Path $repoRoot 'CHANGELOG.md') = (Join-Path $packageRoot 'CHANGELOG.md')
-    (Join-Path $repoRoot 'versionInfo.json') = (Join-Path $packageRoot 'versionInfo.json')
-    (Join-Path $repoRoot 'assets\ESAPI-Runner-Hub.png') = (Join-Path $packageRoot 'assets\ESAPI-Runner-Hub.png')
-    (Join-Path $repoRoot 'docs\CLINICAL_VALIDATION.md') = (Join-Path $packageRoot 'docs\CLINICAL_VALIDATION.md')
-}
-foreach ($source in $copies.Keys) {
-    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Release source missing: $source" }
-    Copy-Item -LiteralPath $source -Destination $copies[$source]
-}
-Copy-Item -LiteralPath (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe') -Destination (Join-Path $distRoot 'ESAPI-Runner-Hub.exe')
-if ($null -ne $preservedSettings) {
-    [System.IO.File]::WriteAllBytes($portableSettings, $preservedSettings)
-}
+    $copies = @{
+        (Join-Path $repoRoot 'src\ESAPI.RunnerHub\bin\x64\Release\ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
+        (Join-Path $repoRoot 'settings.example.ini') = (Join-Path $packageRoot 'settings.example.ini')
+        (Join-Path $repoRoot 'README.md') = (Join-Path $packageRoot 'README.md')
+        (Join-Path $repoRoot 'LICENSE') = (Join-Path $packageRoot 'LICENSE')
+        (Join-Path $repoRoot 'CHANGELOG.md') = (Join-Path $packageRoot 'CHANGELOG.md')
+        (Join-Path $repoRoot 'versionInfo.json') = (Join-Path $packageRoot 'versionInfo.json')
+        (Join-Path $repoRoot 'assets\ESAPI-Runner-Hub.png') = (Join-Path $packageRoot 'assets\ESAPI-Runner-Hub.png')
+        (Join-Path $repoRoot 'docs\CLINICAL_VALIDATION.md') = (Join-Path $packageRoot 'docs\CLINICAL_VALIDATION.md')
+    }
+    foreach ($source in $copies.Keys) {
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Release source missing: $source" }
+        Copy-Item -LiteralPath $source -Destination $copies[$source]
+    }
 
-$manifestPath = Join-Path $packageRoot 'PACKAGE-SHA256SUMS.txt'
-$manifestLines = @(Get-ChildItem -LiteralPath $packageRoot -Recurse -File | Sort-Object FullName | ForEach-Object {
-    $relative = $_.FullName.Substring($packageRoot.Length + 1).Replace('\', '/')
-    $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-    "$hash  $relative"
-})
-[System.IO.File]::WriteAllLines($manifestPath, $manifestLines, [System.Text.UTF8Encoding]::new($false))
+    $manifestPath = Join-Path $packageRoot 'PACKAGE-SHA256SUMS.txt'
+    $manifestLines = @(Get-ChildItem -LiteralPath $packageRoot -Recurse -File | Sort-Object FullName | ForEach-Object {
+        $relative = $_.FullName.Substring($packageRoot.Length + 1).Replace('\', '/')
+        $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        "$hash  $relative"
+    })
+    [System.IO.File]::WriteAllLines($manifestPath, $manifestLines, [System.Text.UTF8Encoding]::new($false))
 
-& (Join-Path $PSScriptRoot 'validate-vendor-free.ps1') -ReleaseDirectory $packageRoot
-& (Join-Path $PSScriptRoot 'create-deterministic-zip.ps1') -SourceDirectory $packageRoot -DestinationZip $zipPath
+    & (Join-Path $PSScriptRoot 'validate-vendor-free.ps1') -ReleaseDirectory $packageRoot
+    & (Join-Path $PSScriptRoot 'create-deterministic-zip.ps1') -SourceDirectory $packageRoot -DestinationZip $stagedZip
 
-$zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
-$externalManifest = Join-Path $distRoot 'SHA256SUMS.txt'
-[System.IO.File]::WriteAllText($externalManifest, "$zipHash  $zipName`r`n", [System.Text.UTF8Encoding]::new($false))
+    Copy-FileWithRetry -Source (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe') -Destination (Join-Path $distRoot 'ESAPI-Runner-Hub.exe')
+    Copy-FileWithRetry -Source $stagedZip -Destination $zipPath
+
+    $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $externalManifest = Join-Path $distRoot 'SHA256SUMS.txt'
+    [System.IO.File]::WriteAllText($externalManifest, "$zipHash  $zipName`r`n", [System.Text.UTF8Encoding]::new($false))
+}
+finally {
+    if (Test-Path -LiteralPath $stagingRoot) {
+        Remove-Item -LiteralPath $stagingRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
 
 Write-Host "Release ready: $zipPath"
 Write-Host "SHA256: $zipHash"
