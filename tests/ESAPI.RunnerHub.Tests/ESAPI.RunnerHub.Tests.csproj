@@ -24,6 +24,7 @@
     <Compile Include="ContextConfigurationTests.cs" />
     <Compile Include="ContextDirectoryTests.cs" />
     <Compile Include="ContextSelectionTests.cs" />
+    <Compile Include="ContextLaunchProtocolTests.cs" />
     <Compile Include="EsapiAssemblyLocatorTests.cs" />
     <Compile Include="EsapiPatientDirectoryTests.cs" />
     <Compile Include="LaunchingTests.cs" />

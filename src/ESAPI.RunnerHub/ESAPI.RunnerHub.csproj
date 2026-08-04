@@ -38,6 +38,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -83,6 +84,8 @@
     <Compile Include="Infrastructure\RelayCommand.cs" />
     <Compile Include="Launching\ArgumentComposer.cs" />
     <Compile Include="Launching\ChildProcessLauncher.cs" />
+    <Compile Include="Launching\ContextLaunchPayload.cs" />
+    <Compile Include="Launching\ContextScriptRequestComposer.cs" />
     <Compile Include="Launching\LaunchRequest.cs" />
     <Compile Include="Launching\PathProbe.cs" />
     <Compile Include="Launching\RunningProcessInfo.cs" />

@@ -9,6 +9,7 @@ namespace EsapiRunnerHub.Tests
             ContextConfigurationTests.Register();
             ContextDirectoryTests.Register();
             ContextSelectionTests.Register();
+            ContextLaunchProtocolTests.Register();
             PatientSearchTests.Register();
             EsapiAssemblyLocatorTests.Register();
             EsapiPatientDirectoryTests.Register();
