@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeVms.Api", "tests\FakeVm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnerFixture", "tests\RunnerFixture\RunnerFixture.csproj", "{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESAPI.ScriptHost", "src\ESAPI.ScriptHost\ESAPI.ScriptHost.csproj", "{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -32,6 +34,10 @@ Global
 		{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}.Debug|x64.Build.0 = Debug|x64
 		{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}.Release|x64.ActiveCfg = Release|x64
 		{1B6BBFF3-C921-4382-81A6-13F3F8A106D8}.Release|x64.Build.0 = Release|x64
+		{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}.Debug|x64.ActiveCfg = Debug|x64
+		{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}.Debug|x64.Build.0 = Debug|x64
+		{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}.Release|x64.ActiveCfg = Release|x64
+		{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

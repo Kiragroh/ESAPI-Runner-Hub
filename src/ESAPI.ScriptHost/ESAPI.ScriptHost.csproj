@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>EsapiScriptHost</RootNamespace>
+    <AssemblyName>ESAPI-Script-Host</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <Deterministic>true</Deterministic>
+    <ApplicationIcon>..\..\assets\ESAPI-Runner-Hub.ico</ApplicationIcon>
+    <EsapiReferenceDirectory Condition=" '$(EsapiReferenceDirectory)' == '' and Exists('C:\Program Files (x86)\Varian\RTM\18.0\esapi\API\VMS.TPS.Common.Model.API.dll') ">C:\Program Files (x86)\Varian\RTM\18.0\esapi\API</EsapiReferenceDirectory>
+    <EsapiReferenceDirectory Condition=" '$(EsapiReferenceDirectory)' == '' ">$(MSBuildProjectDirectory)\..\..\..\_Assets</EsapiReferenceDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DebugSymbols>true</DebugSymbols><DebugType>full</DebugType><Optimize>false</Optimize>
+    <OutputPath>bin\x64\Debug\</OutputPath><DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DebugType>pdbonly</DebugType><Optimize>true</Optimize>
+    <OutputPath>bin\x64\Release\</OutputPath><DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="VMS.TPS.Common.Model.API">
+      <HintPath>$(EsapiReferenceDirectory)\VMS.TPS.Common.Model.API.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="EsapiAuthorizationMarker.cs" />
+    <Compile Include="Host\ContextResolver.cs" />
+    <Compile Include="Host\EsapiSession.cs" />
+    <Compile Include="Host\SaveDecision.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ESAPI.RunnerHub\ESAPI.RunnerHub.csproj">
+      <Project>{154FE10C-5EE3-4162-BDA0-354412E26B77}</Project>
+      <Name>ESAPI.RunnerHub</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -46,6 +46,10 @@ namespace VMS.TPS.Common.Model.API
             var course = new Course { Id = "C1", Patient = patient };
             var plan = new ExternalPlanSetup { Id = "P1", Course = course, StructureSet = planStructureSet };
             course.PlanSetups.Add(plan);
+            if (string.Equals(Environment.GetEnvironmentVariable("FAKE_VMS_DUPLICATE_PLAN"), "1", StringComparison.Ordinal))
+            {
+                course.PlanSetups.Add(new ExternalPlanSetup { Id = "P1", Course = course, StructureSet = planStructureSet });
+            }
             course.PlanSums.Add(new PlanSum { Id = "SUM1", Course = course, StructureSet = planStructureSet });
             patient.Courses.Add(course);
             return patient;
@@ -57,6 +61,15 @@ namespace VMS.TPS.Common.Model.API
             if (!string.IsNullOrWhiteSpace(marker))
             {
                 File.WriteAllText(marker, "closed");
+            }
+        }
+
+        public void SaveModifications()
+        {
+            var marker = Environment.GetEnvironmentVariable("FAKE_VMS_SAVE_MARKER");
+            if (!string.IsNullOrWhiteSpace(marker))
+            {
+                File.AppendAllText(marker, "saved\n");
             }
         }
 
