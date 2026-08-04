@@ -24,6 +24,14 @@ Working directory:
 
 The Citrix entry remains unchanged for future releases.
 
+The existing launcher already forwards additional arguments. No Citrix Studio change is required for command-line diagnosis. From a VDA shell, for example:
+
+```powershell
+cmd.exe /d /s /c ""\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\ESAPI-MG\ESAPI-Runner-Hub\citrix\Start-ESAPI-Runner-Hub.cmd" --replay-latest plugin-fb-info"
+```
+
+This reuses the latest DPAPI-protected context for the current Windows user. A separately published debug application is optional, not required by the runtime contract.
+
 ## Runtime layout
 
 ```text
@@ -65,6 +73,8 @@ Retain a previously verified binary in `dist\versions`, then repeat the pointer 
 - `22`: the selected versioned EXE is missing.
 - `23`: the shared `dist\settings.ini` is missing.
 - `24`: `dist\versions` cannot be used as the working directory.
+- `2`: a Hub context command was invalid, unavailable, or could not be started.
+- `10`: the isolated Script Host ended after a handled script or context failure.
 - Any other non-zero value is the Hub process exit code.
 
 Launcher events are written without arguments or patient data to:

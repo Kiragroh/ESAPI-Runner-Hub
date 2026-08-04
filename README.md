@@ -39,7 +39,7 @@ flowchart LR
 - Multiple sequential or overlapping child processes; non-zero exits and crashes do not close the Hub.
 - Independent asynchronous path checks with explicit missing/local and unavailable/network states.
 - A graphical settings editor for the same portable `settings.ini` used at runtime.
-- Privacy-safe per-process technical logs without patient names, IDs, search text, expanded arguments, environment values, or child output; a bounded background queue keeps unavailable network storage off the UI and launch path.
+- Privacy-safe per-process technical logs without patient names, IDs, search text, expanded arguments, environment values, or child output; Script Host failures add only their execution phase, safe reason code, and exception type. A bounded background queue keeps unavailable network storage off the UI and launch path, while a local Script Host copy remains available if the configured central path fails.
 - Synthetic `--offline-ui-smoke` mode for screenshots and UI checks.
 - x64 .NET Framework 4.8 launcher and isolated script-host binaries with a shared window/taskbar icon.
 
@@ -61,6 +61,28 @@ The UI-only synthetic demonstration never loads ESAPI:
 ```powershell
 ESAPI-Runner-Hub.exe --offline-ui-smoke
 ```
+
+### Direct context debugging
+
+The same executable can start a configured context script without opening the Hub window. The most convenient option repeats the latest DPAPI-protected context saved for that application ID:
+
+```powershell
+ESAPI-Runner-Hub.exe --replay-latest plugin-fb-info --settings .\settings.ini
+```
+
+For an explicit context, place the identifiers in process environment variables rather than command-line arguments:
+
+```powershell
+$env:ESAPI_RUNNER_CONTEXT_PATIENT = 'PATIENT-ID'
+$env:ESAPI_RUNNER_CONTEXT_COURSE = 'COURSE-ID'
+$env:ESAPI_RUNNER_CONTEXT_PLAN = 'PLAN-ID'
+$env:ESAPI_RUNNER_CONTEXT_STRUCTURE_SET = 'STRUCTURE-SET-ID'
+$env:ESAPI_RUNNER_CONTEXT_IMAGE = 'IMAGE-ID'
+ESAPI-Runner-Hub.exe --run-context plugin-fb-info --settings .\settings.ini
+Remove-Item Env:ESAPI_RUNNER_CONTEXT_PATIENT, Env:ESAPI_RUNNER_CONTEXT_COURSE, Env:ESAPI_RUNNER_CONTEXT_PLAN, Env:ESAPI_RUNNER_CONTEXT_STRUCTURE_SET, Env:ESAPI_RUNNER_CONTEXT_IMAGE
+```
+
+Plan sums use `ESAPI_RUNNER_CONTEXT_PLAN_SUM`. Optional semicolon-separated scopes use `ESAPI_RUNNER_CONTEXT_PLAN_SCOPE` and `ESAPI_RUNNER_CONTEXT_PLAN_SUM_SCOPE`. Identifiers are transferred only through the child environment and are not written to the command line or technical log. The command waits for the isolated Script Host and returns its exit code.
 
 ### Stable Citrix launcher
 

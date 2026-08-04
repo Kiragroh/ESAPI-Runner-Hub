@@ -2,6 +2,32 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.2.4] - 2026-08-04
+
+### Fixed
+
+- Short-lived command-line runs flush their final privacy-safe diagnostic to the configured log with a local fallback and a bounded network wait.
+
+### Validation
+
+- A regression verifies that immediate CLI diagnostics retain the event and exception type without exception details or context identifiers.
+
+## [0.2.3] - 2026-08-04
+
+### Added
+
+- Privacy-safe `--run-context` and `--replay-latest` command-line modes for reproducible context-script diagnosis through the existing Hub and Citrix launcher.
+- Script Host diagnostics now record a safe context-resolution reason code centrally and in a local fallback log.
+
+### Fixed
+
+- Selected plans and plan sums are resolved within their selected course, including repeated plan IDs across courses and multi-plan scopes.
+- Plan and plan-sum dropdown labels include the owning course.
+
+### Validation
+
+- Synthetic regressions cover duplicate plan and structure-set IDs across courses, course-aware GUI selection, private CLI transfer, protected replay, and redacted host diagnostics.
+
 ## [0.2.2] - 2026-08-04
 
 ### Added

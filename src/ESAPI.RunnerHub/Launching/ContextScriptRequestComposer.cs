@@ -42,6 +42,7 @@ namespace EsapiRunnerHub.Launching
                 ScriptEngine = application.ScriptEngine,
                 WriteMode = application.WriteMode,
                 EntryType = application.EntryType,
+                LogDirectory = hub.ResolvedLogDirectory,
                 PatientId = selection.PatientId,
                 CourseId = selection.CourseId,
                 PlanId = selection.PlanId,

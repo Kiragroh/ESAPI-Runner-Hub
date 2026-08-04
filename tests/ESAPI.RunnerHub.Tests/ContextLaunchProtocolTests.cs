@@ -26,7 +26,7 @@ namespace EsapiRunnerHub.Tests
             var types = Path.Combine(directory, "VMS.TPS.Common.Model.Types.dll");
             var configuration = IniConfigurationStore.ParseText(
                 "[Hub]\nEsapiApiAssembly=" + api + "\nEsapiTypesAssembly=" + types +
-                "\n[Application.direct]\nName=Direct\nExecutable=" + script +
+                "\nLogDirectory=" + directory + "\n[Application.direct]\nName=Direct\nExecutable=" + script +
                 "\nLaunchKind=EsapiContextScript\nScriptEngine=Eclipse\nContextRequirement=Plan" +
                 "\nScopeMode=Single\nWriteMode=ConfirmSave\nPatientMode=Required\nPatientTransport=None" +
                 "\nEntryType=VMS.TPS.Script\nExtraReferences=Helper.dll\n",
@@ -51,12 +51,14 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertEqual(script, payload.ScriptPath);
             TestHarness.AssertEqual(api, payload.ApiAssemblyPath);
             TestHarness.AssertEqual(WriteMode.ConfirmSave, payload.WriteMode);
+            TestHarness.AssertEqual(directory, payload.LogDirectory);
 
             var hostPayload = EsapiScriptHost.Contracts.ContextLaunchPayload.Decode(
                 request.EnvironmentVariables[ContextLaunchPayload.EnvironmentKey]);
             TestHarness.AssertEqual(patient.Id, hostPayload.PatientId);
             TestHarness.AssertEqual("P1", hostPayload.PlanId);
             TestHarness.AssertEqual("ConfirmSave", hostPayload.WriteMode.ToString());
+            TestHarness.AssertEqual(directory, hostPayload.LogDirectory);
         }
 
         private static void RejectsMissingContext()

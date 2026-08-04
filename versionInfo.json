@@ -1,9 +1,28 @@
 {
-  "version": "0.2.2",
-  "build": 10,
+  "version": "0.2.4",
+  "build": 12,
   "lastUpdate": "2026-08-04",
-  "lastChange": "Binary- und Single-File-Kacheln können denselben Eclipse-18-Kontexthost nutzen; lange Pfade umbrechen und Hostfehler nennen ihre sichere Ausführungsphase.",
+  "lastChange": "Kontextauflösung und CLI-Replay sind kursgebunden; kurzlebige Diagnoseaufrufe schreiben ihren sicheren Abschluss mit lokalem Fallback.",
   "changelog": [
+    {
+      "build": 12,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.4",
+      "changes": [
+        "Kurzlebige Kommandozeilenstarts schreiben ihr Abschluss- oder Fehlerereignis sofort in das konfigurierte Log.",
+        "Bei einem langsamen oder fehlenden Netzwerkpfad bleibt ein lokaler Diagnoseeintrag erhalten und die Wartezeit ist begrenzt."
+      ]
+    },
+    {
+      "build": 11,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.3",
+      "changes": [
+        "Plan- und PlanSum-Kontexte werden innerhalb des gewählten Kurses aufgelöst; gleichnamige Pläne in mehreren Kursen bleiben auch im Scope eindeutig.",
+        "Plan- und PlanSum-Auswahllisten zeigen Course, ID und Typ gemeinsam an.",
+        "Kontextstarts können ohne Patientendaten in der Befehlszeile per geschütztem Replay oder Prozessumgebung reproduziert werden; der Host protokolliert sichere Fehlercodes lokal und zentral."
+      ]
+    },
     {
       "build": 10,
       "date": "2026-08-04",

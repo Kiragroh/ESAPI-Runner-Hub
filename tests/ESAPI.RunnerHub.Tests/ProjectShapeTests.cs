@@ -52,7 +52,17 @@ namespace EsapiRunnerHub.Tests
             {
                 var program = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Program.cs"));
                 TestHarness.AssertContains(program, "Fehlerphase:");
+                TestHarness.AssertContains(program, "Fehlercode:");
                 TestHarness.AssertContains(program, "StageDataKey");
+            });
+
+            TestHarness.Test("Hub exposes privacy-safe context command line modes", () =>
+            {
+                var app = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/App.xaml.cs"));
+                var runner = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Launching/ContextCommandLineRunner.cs"));
+                TestHarness.AssertContains(runner, "--run-context");
+                TestHarness.AssertContains(runner, "--replay-latest");
+                TestHarness.AssertContains(app, "ContextCommandLineRunner");
             });
         }
     }

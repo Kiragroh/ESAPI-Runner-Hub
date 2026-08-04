@@ -192,7 +192,7 @@ namespace EsapiRunnerHub.ViewModels
                 if (!SetProperty(ref selectedPlan, value)) return;
                 if (value != null)
                 {
-                    ContextSelection.SelectPlan(contextDirectory, value.Id);
+                    ContextSelection.SelectPlan(contextDirectory, value.CourseId, value.Id);
                     selectedPlanSum = null;
                     selectedCourse = Courses.FirstOrDefault(item => item.Id == ContextSelection.CourseId);
                     selectedStructureSet = StructureSets.FirstOrDefault(item => item.Id == ContextSelection.StructureSetId);
@@ -214,7 +214,7 @@ namespace EsapiRunnerHub.ViewModels
                 if (!SetProperty(ref selectedPlanSum, value)) return;
                 if (value != null)
                 {
-                    ContextSelection.SelectPlanSum(contextDirectory, value.Id);
+                    ContextSelection.SelectPlanSum(contextDirectory, value.CourseId, value.Id);
                     selectedPlan = null;
                     selectedCourse = Courses.FirstOrDefault(item => item.Id == ContextSelection.CourseId);
                     selectedStructureSet = StructureSets.FirstOrDefault(item => item.Id == ContextSelection.StructureSetId);

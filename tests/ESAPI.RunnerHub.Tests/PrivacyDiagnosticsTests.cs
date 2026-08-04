@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using EsapiRunnerHub.Privacy;
+using EsapiScriptHost.Host;
 
 namespace EsapiRunnerHub.Tests
 {
@@ -13,7 +14,9 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("technical logs retain categories but redact exception details", RedactsPatientDetails);
             TestHarness.Test("technical log write failures never escape into application flow", ContainsWriteFailures);
             TestHarness.Test("technical logging performs no filesystem work on the caller", AvoidsCallerFilesystemIo);
+            TestHarness.Test("CLI diagnostics flush immediately without exception details", FlushesCliDiagnostics);
             TestHarness.Test("crash report contains no patient or expanded arguments", RedactsCrashReport);
+            TestHarness.Test("script host diagnostics keep reason code but redact exception details", RedactsScriptHostDetails);
         }
 
         private static void RedactsPatientDetails()
@@ -57,6 +60,26 @@ namespace EsapiRunnerHub.Tests
             }
         }
 
+        private static void RedactsScriptHostDetails()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "runner-host-log-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var path = HostTechnicalLog.Write(directory, "Kontext auflösen", "direct", "plan_ambiguous",
+                    new InvalidOperationException("SYN-1004 Ada Example P1"));
+                var text = File.ReadAllText(path);
+                TestHarness.AssertContains(text, "plan_ambiguous");
+                TestHarness.AssertContains(text, "InvalidOperationException");
+                TestHarness.AssertFalse(text.Contains("SYN-1004"));
+                TestHarness.AssertFalse(text.Contains("Ada Example"));
+                TestHarness.AssertFalse(text.Contains("P1"));
+            }
+            finally
+            {
+                if (Directory.Exists(directory)) Directory.Delete(directory, true);
+            }
+        }
+
         private static void ContainsWriteFailures()
         {
             var directory = Path.Combine(Path.GetTempPath(), "runner-hub-log-blocked-" + Guid.NewGuid().ToString("N"));
@@ -90,6 +113,26 @@ namespace EsapiRunnerHub.Tests
             finally
             {
                 File.Delete(directory);
+            }
+        }
+
+        private static void FlushesCliDiagnostics()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "runner-hub-cli-log-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var log = new TechnicalLog(directory);
+                log.WriteImmediate("ERROR", "cli_context_failed", "direct",
+                    new InvalidOperationException("PATIENT-PRIVATE PLAN-PRIVATE"));
+                var text = File.ReadAllText(log.FilePath);
+                TestHarness.AssertContains(text, "cli_context_failed");
+                TestHarness.AssertContains(text, "InvalidOperationException");
+                TestHarness.AssertFalse(text.Contains("PATIENT-PRIVATE"));
+                TestHarness.AssertFalse(text.Contains("PLAN-PRIVATE"));
+            }
+            finally
+            {
+                if (Directory.Exists(directory)) Directory.Delete(directory, true);
             }
         }
 

@@ -16,6 +16,7 @@ namespace EsapiRunnerHub.Tests
             ContextDirectoryTests.Register();
             ContextSelectionTests.Register();
             ContextLaunchProtocolTests.Register();
+            ContextCommandLineTests.Register();
             ScriptHostCoreTests.Register();
             ScriptInvocationTests.Register();
             SourceScriptCompilerTests.Register();

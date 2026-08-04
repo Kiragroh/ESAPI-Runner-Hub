@@ -44,6 +44,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EsapiAuthorizationMarker.cs" />
     <Compile Include="Host\ContextResolver.cs" />
+    <Compile Include="Host\ContextResolutionException.cs" />
+    <Compile Include="Host\HostTechnicalLog.cs" />
     <Compile Include="Host\Eclipse18ScriptContextAdapter.cs" />
     <Compile Include="Host\EclipseScriptInvoker.cs" />
     <Compile Include="Host\EsapiEssentialsInvoker.cs" />

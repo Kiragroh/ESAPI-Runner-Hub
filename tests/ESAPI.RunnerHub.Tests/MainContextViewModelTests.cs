@@ -16,6 +16,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("standalone structure set enables plan-or-structure-set tool", EnablesStandaloneStructureSet);
             TestHarness.Test("image can be selected explicitly", SelectsImageExplicitly);
             TestHarness.Test("direct card explains missing plan", ExplainsMissingPlan);
+            TestHarness.Test("plan selection uses course when IDs repeat", SelectsDuplicatePlanByCourse);
         }
 
         private static void DerivesSelectedPlanContext()
@@ -66,6 +67,24 @@ namespace EsapiRunnerHub.Tests
 
             TestHarness.AssertFalse(viewModel.Applications.Single().CanStartContext);
             TestHarness.AssertEqual("Plan required", viewModel.Applications.Single().ContextHint);
+        }
+
+        private static void SelectsDuplicatePlanByCourse()
+        {
+            var viewModel = CreateViewModel(ContextRequirement.Plan);
+            viewModel.SelectPatient(new PatientRecord("SYN-1001", "Ada", "Example", 0));
+            var directory = CreateDirectory();
+            directory.Courses.Add(new CourseDescriptor { Id = "C2" });
+            directory.Plans.Add(new PlanDescriptor
+            {
+                Id = "P1", CourseId = "C2", StructureSetId = "SS1", ImageId = "IMG1", Kind = "ExternalPlanSetup"
+            });
+            viewModel.SetContextDirectory(directory);
+
+            viewModel.SelectedPlan = viewModel.Plans.Single(item => item.CourseId == "C2");
+
+            TestHarness.AssertEqual("C2", viewModel.ContextSelection.CourseId);
+            TestHarness.AssertEqual("P1", viewModel.ContextSelection.PlanId);
         }
 
         private static MainViewModel CreateViewModel(ContextRequirement requirement)

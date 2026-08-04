@@ -11,11 +11,12 @@ namespace EsapiScriptHost
         [STAThread]
         private static int Main()
         {
+            ContextLaunchPayload payload = null;
             try
             {
                 var encoded = Environment.GetEnvironmentVariable(ContextLaunchPayload.EnvironmentKey);
                 Environment.SetEnvironmentVariable(ContextLaunchPayload.EnvironmentKey, null);
-                var payload = ContextLaunchPayload.Decode(encoded);
+                payload = ContextLaunchPayload.Decode(encoded);
                 if (payload.WriteMode == WriteMode.ConfirmSave)
                 {
                     var start = MessageBox.Show(
@@ -30,11 +31,14 @@ namespace EsapiScriptHost
             catch (Exception exception)
             {
                 var stage = exception.Data[ScriptHostApplication.StageDataKey] as string ?? "Unbekannt";
-                var root = exception is TargetInvocationException && exception.InnerException != null
-                    ? exception.InnerException
-                    : exception;
+                var root = HostTechnicalLog.RootException(exception);
+                var reasonCode = HostTechnicalLog.ReasonCode(exception, stage);
+                HostTechnicalLog.WriteBestEffort(payload == null ? null : payload.LogDirectory, stage,
+                    payload == null ? string.Empty : payload.ApplicationId, reasonCode, exception);
                 MessageBox.Show(
-                    "Das Skript wurde ohne Speichern beendet.\n\nFehlerphase: " + stage + "\nFehlertyp: " + root.GetType().Name,
+                    "Das Skript wurde ohne Speichern beendet.\n\nFehlerphase: " + stage +
+                    "\nFehlercode: " + reasonCode + "\nFehlertyp: " + root.GetType().Name +
+                    "\n\nTechnische Details wurden protokolliert.",
                     "ESAPI Script Host", MessageBoxButton.OK, MessageBoxImage.Error);
                 return 10;
             }

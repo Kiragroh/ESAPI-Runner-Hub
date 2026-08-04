@@ -32,6 +32,7 @@
     <Compile Include="ContextDirectoryTests.cs" />
     <Compile Include="ContextSelectionTests.cs" />
     <Compile Include="ContextLaunchProtocolTests.cs" />
+    <Compile Include="ContextCommandLineTests.cs" />
     <Compile Include="ScriptHostCoreTests.cs" />
     <Compile Include="ScriptInvocationTests.cs" />
     <Compile Include="SourceScriptCompilerTests.cs" />

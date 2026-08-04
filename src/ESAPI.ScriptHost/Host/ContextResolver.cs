@@ -41,7 +41,7 @@ namespace EsapiScriptHost.Host
             if (patient == null)
             {
                 if (HasPlanningContext(payload))
-                    throw new InvalidOperationException("A patient is required for the selected planning context.");
+                    throw new ContextResolutionException("patient_missing", "A patient is required for the selected planning context.");
                 return resolved;
             }
 
@@ -58,16 +58,9 @@ namespace EsapiScriptHost.Host
             if (!string.IsNullOrWhiteSpace(payload.CourseId))
                 resolved.Course = FindUnique(courses, payload.CourseId, "course");
             if (!string.IsNullOrWhiteSpace(payload.PlanId))
-                resolved.Plan = FindUnique(allPlans, payload.PlanId, "plan");
+                resolved.Plan = FindUnique(resolved.Course == null ? allPlans : ReadEnumerable(resolved.Course, "PlanSetups"), payload.PlanId, "plan");
             if (!string.IsNullOrWhiteSpace(payload.PlanSumId))
-                resolved.PlanSum = FindUnique(allPlanSums, payload.PlanSumId, "plan sum");
-            if (!string.IsNullOrWhiteSpace(payload.StructureSetId))
-                resolved.StructureSet = FindUnique(structureSets, payload.StructureSetId, "structure set");
-
-            foreach (var id in payload.PlanIdsInScope ?? new List<string>())
-                resolved.PlansInScope.Add(FindUnique(allPlans, id, "plan in scope"));
-            foreach (var id in payload.PlanSumIdsInScope ?? new List<string>())
-                resolved.PlanSumsInScope.Add(FindUnique(allPlanSums, id, "plan sum in scope"));
+                resolved.PlanSum = FindUnique(resolved.Course == null ? allPlanSums : ReadEnumerable(resolved.Course, "PlanSums"), payload.PlanSumId, "plan sum");
 
             if (resolved.Plan != null)
             {
@@ -84,12 +77,23 @@ namespace EsapiScriptHost.Host
                 if (resolved.StructureSet == null) resolved.StructureSet = ReadObject(resolved.PlanSum, "StructureSet");
             }
 
+            if (!string.IsNullOrWhiteSpace(payload.StructureSetId))
+            {
+                if (resolved.StructureSet == null)
+                    resolved.StructureSet = FindUnique(structureSets, payload.StructureSetId, "structure set");
+                else if (!string.Equals(ReadString(resolved.StructureSet, "Id"), payload.StructureSetId, StringComparison.Ordinal))
+                    throw new ContextResolutionException("planning_relation_mismatch", "The selected planning item structure set does not match the requested context.");
+            }
+
+            AddScope(resolved.PlansInScope, allPlans, payload.PlanIdsInScope, resolved.Plan, "plan in scope");
+            AddScope(resolved.PlanSumsInScope, allPlanSums, payload.PlanSumIdsInScope, resolved.PlanSum, "plan sum in scope");
+
             resolved.Image = ReadObject(resolved.StructureSet, "Image");
             if (!string.IsNullOrWhiteSpace(payload.ImageId))
             {
                 var requestedImage = FindUnique(images, payload.ImageId, "image");
                 if (resolved.Image != null && !string.Equals(ReadString(resolved.Image, "Id"), payload.ImageId, StringComparison.Ordinal))
-                    throw new InvalidOperationException("The selected image does not match the structure set.");
+                    throw new ContextResolutionException("image_relation_mismatch", "The selected image does not match the structure set.");
                 if (resolved.Image == null) resolved.Image = requestedImage;
             }
             return resolved;
@@ -106,15 +110,48 @@ namespace EsapiScriptHost.Host
         private static object FindUnique(IEnumerable<object> values, string id, string kind)
         {
             var matches = values.Where(item => string.Equals(ReadString(item, "Id"), id, StringComparison.Ordinal)).Take(2).ToList();
-            if (matches.Count != 1) throw new InvalidOperationException("The selected " + kind + " could not be resolved uniquely.");
+            if (matches.Count != 1)
+                throw new ContextResolutionException(ReasonFor(kind, matches.Count),
+                    "The selected " + kind + " could not be resolved uniquely.");
             return matches[0];
+        }
+
+        private static void AddScope(IList<object> target, IList<object> available, IList<string> requestedIds,
+            object selected, string kind)
+        {
+            var ids = requestedIds ?? new List<string>();
+            if (ids.Count == 1 && selected != null &&
+                string.Equals(ReadString(selected, "Id"), ids[0], StringComparison.Ordinal))
+            {
+                target.Add(selected);
+                return;
+            }
+
+            var occurrences = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var id in ids)
+            {
+                int occurrence;
+                occurrences.TryGetValue(id, out occurrence);
+                var matches = available.Where(item => string.Equals(ReadString(item, "Id"), id, StringComparison.Ordinal)).ToList();
+                if (occurrence >= matches.Count)
+                    throw new ContextResolutionException(ReasonFor(kind, matches.Count),
+                        "The selected " + kind + " could not be resolved uniquely.");
+                target.Add(matches[occurrence]);
+                occurrences[id] = occurrence + 1;
+            }
         }
 
         private static void ValidateRelatedId(object instance, string propertyName, string expectedId, string kind)
         {
             if (string.IsNullOrWhiteSpace(expectedId)) return;
             if (!string.Equals(ReadString(ReadObject(instance, propertyName), "Id"), expectedId, StringComparison.Ordinal))
-                throw new InvalidOperationException("The selected plan " + kind + " does not match the requested context.");
+                throw new ContextResolutionException("planning_relation_mismatch",
+                    "The selected plan " + kind + " does not match the requested context.");
+        }
+
+        private static string ReasonFor(string kind, int matchCount)
+        {
+            return (kind ?? "context").Replace(' ', '_') + (matchCount == 0 ? "_missing" : "_ambiguous");
         }
 
         internal static IEnumerable<object> ReadEnumerable(object instance, string propertyName)

@@ -11,6 +11,16 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("standalone structure set satisfies plan-or-structure-set", AcceptsStandaloneStructureSet);
             TestHarness.Test("course and image can be required independently", AcceptsCourseAndImage);
             TestHarness.Test("missing required context has explicit reason", ReportsMissingContext);
+            TestHarness.Test("plan labels include course plan and kind", LabelsPlanWithCourse);
+        }
+
+        private static void LabelsPlanWithCourse()
+        {
+            var plan = new PlanDescriptor { CourseId = "C1", Id = "P1", Kind = "ExternalPlanSetup" };
+            var planSum = new PlanSumDescriptor { CourseId = "C2", Id = "SUM1" };
+
+            TestHarness.AssertEqual("C1 · P1 · ExternalPlanSetup", plan.Display);
+            TestHarness.AssertEqual("C2 · SUM1 · PlanSum", planSum.Display);
         }
 
         private static void DerivesPlanContext()

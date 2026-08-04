@@ -29,6 +29,7 @@ namespace EsapiRunnerHub.Launching
         [DataMember] public ScriptEngine ScriptEngine { get; set; }
         [DataMember] public WriteMode WriteMode { get; set; }
         [DataMember] public string EntryType { get; set; }
+        [DataMember] public string LogDirectory { get; set; }
         [DataMember] public string PatientId { get; set; }
         [DataMember] public string CourseId { get; set; }
         [DataMember] public string PlanId { get; set; }

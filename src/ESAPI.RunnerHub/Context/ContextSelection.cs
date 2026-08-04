@@ -35,7 +35,15 @@ namespace EsapiRunnerHub.Context
 
         public void SelectPlan(ContextDirectory directory, string planId)
         {
-            var plan = FindSingle(directory == null ? null : directory.Plans, item => item.Id, planId, "plan");
+            SelectPlan(directory, null, planId);
+        }
+
+        public void SelectPlan(ContextDirectory directory, string courseId, string planId)
+        {
+            var plans = directory == null ? Enumerable.Empty<PlanDescriptor>() : directory.Plans;
+            if (!string.IsNullOrWhiteSpace(courseId))
+                plans = plans.Where(item => string.Equals(item.CourseId, courseId, StringComparison.Ordinal));
+            var plan = FindSingle(plans, item => item.Id, planId, "plan");
             CourseId = plan.CourseId;
             PlanId = plan.Id;
             PlanSumId = null;
@@ -48,7 +56,15 @@ namespace EsapiRunnerHub.Context
 
         public void SelectPlanSum(ContextDirectory directory, string planSumId)
         {
-            var planSum = FindSingle(directory == null ? null : directory.PlanSums, item => item.Id, planSumId, "plan sum");
+            SelectPlanSum(directory, null, planSumId);
+        }
+
+        public void SelectPlanSum(ContextDirectory directory, string courseId, string planSumId)
+        {
+            var planSums = directory == null ? Enumerable.Empty<PlanSumDescriptor>() : directory.PlanSums;
+            if (!string.IsNullOrWhiteSpace(courseId))
+                planSums = planSums.Where(item => string.Equals(item.CourseId, courseId, StringComparison.Ordinal));
+            var planSum = FindSingle(planSums, item => item.Id, planSumId, "plan sum");
             CourseId = planSum.CourseId;
             PlanId = null;
             PlanSumId = planSum.Id;

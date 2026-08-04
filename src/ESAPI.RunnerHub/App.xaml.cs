@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using EsapiRunnerHub.Privacy;
+using EsapiRunnerHub.Launching;
 
 namespace EsapiRunnerHub
 {
@@ -19,6 +20,11 @@ namespace EsapiRunnerHub
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            if (ContextCommandLineRunner.IsContextCommand(e.Args))
+            {
+                Shutdown(ContextCommandLineRunner.Run(e.Args));
+                return;
+            }
             var window = new MainWindow(e.Args ?? Array.Empty<string>());
             MainWindow = window;
             window.Show();

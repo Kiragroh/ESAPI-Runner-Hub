@@ -14,6 +14,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("host resolves image without a structure set", ResolvesImageOnly);
             TestHarness.Test("host permits an empty planning context", PermitsEmptyContext);
             TestHarness.Test("host rejects ambiguous plan identifiers", RejectsAmbiguousPlan);
+            TestHarness.Test("host resolves duplicate plan and structure-set IDs by course", ResolvesCourseQualifiedDuplicates);
             TestHarness.Test("host session saves at most once", SavesAtMostOnce);
             TestHarness.Test("failed host outcome always discards", FailureAlwaysDiscards);
         }
@@ -48,12 +49,39 @@ namespace EsapiRunnerHub.Tests
             var patient = application.GetType().GetMethod("OpenPatientById").Invoke(application, new object[] { "SYN-1001" });
             try
             {
-                TestHarness.AssertThrows<InvalidOperationException>(() =>
+                var exception = TestHarness.AssertThrows<ContextResolutionException>(() =>
                     new ContextResolver().Resolve(patient, ReadProperty(application, "CurrentUser"), CreatePayloadForInvocation()));
+                TestHarness.AssertEqual("plan_ambiguous", exception.ReasonCode);
             }
             finally
             {
                 Environment.SetEnvironmentVariable("FAKE_VMS_DUPLICATE_PLAN", null);
+                application.GetType().GetMethod("ClosePatient").Invoke(application, null);
+                ((IDisposable)application).Dispose();
+            }
+        }
+
+        private static void ResolvesCourseQualifiedDuplicates()
+        {
+            Environment.SetEnvironmentVariable("FAKE_VMS_DUPLICATE_PLAN_OTHER_COURSE", "1");
+            var api = LoadFakeApi();
+            var application = CreateApplication(api);
+            var patient = application.GetType().GetMethod("OpenPatientById").Invoke(application, new object[] { "SYN-1001" });
+            try
+            {
+                var payload = CreatePayloadForInvocation();
+                payload.PlanIdsInScope = new System.Collections.Generic.List<string> { "P1", "P1" };
+
+                var context = new ContextResolver().Resolve(patient, ReadProperty(application, "CurrentUser"), payload);
+
+                TestHarness.AssertEqual("C1", ReadString(ReadProperty(context.Plan, "Course"), "Id"));
+                TestHarness.AssertEqual(2, context.PlansInScope.Count);
+                TestHarness.AssertEqual("C1", ReadString(ReadProperty(context.PlansInScope[0], "Course"), "Id"));
+                TestHarness.AssertEqual("C2", ReadString(ReadProperty(context.PlansInScope[1], "Course"), "Id"));
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("FAKE_VMS_DUPLICATE_PLAN_OTHER_COURSE", null);
                 application.GetType().GetMethod("ClosePatient").Invoke(application, null);
                 ((IDisposable)application).Dispose();
             }

@@ -58,6 +58,18 @@ namespace VMS.TPS.Common.Model.API
             }
             course.PlanSums.Add(new PlanSum { Id = "SUM1", Course = course, StructureSet = planStructureSet });
             patient.Courses.Add(course);
+            if (string.Equals(Environment.GetEnvironmentVariable("FAKE_VMS_DUPLICATE_PLAN_OTHER_COURSE"), "1", StringComparison.Ordinal))
+            {
+                var secondImage = new Image { Id = "IMG1" };
+                var secondStructureSet = new StructureSet { Id = "SS1", Image = secondImage };
+                patient.StructureSets.Add(secondStructureSet);
+                var secondCourse = new Course { Id = "C2", Patient = patient };
+                secondCourse.PlanSetups.Add(new ExternalPlanSetup
+                {
+                    Id = "P1", Course = secondCourse, StructureSet = secondStructureSet
+                });
+                patient.Courses.Add(secondCourse);
+            }
             return patient;
         }
 

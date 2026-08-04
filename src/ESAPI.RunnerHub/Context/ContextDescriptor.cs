@@ -16,7 +16,7 @@ namespace EsapiRunnerHub.Context
         public string StructureSetId { get; set; }
         public string ImageId { get; set; }
         public string Kind { get; set; }
-        public string Display { get { return (Id ?? string.Empty) + " · " + (Kind ?? "Plan"); } }
+        public string Display { get { return (CourseId ?? string.Empty) + " · " + (Id ?? string.Empty) + " · " + (Kind ?? "Plan"); } }
     }
 
     public sealed class PlanSumDescriptor
@@ -25,7 +25,7 @@ namespace EsapiRunnerHub.Context
         public string CourseId { get; set; }
         public string StructureSetId { get; set; }
         public string ImageId { get; set; }
-        public string Display { get { return (Id ?? string.Empty) + " · PlanSum"; } }
+        public string Display { get { return (CourseId ?? string.Empty) + " · " + (Id ?? string.Empty) + " · PlanSum"; } }
     }
 
     public sealed class StructureSetDescriptor

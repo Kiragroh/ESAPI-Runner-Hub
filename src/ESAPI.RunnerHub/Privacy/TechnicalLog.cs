@@ -56,19 +56,24 @@ namespace EsapiRunnerHub.Privacy
                 return;
             }
 
-            var line = string.Join("\t", new[]
-            {
-                DateTime.UtcNow.ToString("o"),
-                SafeToken(level, "INFO"),
-                SafeToken(eventCode, "technical_event"),
-                "app=" + SafeToken(applicationId, "-"),
-                "exception=" + (exception == null ? "-" : SafeToken(exception.GetType().Name, "Exception"))
-            }) + Environment.NewLine;
+            var line = FormatLine(level, eventCode, applicationId, exception);
 
             if (pendingLines.TryAdd(line))
             {
                 EnsureWorker();
             }
+        }
+
+        public void WriteImmediate(string level, string eventCode, string applicationId, Exception exception)
+        {
+            if (string.IsNullOrWhiteSpace(FilePath)) return;
+            var line = FormatLine(level, eventCode, applicationId, exception);
+            var localPath = Path.Combine(DefaultDirectory(), Path.GetFileName(FilePath));
+            try { AppendLine(localPath, line); }
+            catch { }
+            if (PathsEqual(localPath, FilePath)) return;
+            try { Task.Run(() => AppendLine(FilePath, line)).Wait(1000); }
+            catch { }
         }
 
         private void EnsureWorker()
@@ -87,18 +92,41 @@ namespace EsapiRunnerHub.Privacy
             {
                 try
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
-                    using (var stream = new FileStream(FilePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
-                    using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
-                    {
-                        writer.Write(line);
-                    }
+                    AppendLine(FilePath, line);
                 }
                 catch (Exception)
                 {
                     // Central logging is best-effort and never runs on the caller/UI thread.
                 }
             }
+        }
+
+        private static string FormatLine(string level, string eventCode, string applicationId, Exception exception)
+        {
+            return string.Join("\t", new[]
+            {
+                DateTime.UtcNow.ToString("o"),
+                SafeToken(level, "INFO"),
+                SafeToken(eventCode, "technical_event"),
+                "app=" + SafeToken(applicationId, "-"),
+                "exception=" + (exception == null ? "-" : SafeToken(exception.GetType().Name, "Exception"))
+            }) + Environment.NewLine;
+        }
+
+        private static void AppendLine(string path, string line)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            using (var stream = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+            using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
+            {
+                writer.Write(line);
+            }
+        }
+
+        private static bool PathsEqual(string left, string right)
+        {
+            try { return string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), StringComparison.OrdinalIgnoreCase); }
+            catch { return false; }
         }
 
         private static TechnicalLog CreateInitial()
