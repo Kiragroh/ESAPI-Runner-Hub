@@ -13,6 +13,9 @@ namespace EsapiRunnerHub.Configuration
             PathProbeTimeoutMs = 1500;
             LogDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs";
             ScriptHostExecutable = "ESAPI-Script-Host.exe";
+            HistoryFile = @"%LOCALAPPDATA%\ESAPI Runner Hub\launch-history.json";
+            HistoryRetentionDays = 30;
+            HistoryMaxEntries = 100;
             ExtraValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
@@ -25,8 +28,13 @@ namespace EsapiRunnerHub.Configuration
         public int PathProbeTimeoutMs { get; set; }
         public string LogDirectory { get; set; }
         public string ScriptHostExecutable { get; set; }
+        public string StrHubBaseUrl { get; set; }
+        public string HistoryFile { get; set; }
+        public int HistoryRetentionDays { get; set; }
+        public int HistoryMaxEntries { get; set; }
         public string ResolvedLogDirectory { get; internal set; }
         public string ResolvedScriptHostExecutable { get; internal set; }
+        public string ResolvedHistoryFile { get; internal set; }
         public IDictionary<string, string> ExtraValues { get; private set; }
     }
 
@@ -55,6 +63,7 @@ namespace EsapiRunnerHub.Configuration
             Hub.ResolvedEsapiTypesAssembly = ResolvePath(baseDirectory, Hub.EsapiTypesAssembly);
             Hub.ResolvedLogDirectory = ResolvePath(baseDirectory, Hub.LogDirectory);
             Hub.ResolvedScriptHostExecutable = ResolvePath(baseDirectory, Hub.ScriptHostExecutable);
+            Hub.ResolvedHistoryFile = ResolvePath(baseDirectory, Hub.HistoryFile);
             foreach (var application in Applications)
             {
                 application.ResolvePaths(baseDirectory);

@@ -33,6 +33,16 @@ namespace EsapiRunnerHub.Configuration
                 errors.Add("Hub.PathProbeTimeoutMs must be between 100 and 30000.");
             }
 
+            if (configuration.Hub.HistoryRetentionDays < 1 || configuration.Hub.HistoryRetentionDays > 365)
+            {
+                errors.Add("Hub.HistoryRetentionDays must be between 1 and 365.");
+            }
+
+            if (configuration.Hub.HistoryMaxEntries < 1 || configuration.Hub.HistoryMaxEntries > 1000)
+            {
+                errors.Add("Hub.HistoryMaxEntries must be between 1 and 1000.");
+            }
+
             foreach (var duplicate in configuration.Applications
                 .GroupBy(application => application.Id ?? string.Empty, StringComparer.OrdinalIgnoreCase)
                 .Where(group => group.Count() > 1))
@@ -67,6 +77,11 @@ namespace EsapiRunnerHub.Configuration
                          !ResolvedTarget(application).EndsWith(".esapi.dll", StringComparison.OrdinalIgnoreCase))
                 {
                     errors.Add(prefix + "EclipsePlugin entries must target a .cs or .esapi.dll file.");
+                }
+
+                if (application.HubScriptId < 0)
+                {
+                    errors.Add(prefix + "HubScriptId must be zero or positive.");
                 }
                 else if (application.LaunchKind == LaunchKind.EsapiContextScript &&
                          !ResolvedTarget(application).EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&

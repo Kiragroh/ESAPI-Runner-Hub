@@ -28,6 +28,8 @@ namespace EsapiRunnerHub.ViewModels
             ContextRequirements = Enum.GetValues(typeof(ContextRequirement)).Cast<ContextRequirement>().ToList();
             ScopeModes = Enum.GetValues(typeof(ScopeMode)).Cast<ScopeMode>().ToList();
             WriteModes = Enum.GetValues(typeof(WriteMode)).Cast<WriteMode>().ToList();
+            ArtifactKinds = Enum.GetValues(typeof(ApplicationArtifactKind)).Cast<ApplicationArtifactKind>().ToList();
+            AccessModes = Enum.GetValues(typeof(ApplicationAccessMode)).Cast<ApplicationAccessMode>().ToList();
             SelectedApplication = Applications.FirstOrDefault();
             UpdateValidation();
         }
@@ -40,6 +42,8 @@ namespace EsapiRunnerHub.ViewModels
         public IList<ContextRequirement> ContextRequirements { get; private set; }
         public IList<ScopeMode> ScopeModes { get; private set; }
         public IList<WriteMode> WriteModes { get; private set; }
+        public IList<ApplicationArtifactKind> ArtifactKinds { get; private set; }
+        public IList<ApplicationAccessMode> AccessModes { get; private set; }
         public HubConfiguration WorkingConfiguration { get { return workingConfiguration; } }
 
         public string SettingsPath
@@ -94,6 +98,30 @@ namespace EsapiRunnerHub.ViewModels
         {
             get { return workingConfiguration.Hub.ScriptHostExecutable; }
             set { workingConfiguration.Hub.ScriptHostExecutable = value; RaisePropertyChanged(); UpdateValidation(); }
+        }
+
+        public string StrHubBaseUrl
+        {
+            get { return workingConfiguration.Hub.StrHubBaseUrl; }
+            set { workingConfiguration.Hub.StrHubBaseUrl = value; RaisePropertyChanged(); }
+        }
+
+        public string HistoryFile
+        {
+            get { return workingConfiguration.Hub.HistoryFile; }
+            set { workingConfiguration.Hub.HistoryFile = value; RaisePropertyChanged(); UpdateValidation(); }
+        }
+
+        public int HistoryRetentionDays
+        {
+            get { return workingConfiguration.Hub.HistoryRetentionDays; }
+            set { workingConfiguration.Hub.HistoryRetentionDays = value; RaisePropertyChanged(); UpdateValidation(); }
+        }
+
+        public int HistoryMaxEntries
+        {
+            get { return workingConfiguration.Hub.HistoryMaxEntries; }
+            set { workingConfiguration.Hub.HistoryMaxEntries = value; RaisePropertyChanged(); UpdateValidation(); }
         }
 
         public ApplicationDefinition SelectedApplication

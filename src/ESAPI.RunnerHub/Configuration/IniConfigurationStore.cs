@@ -88,6 +88,10 @@ namespace EsapiRunnerHub.Configuration
             Append(builder, "PathProbeTimeoutMs", configuration.Hub.PathProbeTimeoutMs.ToString(CultureInfo.InvariantCulture));
             Append(builder, "LogDirectory", configuration.Hub.LogDirectory);
             Append(builder, "ScriptHostExecutable", configuration.Hub.ScriptHostExecutable);
+            Append(builder, "StrHubBaseUrl", configuration.Hub.StrHubBaseUrl);
+            Append(builder, "HistoryFile", configuration.Hub.HistoryFile);
+            Append(builder, "HistoryRetentionDays", configuration.Hub.HistoryRetentionDays.ToString(CultureInfo.InvariantCulture));
+            Append(builder, "HistoryMaxEntries", configuration.Hub.HistoryMaxEntries.ToString(CultureInfo.InvariantCulture));
             AppendExtras(builder, configuration.Hub.ExtraValues);
 
             foreach (var application in configuration.Applications.OrderBy(app => app.SortOrder).ThenBy(app => app.Name, StringComparer.OrdinalIgnoreCase))
@@ -104,6 +108,9 @@ namespace EsapiRunnerHub.Configuration
                 Append(builder, "WriteMode", application.WriteMode.ToString());
                 Append(builder, "EntryType", application.EntryType);
                 Append(builder, "ExtraReferences", application.ExtraReferences);
+                Append(builder, "ArtifactKind", application.ArtifactKind.ToString());
+                Append(builder, "AccessMode", application.AccessMode.ToString());
+                Append(builder, "HubScriptId", application.HubScriptId.ToString(CultureInfo.InvariantCulture));
                 Append(builder, "Executable", application.Executable);
                 Append(builder, "WorkingDirectory", application.WorkingDirectory);
                 Append(builder, "Arguments", application.Arguments);
@@ -176,6 +183,10 @@ namespace EsapiRunnerHub.Configuration
                     case "pathprobetimeoutms": hub.PathProbeTimeoutMs = ParseInt(pair.Key, pair.Value); break;
                     case "logdirectory": hub.LogDirectory = pair.Value; break;
                     case "scripthostexecutable": hub.ScriptHostExecutable = pair.Value; break;
+                    case "strhubbaseurl": hub.StrHubBaseUrl = pair.Value; break;
+                    case "historyfile": hub.HistoryFile = pair.Value; break;
+                    case "historyretentiondays": hub.HistoryRetentionDays = ParseInt(pair.Key, pair.Value); break;
+                    case "historymaxentries": hub.HistoryMaxEntries = ParseInt(pair.Key, pair.Value); break;
                     default: hub.ExtraValues[pair.Key] = pair.Value; break;
                 }
             }
@@ -200,6 +211,9 @@ namespace EsapiRunnerHub.Configuration
                     case "writemode": application.WriteMode = ParseEnum<WriteMode>(pair.Key, pair.Value); break;
                     case "entrytype": application.EntryType = pair.Value; break;
                     case "extrareferences": application.ExtraReferences = pair.Value; break;
+                    case "artifactkind": application.ArtifactKind = ParseEnum<ApplicationArtifactKind>(pair.Key, pair.Value); break;
+                    case "accessmode": application.AccessMode = ParseEnum<ApplicationAccessMode>(pair.Key, pair.Value); break;
+                    case "hubscriptid": application.HubScriptId = ParseInt(pair.Key, pair.Value); break;
                     case "patientmode": application.PatientMode = ParseEnum<PatientMode>(pair.Key, pair.Value); break;
                     case "patienttransport": application.PatientTransport = ParseEnum<PatientTransport>(pair.Key, pair.Value); break;
                     case "patientargumenttemplate": application.PatientArgumentTemplate = pair.Value; break;

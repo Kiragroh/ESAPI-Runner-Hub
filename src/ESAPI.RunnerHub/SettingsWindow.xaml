@@ -92,6 +92,15 @@
                             </Grid>
                             <TextBlock Text="Technical log directory" FontWeight="SemiBold" />
                             <TextBox Text="{Binding LogDirectory, UpdateSourceTrigger=PropertyChanged}" ToolTip="No patient IDs, names, search text, or expanded arguments are logged." />
+                            <TextBlock Text="STR Hub base URL" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding StrHubBaseUrl, UpdateSourceTrigger=PropertyChanged}" ToolTip="Example: https://str-hub.example/" />
+                            <TextBlock Text="Protected activity history" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding HistoryFile, UpdateSourceTrigger=PropertyChanged}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="Retention (days)" FontWeight="SemiBold" /><TextBox Text="{Binding HistoryRetentionDays}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Maximum entries" FontWeight="SemiBold" /><TextBox Text="{Binding HistoryMaxEntries}" /></StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
 
@@ -118,6 +127,12 @@
                                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
                                 <StackPanel><TextBlock Text="Script engine" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding ScriptEngines}" SelectedItem="{Binding SelectedApplication.ScriptEngine}" /></StackPanel>
                                 <StackPanel Grid.Column="2"><TextBlock Text="Required context" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding ContextRequirements}" SelectedItem="{Binding SelectedApplication.ContextRequirement}" /></StackPanel>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="Artifact kind" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding ArtifactKinds}" SelectedItem="{Binding SelectedApplication.ArtifactKind}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Access mode" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedApplication.AccessMode}" /></StackPanel>
+                                <StackPanel Grid.Column="4"><TextBlock Text="STR Hub script ID" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.HubScriptId}" /></StackPanel>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>

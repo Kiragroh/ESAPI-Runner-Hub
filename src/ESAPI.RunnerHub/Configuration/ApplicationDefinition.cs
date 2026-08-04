@@ -57,6 +57,22 @@ namespace EsapiRunnerHub.Configuration
         ConfirmSave
     }
 
+    public enum ApplicationArtifactKind
+    {
+        Auto,
+        Standalone,
+        SingleFile,
+        Binary
+    }
+
+    public enum ApplicationAccessMode
+    {
+        Auto,
+        ReadOnly,
+        WriteEnabled,
+        Unknown
+    }
+
     public sealed class ApplicationDefinition
     {
         public ApplicationDefinition()
@@ -68,6 +84,8 @@ namespace EsapiRunnerHub.Configuration
             ContextRequirement = ContextRequirement.None;
             ScopeMode = ScopeMode.None;
             WriteMode = WriteMode.ReadOnly;
+            ArtifactKind = ApplicationArtifactKind.Auto;
+            AccessMode = ApplicationAccessMode.Auto;
             PatientMode = PatientMode.None;
             PatientTransport = PatientTransport.None;
         }
@@ -86,6 +104,9 @@ namespace EsapiRunnerHub.Configuration
         public WriteMode WriteMode { get; set; }
         public string EntryType { get; set; }
         public string ExtraReferences { get; set; }
+        public ApplicationArtifactKind ArtifactKind { get; set; }
+        public ApplicationAccessMode AccessMode { get; set; }
+        public int HubScriptId { get; set; }
         public PatientMode PatientMode { get; set; }
         public PatientTransport PatientTransport { get; set; }
         public string PatientArgumentTemplate { get; set; }
