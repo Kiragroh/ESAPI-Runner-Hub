@@ -8,6 +8,7 @@ using System.Windows;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Context;
 using EsapiRunnerHub.Esapi;
+using EsapiRunnerHub.History;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
 using EsapiRunnerHub.Privacy;
@@ -56,7 +57,9 @@ namespace EsapiRunnerHub
             }
 
             var initialPatients = smoke ? SyntheticPatients() : Enumerable.Empty<PatientRecord>();
-            var viewModel = new MainViewModel(configuration, initialPatients);
+            var viewModel = smoke
+                ? new MainViewModel(configuration, initialPatients, null, new ProtectedContextEnvelope())
+                : new MainViewModel(configuration, initialPatients);
             viewModel.PatientSelectionChanged += async patient =>
             {
                 var patientId = patient.Id;
@@ -79,6 +82,8 @@ namespace EsapiRunnerHub
             if (smoke)
             {
                 viewModel.SetEsapiStatus(false, "Offline demo · synthetic data");
+                viewModel.SelectPatient(initialPatients.First());
+                AddSyntheticActivity(viewModel);
             }
             else
             {
@@ -160,8 +165,35 @@ namespace EsapiRunnerHub
                 Executable = executable, PatientMode = PatientMode.None, PatientTransport = PatientTransport.None,
                 Enabled = true, SortOrder = 30
             });
+            configuration.Applications.Add(new ApplicationDefinition
+            {
+                Id = "synthetic-field-tools", Name = "Plan Field Naming", Category = "Plan editing",
+                Description = "Binary context tool example with an explicit save boundary.",
+                Executable = executable, ArtifactKind = ApplicationArtifactKind.Binary,
+                AccessMode = ApplicationAccessMode.WriteEnabled, PatientMode = PatientMode.Required,
+                PatientTransport = PatientTransport.Environment, PatientEnvironmentKey = "RUNNER_PATIENT_ID",
+                Enabled = true, SortOrder = 40
+            });
             configuration.ResolvePaths();
             return configuration;
+        }
+
+        private static void AddSyntheticActivity(MainViewModel viewModel)
+        {
+            var entry = new LaunchHistoryEntry
+            {
+                HistoryId = "synthetic-activity",
+                ApplicationId = "synthetic-utility",
+                ApplicationName = "Configuration Utility",
+                ArtifactLabel = "Standalone",
+                AccessLabel = "Read-only",
+                StartedUtc = DateTime.UtcNow.AddMinutes(-2),
+                FinishedUtc = DateTime.UtcNow.AddMinutes(-2),
+                State = LaunchHistoryState.Exited,
+                ExitCode = 0,
+                LaunchMode = LaunchMode.WithoutPatient
+            };
+            viewModel.Activities.Add(new ActivityRowViewModel(entry, "No patient", true));
         }
 
         private static IEnumerable<PatientRecord> SyntheticPatients()

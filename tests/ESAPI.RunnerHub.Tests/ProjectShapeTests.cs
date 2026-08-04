@@ -81,6 +81,39 @@ namespace EsapiRunnerHub.Tests
                 TestHarness.AssertFalse(helper.Contains("-cmdline"));
                 TestHarness.AssertContains(helper, "ESAPI-Runner-Hub.lnk");
             });
+
+            TestHarness.Test("main window uses a compact centered responsive catalogue", () =>
+            {
+                var xaml = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml"));
+                TestHarness.AssertContains(xaml, "x:Name=\"CatalogueFilterBar\"");
+                TestHarness.AssertContains(xaml, "HorizontalScrollBarVisibility=\"Disabled\"");
+                TestHarness.AssertContains(xaml, "Width=\"318\"");
+                TestHarness.AssertContains(xaml, "ReplayAvailabilityText");
+                TestHarness.AssertFalse(xaml.Contains("<ColumnDefinition Width=\"154\" />"));
+                TestHarness.AssertFalse(xaml.Contains("<GridView>"));
+            });
+
+            TestHarness.Test("privacy mode covers patient context paths and activity", () =>
+            {
+                var xaml = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml"));
+                TestHarness.AssertContains(xaml, "Command=\"{Binding TogglePrivacyBlurCommand}\"");
+                TestHarness.AssertContains(xaml, "DataContext.IsPrivacyBlurEnabled");
+                TestHarness.AssertContains(xaml, "x:Key=\"SensitiveText\"");
+                TestHarness.AssertContains(xaml, "x:Key=\"SensitiveControl\"");
+                TestHarness.AssertContains(xaml, "Property=\"ToolTip\" Value=\"{x:Null}\"");
+                TestHarness.AssertContains(xaml, "Start with patient");
+            });
+
+            TestHarness.Test("offline UI smoke data is synthetic and history isolated", () =>
+            {
+                var code = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml.cs"));
+                TestHarness.AssertEqual(4, System.Text.RegularExpressions.Regex.Matches(code,
+                    "configuration\\.Applications\\.Add\\(new ApplicationDefinition").Count);
+                TestHarness.AssertContains(code, "new MainViewModel(configuration, initialPatients, null");
+                TestHarness.AssertContains(code, "new ActivityRowViewModel");
+                TestHarness.AssertContains(code, "viewModel.SelectPatient");
+                TestHarness.AssertContains(code, "LaunchHistoryState.Exited");
+            });
         }
     }
 }
