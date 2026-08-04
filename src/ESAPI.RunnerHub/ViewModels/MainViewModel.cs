@@ -24,6 +24,7 @@ namespace EsapiRunnerHub.ViewModels
         private readonly List<LaunchHistoryEntry> historyEntries = new List<LaunchHistoryEntry>();
         private readonly object historyGate = new object();
         private readonly RelayCommand runAgainCommand;
+        private readonly RelayCommand resetFiltersCommand;
         private PatientSearchIndex patientIndex;
         private PatientRecord selectedPatient;
         private string searchText;
@@ -40,6 +41,7 @@ namespace EsapiRunnerHub.ViewModels
         private StructureSetDescriptor selectedStructureSet;
         private ImageDescriptor selectedImage;
         private string contextStatusText;
+        private bool isPrivacyBlurEnabled;
 
         public MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients)
             : this(configuration, patients, CreateDefaultHistoryStore(configuration), new ProtectedContextEnvelope())
@@ -58,7 +60,7 @@ namespace EsapiRunnerHub.ViewModels
                     .ThenBy(item => item.Name)
                     .Select(item => new ApplicationCardViewModel(item, configuration.Hub.StrHubBaseUrl)));
             VisibleApplications = new ObservableCollection<ApplicationCardViewModel>();
-            Categories = new ObservableCollection<string>(new[] { "All tools" }.Concat(
+            Categories = new ObservableCollection<string>(new[] { "All categories" }.Concat(
                 Applications.Select(item => item.Category).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(item => item)));
             ArtifactFilters = new ObservableCollection<ArtifactFilterOption>(new[]
             {
@@ -83,9 +85,12 @@ namespace EsapiRunnerHub.ViewModels
             runAgainCommand = new RelayCommand(parameter => RunAgain(parameter as ActivityRowViewModel),
                 parameter => parameter is ActivityRowViewModel row && row.CanRunAgain);
             RunAgainCommand = runAgainCommand;
+            TogglePrivacyBlurCommand = new RelayCommand(parameter => TogglePrivacyBlur());
+            resetFiltersCommand = new RelayCommand(parameter => ResetFilters(), parameter => HasActiveFilters);
+            ResetFiltersCommand = resetFiltersCommand;
             OpenReadmeCommand = new RelayCommand(parameter => OpenReadme(parameter as ApplicationCardViewModel),
                 parameter => parameter is ApplicationCardViewModel card && card.HasHubReadme);
-            selectedCategory = "All tools";
+            selectedCategory = "All categories";
             selectedArtifactFilter = ArtifactFilters[0];
             SetPatients(patients ?? Enumerable.Empty<PatientRecord>());
             SetEsapiStatus(false, "Loading patient directory…");
@@ -112,6 +117,8 @@ namespace EsapiRunnerHub.ViewModels
         public ICommand StartWithoutPatientCommand { get; private set; }
         public ICommand StartContextCommand { get; private set; }
         public ICommand RunAgainCommand { get; private set; }
+        public ICommand TogglePrivacyBlurCommand { get; private set; }
+        public ICommand ResetFiltersCommand { get; private set; }
         public ICommand OpenReadmeCommand { get; private set; }
         public event Action<PatientRecord> PatientSelectionChanged;
 
@@ -140,6 +147,7 @@ namespace EsapiRunnerHub.ViewModels
                 if (SetProperty(ref applicationFilter, value))
                 {
                     UpdateVisibleApplications();
+                    NotifyFilterStateChanged();
                 }
             }
         }
@@ -152,6 +160,7 @@ namespace EsapiRunnerHub.ViewModels
                 if (SetProperty(ref selectedCategory, value))
                 {
                     UpdateVisibleApplications();
+                    NotifyFilterStateChanged();
                 }
             }
         }
@@ -160,6 +169,18 @@ namespace EsapiRunnerHub.ViewModels
         public bool IsEsapiAvailable { get { return isEsapiAvailable; } }
         public string NotificationText { get { return notificationText; } }
         public string ContextStatusText { get { return contextStatusText; } }
+        public bool IsPrivacyBlurEnabled { get { return isPrivacyBlurEnabled; } }
+        public string PrivacyActionLabel { get { return isPrivacyBlurEnabled ? "Show details" : "Privacy blur"; } }
+        public bool HasActiveFilters
+        {
+            get
+            {
+                return !string.IsNullOrWhiteSpace(applicationFilter)
+                    || (!string.IsNullOrWhiteSpace(selectedCategory)
+                        && !string.Equals(selectedCategory, "All categories", StringComparison.OrdinalIgnoreCase))
+                    || (selectedArtifactFilter != null && selectedArtifactFilter.Kind != ApplicationArtifactFilter.All);
+            }
+        }
 
         public CourseDescriptor SelectedCourse
         {
@@ -182,6 +203,7 @@ namespace EsapiRunnerHub.ViewModels
                 if (SetProperty(ref selectedArtifactFilter, value))
                 {
                     UpdateVisibleApplications();
+                    NotifyFilterStateChanged();
                 }
             }
         }
@@ -382,7 +404,7 @@ namespace EsapiRunnerHub.ViewModels
         private void UpdateVisibleApplications()
         {
             var query = Applications.AsEnumerable();
-            if (!string.IsNullOrWhiteSpace(selectedCategory) && !string.Equals(selectedCategory, "All tools", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(selectedCategory) && !string.Equals(selectedCategory, "All categories", StringComparison.OrdinalIgnoreCase))
             {
                 query = query.Where(item => string.Equals(item.Category, selectedCategory, StringComparison.OrdinalIgnoreCase));
             }
@@ -404,6 +426,31 @@ namespace EsapiRunnerHub.ViewModels
             {
                 VisibleApplications.Add(application);
             }
+        }
+
+        private void TogglePrivacyBlur()
+        {
+            isPrivacyBlurEnabled = !isPrivacyBlurEnabled;
+            RaisePropertyChanged(nameof(IsPrivacyBlurEnabled));
+            RaisePropertyChanged(nameof(PrivacyActionLabel));
+        }
+
+        private void ResetFilters()
+        {
+            applicationFilter = string.Empty;
+            selectedCategory = Categories.FirstOrDefault() ?? "All categories";
+            selectedArtifactFilter = ArtifactFilters.FirstOrDefault();
+            RaisePropertyChanged(nameof(ApplicationFilter));
+            RaisePropertyChanged(nameof(SelectedCategory));
+            RaisePropertyChanged(nameof(SelectedArtifactFilter));
+            UpdateVisibleApplications();
+            NotifyFilterStateChanged();
+        }
+
+        private void NotifyFilterStateChanged()
+        {
+            RaisePropertyChanged(nameof(HasActiveFilters));
+            resetFiltersCommand.RaiseCanExecuteChanged();
         }
 
         private void Start(ApplicationCardViewModel card, bool withPatient)

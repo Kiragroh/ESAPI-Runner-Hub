@@ -24,6 +24,8 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("offline ESAPI state stays explicit", ShowsOfflineState);
             TestHarness.Test("Eclipse plug-in cards are visible but never launched externally", KeepsPluginInsideEclipse);
             TestHarness.Test("successful child launches and exits are logged technically", LogsChildLifecycle);
+            TestHarness.Test("privacy display mode is explicit and temporary", TogglesPrivacyDisplay);
+            TestHarness.Test("catalogue filters reset together", ResetsCatalogueFilters);
         }
 
         private static void RetainsPatientContext()
@@ -64,7 +66,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertEqual(1, viewModel.VisibleApplications.Count);
             TestHarness.AssertEqual("required", viewModel.VisibleApplications[0].Id);
 
-            viewModel.SelectedCategory = "All tools";
+            viewModel.SelectedCategory = "All categories";
             viewModel.ApplicationFilter = "document";
             TestHarness.AssertEqual(1, viewModel.VisibleApplications.Count);
             TestHarness.AssertEqual("optional", viewModel.VisibleApplications[0].Id);
@@ -213,6 +215,44 @@ Enabled=true
                 TechnicalLog.Configure(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ESAPI Runner Hub", "Logs"));
                 if (Directory.Exists(directory)) Directory.Delete(directory, true);
             }
+        }
+
+        private static void TogglesPrivacyDisplay()
+        {
+            var viewModel = CreateViewModel();
+            var enabledProperty = typeof(MainViewModel).GetProperty("IsPrivacyBlurEnabled");
+            var labelProperty = typeof(MainViewModel).GetProperty("PrivacyActionLabel");
+            var commandProperty = typeof(MainViewModel).GetProperty("TogglePrivacyBlurCommand");
+            TestHarness.AssertTrue(enabledProperty != null, "MainViewModel.IsPrivacyBlurEnabled is missing.");
+            TestHarness.AssertTrue(labelProperty != null, "MainViewModel.PrivacyActionLabel is missing.");
+            TestHarness.AssertTrue(commandProperty != null, "MainViewModel.TogglePrivacyBlurCommand is missing.");
+
+            TestHarness.AssertFalse((bool)enabledProperty.GetValue(viewModel, null));
+            TestHarness.AssertEqual("Privacy blur", (string)labelProperty.GetValue(viewModel, null));
+            ((System.Windows.Input.ICommand)commandProperty.GetValue(viewModel, null)).Execute(null);
+            TestHarness.AssertTrue((bool)enabledProperty.GetValue(viewModel, null));
+            TestHarness.AssertEqual("Show details", (string)labelProperty.GetValue(viewModel, null));
+        }
+
+        private static void ResetsCatalogueFilters()
+        {
+            var viewModel = CreateViewModel();
+            var activeProperty = typeof(MainViewModel).GetProperty("HasActiveFilters");
+            var commandProperty = typeof(MainViewModel).GetProperty("ResetFiltersCommand");
+            TestHarness.AssertTrue(activeProperty != null, "MainViewModel.HasActiveFilters is missing.");
+            TestHarness.AssertTrue(commandProperty != null, "MainViewModel.ResetFiltersCommand is missing.");
+
+            viewModel.ApplicationFilter = "plan";
+            viewModel.SelectedCategory = "Review";
+            viewModel.SelectedArtifactFilter = viewModel.ArtifactFilters.Single(item => item.Kind == ApplicationArtifactFilter.Binary);
+            TestHarness.AssertTrue((bool)activeProperty.GetValue(viewModel, null));
+
+            ((System.Windows.Input.ICommand)commandProperty.GetValue(viewModel, null)).Execute(null);
+
+            TestHarness.AssertEqual(string.Empty, viewModel.ApplicationFilter);
+            TestHarness.AssertEqual("All categories", viewModel.SelectedCategory);
+            TestHarness.AssertEqual(ApplicationArtifactFilter.All, viewModel.SelectedArtifactFilter.Kind);
+            TestHarness.AssertFalse((bool)activeProperty.GetValue(viewModel, null));
         }
 
         private static string WaitForSharedLog(string path, string expected, DateTime deadline)
