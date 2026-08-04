@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="ConfigurationTests.cs" />
+    <Compile Include="ContextConfigurationTests.cs" />
     <Compile Include="EsapiAssemblyLocatorTests.cs" />
     <Compile Include="EsapiPatientDirectoryTests.cs" />
     <Compile Include="LaunchingTests.cs" />

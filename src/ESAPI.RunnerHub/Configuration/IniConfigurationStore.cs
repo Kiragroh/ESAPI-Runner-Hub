@@ -97,6 +97,12 @@ namespace EsapiRunnerHub.Configuration
                 Append(builder, "Category", application.Category);
                 Append(builder, "Description", application.Description);
                 Append(builder, "LaunchKind", application.LaunchKind.ToString());
+                Append(builder, "ScriptEngine", application.ScriptEngine.ToString());
+                Append(builder, "ContextRequirement", application.ContextRequirement.ToString());
+                Append(builder, "ScopeMode", application.ScopeMode.ToString());
+                Append(builder, "WriteMode", application.WriteMode.ToString());
+                Append(builder, "EntryType", application.EntryType);
+                Append(builder, "ExtraReferences", application.ExtraReferences);
                 Append(builder, "Executable", application.Executable);
                 Append(builder, "WorkingDirectory", application.WorkingDirectory);
                 Append(builder, "Arguments", application.Arguments);
@@ -186,6 +192,12 @@ namespace EsapiRunnerHub.Configuration
                     case "workingdirectory": application.WorkingDirectory = pair.Value; break;
                     case "arguments": application.Arguments = pair.Value; break;
                     case "launchkind": application.LaunchKind = ParseEnum<LaunchKind>(pair.Key, pair.Value); break;
+                    case "scriptengine": application.ScriptEngine = ParseEnum<ScriptEngine>(pair.Key, pair.Value); break;
+                    case "contextrequirement": application.ContextRequirement = ParseEnum<ContextRequirement>(pair.Key, pair.Value); break;
+                    case "scopemode": application.ScopeMode = ParseEnum<ScopeMode>(pair.Key, pair.Value); break;
+                    case "writemode": application.WriteMode = ParseEnum<WriteMode>(pair.Key, pair.Value); break;
+                    case "entrytype": application.EntryType = pair.Value; break;
+                    case "extrareferences": application.ExtraReferences = pair.Value; break;
                     case "patientmode": application.PatientMode = ParseEnum<PatientMode>(pair.Key, pair.Value); break;
                     case "patienttransport": application.PatientTransport = ParseEnum<PatientTransport>(pair.Key, pair.Value); break;
                     case "patientargumenttemplate": application.PatientArgumentTemplate = pair.Value; break;

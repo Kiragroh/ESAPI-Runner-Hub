@@ -21,7 +21,38 @@ namespace EsapiRunnerHub.Configuration
     public enum LaunchKind
     {
         Executable,
-        EclipsePlugin
+        EclipsePlugin,
+        EsapiContextScript
+    }
+
+    public enum ScriptEngine
+    {
+        Auto,
+        EsapiEssentials,
+        Eclipse
+    }
+
+    public enum ContextRequirement
+    {
+        None,
+        Patient,
+        StructureSet,
+        Plan,
+        PlanningItem,
+        PlanOrStructureSet
+    }
+
+    public enum ScopeMode
+    {
+        None,
+        Single,
+        Multiple
+    }
+
+    public enum WriteMode
+    {
+        ReadOnly,
+        ConfirmSave
     }
 
     public sealed class ApplicationDefinition
@@ -31,6 +62,10 @@ namespace EsapiRunnerHub.Configuration
             ExtraValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             Enabled = true;
             LaunchKind = LaunchKind.Executable;
+            ScriptEngine = ScriptEngine.Auto;
+            ContextRequirement = ContextRequirement.None;
+            ScopeMode = ScopeMode.None;
+            WriteMode = WriteMode.ReadOnly;
             PatientMode = PatientMode.None;
             PatientTransport = PatientTransport.None;
         }
@@ -43,6 +78,12 @@ namespace EsapiRunnerHub.Configuration
         public string WorkingDirectory { get; set; }
         public string Arguments { get; set; }
         public LaunchKind LaunchKind { get; set; }
+        public ScriptEngine ScriptEngine { get; set; }
+        public ContextRequirement ContextRequirement { get; set; }
+        public ScopeMode ScopeMode { get; set; }
+        public WriteMode WriteMode { get; set; }
+        public string EntryType { get; set; }
+        public string ExtraReferences { get; set; }
         public PatientMode PatientMode { get; set; }
         public PatientTransport PatientTransport { get; set; }
         public string PatientArgumentTemplate { get; set; }

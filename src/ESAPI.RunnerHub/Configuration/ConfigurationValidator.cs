@@ -68,6 +68,12 @@ namespace EsapiRunnerHub.Configuration
                 {
                     errors.Add(prefix + "EclipsePlugin entries must target a .cs or .esapi.dll file.");
                 }
+                else if (application.LaunchKind == LaunchKind.EsapiContextScript &&
+                         !ResolvedTarget(application).EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
+                         !ResolvedTarget(application).EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    errors.Add(prefix + "EsapiContextScript entries must target a .cs or .dll file.");
+                }
 
                 if (application.LaunchKind == LaunchKind.EclipsePlugin &&
                     (application.PatientMode != PatientMode.None || application.PatientTransport != PatientTransport.None))
@@ -75,7 +81,40 @@ namespace EsapiRunnerHub.Configuration
                     errors.Add(prefix + "EclipsePlugin entries must use PatientMode=None and PatientTransport=None because they run inside Eclipse.");
                 }
 
-                if (application.PatientMode == PatientMode.Required && application.PatientTransport == PatientTransport.None)
+                if (application.LaunchKind == LaunchKind.EsapiContextScript &&
+                    application.PatientTransport != PatientTransport.None)
+                {
+                    errors.Add(prefix + "EsapiContextScript entries must use PatientTransport=None because the private host protocol supplies context.");
+                }
+
+                if (application.LaunchKind == LaunchKind.EsapiContextScript &&
+                    application.ContextRequirement != ContextRequirement.None &&
+                    application.PatientMode != PatientMode.Required)
+                {
+                    errors.Add(prefix + "EsapiContextScript entries with context must use PatientMode=Required.");
+                }
+
+                if (application.LaunchKind == LaunchKind.EsapiContextScript &&
+                    application.ContextRequirement == ContextRequirement.None &&
+                    application.PatientMode != PatientMode.None)
+                {
+                    errors.Add(prefix + "EsapiContextScript entries without context must use PatientMode=None.");
+                }
+
+                if (application.LaunchKind != LaunchKind.EsapiContextScript &&
+                    application.WriteMode != WriteMode.ReadOnly)
+                {
+                    errors.Add(prefix + "WriteMode=ConfirmSave is supported only for EsapiContextScript entries.");
+                }
+
+                if (application.ContextRequirement == ContextRequirement.None &&
+                    application.ScopeMode != ScopeMode.None)
+                {
+                    errors.Add(prefix + "ScopeMode must be None when ContextRequirement is None.");
+                }
+
+                if (application.LaunchKind == LaunchKind.Executable &&
+                    application.PatientMode == PatientMode.Required && application.PatientTransport == PatientTransport.None)
                 {
                     errors.Add(prefix + "PatientTransport is required when PatientMode is Required.");
                 }
