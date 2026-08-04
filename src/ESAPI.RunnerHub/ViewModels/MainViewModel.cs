@@ -12,12 +12,17 @@ using EsapiRunnerHub.Patients;
 using EsapiRunnerHub.Privacy;
 using EsapiRunnerHub.Context;
 using EsapiRunnerHub.Catalog;
+using EsapiRunnerHub.History;
 
 namespace EsapiRunnerHub.ViewModels
 {
     public sealed class MainViewModel : ObservableObject
     {
         private readonly ChildProcessLauncher launcher = new ChildProcessLauncher();
+        private readonly LaunchHistoryStore historyStore;
+        private readonly ProtectedContextEnvelope contextProtector;
+        private readonly List<LaunchHistoryEntry> historyEntries = new List<LaunchHistoryEntry>();
+        private readonly object historyGate = new object();
         private PatientSearchIndex patientIndex;
         private PatientRecord selectedPatient;
         private string searchText;
@@ -36,8 +41,16 @@ namespace EsapiRunnerHub.ViewModels
         private string contextStatusText;
 
         public MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients)
+            : this(configuration, patients, CreateDefaultHistoryStore(configuration), new ProtectedContextEnvelope())
+        {
+        }
+
+        public MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients,
+            LaunchHistoryStore historyStore, ProtectedContextEnvelope contextProtector)
         {
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.historyStore = historyStore;
+            this.contextProtector = contextProtector ?? throw new ArgumentNullException(nameof(contextProtector));
             Applications = new ObservableCollection<ApplicationCardViewModel>(
                 configuration.Applications.Where(item => item.Enabled)
                     .OrderBy(item => item.SortOrder)
@@ -55,6 +68,7 @@ namespace EsapiRunnerHub.ViewModels
             });
             Suggestions = new ObservableCollection<PatientRecord>();
             Processes = new ObservableCollection<ProcessRowViewModel>();
+            Activities = new ObservableCollection<ActivityRowViewModel>();
             Courses = new ObservableCollection<CourseDescriptor>();
             Plans = new ObservableCollection<PlanDescriptor>();
             PlanSums = new ObservableCollection<PlanSumDescriptor>();
@@ -66,6 +80,8 @@ namespace EsapiRunnerHub.ViewModels
             StartWithPatientCommand = new RelayCommand(parameter => Start(parameter as ApplicationCardViewModel, true));
             StartWithoutPatientCommand = new RelayCommand(parameter => Start(parameter as ApplicationCardViewModel, false));
             StartContextCommand = new RelayCommand(parameter => StartContext(parameter as ApplicationCardViewModel));
+            RunAgainCommand = new RelayCommand(parameter => RunAgain(parameter as ActivityRowViewModel),
+                parameter => parameter is ActivityRowViewModel row && row.CanRunAgain);
             OpenReadmeCommand = new RelayCommand(parameter => OpenReadme(parameter as ApplicationCardViewModel),
                 parameter => parameter is ApplicationCardViewModel card && card.HasHubReadme);
             selectedCategory = "All tools";
@@ -73,6 +89,7 @@ namespace EsapiRunnerHub.ViewModels
             SetPatients(patients ?? Enumerable.Empty<PatientRecord>());
             SetEsapiStatus(false, "Loading patient directory…");
             UpdateVisibleApplications();
+            LoadHistory();
         }
 
         public HubConfiguration Configuration { get; private set; }
@@ -82,6 +99,7 @@ namespace EsapiRunnerHub.ViewModels
         public ObservableCollection<ArtifactFilterOption> ArtifactFilters { get; private set; }
         public ObservableCollection<PatientRecord> Suggestions { get; private set; }
         public ObservableCollection<ProcessRowViewModel> Processes { get; private set; }
+        public ObservableCollection<ActivityRowViewModel> Activities { get; private set; }
         public ObservableCollection<CourseDescriptor> Courses { get; private set; }
         public ObservableCollection<PlanDescriptor> Plans { get; private set; }
         public ObservableCollection<PlanSumDescriptor> PlanSums { get; private set; }
@@ -93,6 +111,7 @@ namespace EsapiRunnerHub.ViewModels
         public ICommand StartWithPatientCommand { get; private set; }
         public ICommand StartWithoutPatientCommand { get; private set; }
         public ICommand StartContextCommand { get; private set; }
+        public ICommand RunAgainCommand { get; private set; }
         public ICommand OpenReadmeCommand { get; private set; }
         public event Action<PatientRecord> PatientSelectionChanged;
 
@@ -342,6 +361,7 @@ namespace EsapiRunnerHub.ViewModels
             if (application != null)
             {
                 application.SetReadiness(result.Readiness, result.Message);
+                RefreshRelaunchAvailability(application.Id);
             }
         }
 
@@ -388,10 +408,7 @@ namespace EsapiRunnerHub.ViewModels
 
         private void Start(ApplicationCardViewModel card, bool withPatient)
         {
-            if (card == null)
-            {
-                return;
-            }
+            if (card == null) return;
 
             if (card.Definition.LaunchKind == LaunchKind.EclipsePlugin)
             {
@@ -406,38 +423,8 @@ namespace EsapiRunnerHub.ViewModels
                 StartContext(card);
                 return;
             }
-
-            try
-            {
-                var request = ArgumentComposer.Compose(card.Definition, selectedPatient, withPatient);
-                var process = launcher.Start(request);
-                var lifecycleLog = TechnicalLog.Current;
-                lifecycleLog.Write("INFO", "child_started", card.Id, null);
-                var exitLogged = 0;
-                Action writeExit = () =>
-                {
-                    if (Interlocked.Exchange(ref exitLogged, 1) == 0)
-                    {
-                        lifecycleLog.Write(process.ExitCode.GetValueOrDefault() == 0 ? "INFO" : "WARN",
-                            process.ExitCode.GetValueOrDefault() == 0 ? "child_exit_ok" : "child_exit_nonzero",
-                            card.Id, null);
-                    }
-                };
-                process.Exited += (sender, args) => writeExit();
-                if (!process.IsRunning)
-                {
-                    writeExit();
-                }
-                Processes.Insert(0, new ProcessRowViewModel(card.Name, process));
-                notificationText = card.Name + " started in a separate process.";
-            }
-            catch (Exception exception)
-            {
-                notificationText = card.Name + " could not be started: " + exception.Message;
-                TechnicalLog.Current.Write("ERROR", "child_start_failed", card.Id, exception);
-            }
-
-            RaisePropertyChanged(nameof(NotificationText));
+            Launch(card, withPatient ? LaunchMode.WithPatient : LaunchMode.WithoutPatient,
+                withPatient ? selectedPatient : null, null);
         }
 
         private static ApplicationArtifactKind ArtifactKindFor(ApplicationArtifactFilter filter)
@@ -467,22 +454,207 @@ namespace EsapiRunnerHub.ViewModels
         private void StartContext(ApplicationCardViewModel card)
         {
             if (card == null) return;
+            Launch(card, LaunchMode.Context, selectedPatient, CopySelectionFor(card.Definition.ScopeMode));
+        }
+
+        private void Launch(ApplicationCardViewModel card, LaunchMode mode, PatientRecord patient, ContextSelection selection)
+        {
+            if (card == null) return;
+            var protectedSelection = selection;
+            if (mode == LaunchMode.WithPatient)
+                protectedSelection = new ContextSelection { PatientId = patient == null ? null : patient.Id };
+
+            LaunchHistoryEntry entry;
             try
             {
-                var selection = CopySelectionFor(card.Definition.ScopeMode);
-                var request = ContextScriptRequestComposer.Compose(card.Definition, selectedPatient, selection,
-                    Configuration.Hub, Configuration.Hub.ResolvedScriptHostExecutable);
-                var process = launcher.Start(request);
-                Processes.Insert(0, new ProcessRowViewModel(card.Name, process));
-                TechnicalLog.Current.Write("INFO", "context_child_started", card.Id, null);
-                notificationText = card.Name + " started with the selected planning context.";
+                entry = new LaunchHistoryEntry
+                {
+                    HistoryId = Guid.NewGuid().ToString("N"),
+                    ApplicationId = card.Id,
+                    ApplicationName = card.Name,
+                    ArtifactLabel = card.ArtifactLabel,
+                    AccessLabel = card.AccessLabel,
+                    StartedUtc = DateTime.UtcNow,
+                    State = LaunchHistoryState.Starting,
+                    LaunchMode = mode,
+                    ProtectedContext = mode == LaunchMode.WithoutPatient ? null : contextProtector.Protect(protectedSelection)
+                };
             }
             catch (Exception exception)
             {
-                notificationText = card.Name + " could not be started: " + exception.Message;
-                TechnicalLog.Current.Write("ERROR", "context_child_start_failed", card.Id, exception);
+                notificationText = card.Name + " could not be started because its restart context could not be protected.";
+                TechnicalLog.Current.Write("ERROR", "history_context_protect_failed", card.Id, exception);
+                RaisePropertyChanged(nameof(NotificationText));
+                return;
             }
+
+            var row = new ActivityRowViewModel(entry, DescribeContext(mode, protectedSelection));
+            row.SetCanRunAgain(card.IsReady);
+            lock (historyGate) historyEntries.Insert(0, entry);
+            Activities.Insert(0, row);
+            PersistHistory();
+
+            try
+            {
+                LaunchRequest request;
+                if (mode == LaunchMode.Context)
+                {
+                    request = ContextScriptRequestComposer.Compose(card.Definition, patient, selection,
+                        Configuration.Hub, Configuration.Hub.ResolvedScriptHostExecutable);
+                }
+                else
+                {
+                    request = ArgumentComposer.Compose(card.Definition, patient, mode == LaunchMode.WithPatient);
+                }
+
+                var process = launcher.Start(request);
+                entry.State = LaunchHistoryState.Running;
+                row.AttachProcess(process);
+                row.Refresh();
+                Processes.Insert(0, new ProcessRowViewModel(card.Name, process));
+                PersistHistory();
+                TechnicalLog.Current.Write("INFO", mode == LaunchMode.Context ? "context_child_started" : "child_started", card.Id, null);
+                notificationText = mode == LaunchMode.Context
+                    ? card.Name + " started with the selected planning context."
+                    : card.Name + " started in a separate process.";
+
+                var exitHandled = 0;
+                Action handleExit = () =>
+                {
+                    if (Interlocked.Exchange(ref exitHandled, 1) != 0) return;
+                    lock (historyGate)
+                    {
+                        entry.State = LaunchHistoryState.Exited;
+                        entry.FinishedUtc = process.ExitedUtc ?? DateTime.UtcNow;
+                        entry.ExitCode = process.ExitCode;
+                    }
+                    row.Refresh();
+                    PersistHistory();
+                    TechnicalLog.Current.Write(process.ExitCode.GetValueOrDefault() == 0 ? "INFO" : "WARN",
+                        process.ExitCode.GetValueOrDefault() == 0 ? "child_exit_ok" : "child_exit_nonzero", card.Id, null);
+                };
+                process.Exited += (sender, args) => handleExit();
+                if (!process.IsRunning) handleExit();
+            }
+            catch (Exception exception)
+            {
+                entry.State = LaunchHistoryState.FailedToStart;
+                entry.FinishedUtc = DateTime.UtcNow;
+                row.Refresh();
+                PersistHistory();
+                notificationText = card.Name + " could not be started: " + exception.Message;
+                TechnicalLog.Current.Write("ERROR", mode == LaunchMode.Context ? "context_child_start_failed" : "child_start_failed", card.Id, exception);
+            }
+
             RaisePropertyChanged(nameof(NotificationText));
+        }
+
+        private void RunAgain(ActivityRowViewModel row)
+        {
+            if (row == null) return;
+            var card = Applications.FirstOrDefault(item => string.Equals(item.Id, row.ApplicationId, StringComparison.OrdinalIgnoreCase));
+            if (card == null || !card.IsReady)
+            {
+                row.Entry.State = LaunchHistoryState.Unavailable;
+                row.SetCanRunAgain(false);
+                row.Refresh();
+                PersistHistory();
+                notificationText = row.ApplicationName + " is not available in the current catalogue.";
+                RaisePropertyChanged(nameof(NotificationText));
+                return;
+            }
+
+            try
+            {
+                ContextSelection selection = null;
+                PatientRecord patient = null;
+                if (row.Entry.LaunchMode != LaunchMode.WithoutPatient)
+                {
+                    selection = contextProtector.Unprotect(row.Entry.ProtectedContext);
+                    patient = new PatientRecord(selection.PatientId, string.Empty, string.Empty, 0);
+                }
+                Launch(card, row.Entry.LaunchMode, patient, selection);
+            }
+            catch (Exception exception)
+            {
+                row.SetCanRunAgain(false);
+                notificationText = row.ApplicationName + " cannot be restarted because its protected context is unavailable.";
+                TechnicalLog.Current.Write("WARN", "history_context_unprotect_failed", row.ApplicationId, exception);
+                RaisePropertyChanged(nameof(NotificationText));
+            }
+        }
+
+        private void LoadHistory()
+        {
+            if (historyStore == null) return;
+            var unavailableChanged = false;
+            foreach (var entry in historyStore.Load())
+            {
+                var card = Applications.FirstOrDefault(item => string.Equals(item.Id, entry.ApplicationId, StringComparison.OrdinalIgnoreCase));
+                ContextSelection selection = null;
+                var protectedContextAvailable = entry.LaunchMode == LaunchMode.WithoutPatient;
+                if (!protectedContextAvailable)
+                {
+                    try
+                    {
+                        selection = contextProtector.Unprotect(entry.ProtectedContext);
+                        protectedContextAvailable = true;
+                    }
+                    catch (Exception exception)
+                    {
+                        TechnicalLog.Current.Write("WARN", "history_context_unprotect_failed", entry.ApplicationId, exception);
+                    }
+                }
+                if (card == null)
+                {
+                    entry.State = LaunchHistoryState.Unavailable;
+                    unavailableChanged = true;
+                }
+                historyEntries.Add(entry);
+                var row = new ActivityRowViewModel(entry, DescribeContext(entry.LaunchMode, selection));
+                row.SetCanRunAgain(card != null && card.IsReady && protectedContextAvailable);
+                Activities.Add(row);
+            }
+            if (unavailableChanged) PersistHistory();
+        }
+
+        private void RefreshRelaunchAvailability(string applicationId)
+        {
+            var card = Applications.FirstOrDefault(item => string.Equals(item.Id, applicationId, StringComparison.OrdinalIgnoreCase));
+            foreach (var row in Activities.Where(item => string.Equals(item.ApplicationId, applicationId, StringComparison.OrdinalIgnoreCase)))
+            {
+                var protectedContextAvailable = row.Entry.LaunchMode == LaunchMode.WithoutPatient || !string.IsNullOrWhiteSpace(row.Entry.ProtectedContext);
+                row.SetCanRunAgain(card != null && card.IsReady && protectedContextAvailable);
+            }
+        }
+
+        private void PersistHistory()
+        {
+            if (historyStore == null) return;
+            List<LaunchHistoryEntry> snapshot;
+            lock (historyGate) snapshot = historyEntries.ToList();
+            historyStore.Save(snapshot);
+        }
+
+        private static string DescribeContext(LaunchMode mode, ContextSelection selection)
+        {
+            if (mode == LaunchMode.WithoutPatient) return "No patient";
+            if (selection == null) return "Protected context unavailable";
+            var values = new List<string>();
+            if (!string.IsNullOrWhiteSpace(selection.PatientId)) values.Add("Patient " + selection.PatientId);
+            if (!string.IsNullOrWhiteSpace(selection.CourseId)) values.Add("Course " + selection.CourseId);
+            if (!string.IsNullOrWhiteSpace(selection.PlanId)) values.Add("Plan " + selection.PlanId);
+            if (!string.IsNullOrWhiteSpace(selection.PlanSumId)) values.Add("Plan sum " + selection.PlanSumId);
+            if (!string.IsNullOrWhiteSpace(selection.StructureSetId)) values.Add("SS " + selection.StructureSetId);
+            if (!string.IsNullOrWhiteSpace(selection.ImageId)) values.Add("Image " + selection.ImageId);
+            return values.Count == 0 ? "No context" : string.Join(" · ", values);
+        }
+
+        private static LaunchHistoryStore CreateDefaultHistoryStore(HubConfiguration configuration)
+        {
+            if (configuration == null || string.IsNullOrWhiteSpace(configuration.Hub.ResolvedHistoryFile)) return null;
+            return new LaunchHistoryStore(configuration.Hub.ResolvedHistoryFile,
+                configuration.Hub.HistoryRetentionDays, configuration.Hub.HistoryMaxEntries);
         }
 
         private ContextSelection CopySelectionFor(ScopeMode scopeMode)
