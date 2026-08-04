@@ -196,7 +196,27 @@ Enabled=true
             var directory = Path.Combine(Path.GetTempPath(), "runner-hub-view-history-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(directory);
             try { action(new LaunchHistoryStore(Path.Combine(directory, "history.json"), 30, 100), directory); }
-            finally { Directory.Delete(directory, true); }
+            finally { DeleteDirectoryWithRetry(directory); }
+        }
+
+        private static void DeleteDirectoryWithRetry(string directory)
+        {
+            for (var attempt = 0; attempt < 20; attempt++)
+            {
+                try
+                {
+                    Directory.Delete(directory, true);
+                    return;
+                }
+                catch (IOException) when (attempt < 19)
+                {
+                    Thread.Sleep(25);
+                }
+                catch (UnauthorizedAccessException) when (attempt < 19)
+                {
+                    Thread.Sleep(25);
+                }
+            }
         }
     }
 }

@@ -26,6 +26,7 @@
     <Compile Include="ApplicationMetadataTests.cs" />
     <Compile Include="LaunchHistoryTests.cs" />
     <Compile Include="LaunchHistoryViewModelTests.cs" />
+    <Compile Include="ExampleSettingsTests.cs" />
     <Compile Include="ContextDirectoryTests.cs" />
     <Compile Include="ContextSelectionTests.cs" />
     <Compile Include="ContextLaunchProtocolTests.cs" />

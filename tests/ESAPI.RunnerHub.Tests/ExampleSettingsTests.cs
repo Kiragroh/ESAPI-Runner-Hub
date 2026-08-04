@@ -1,0 +1,32 @@
+using System.Linq;
+using EsapiRunnerHub.Configuration;
+
+namespace EsapiRunnerHub.Tests
+{
+    internal static class ExampleSettingsTests
+    {
+        public static void Register()
+        {
+            TestHarness.Test("example settings cover standalone binary and source launches", CoversAllArtifactKinds);
+        }
+
+        private static void CoversAllArtifactKinds()
+        {
+            var path = TestHarness.PathFromRoot("settings.example.ini");
+            var configuration = IniConfigurationStore.Load(path);
+            var standalone = configuration.Applications.Single(item => item.Id == "classic-runner");
+            var binary = configuration.Applications.Single(item => item.Id == "direct-binary");
+            var source = configuration.Applications.Single(item => item.Id == "direct-source");
+
+            TestHarness.AssertEqual(ApplicationArtifactKind.Standalone, standalone.ArtifactKind);
+            TestHarness.AssertEqual(LaunchKind.EsapiContextScript, binary.LaunchKind);
+            TestHarness.AssertEqual(ApplicationArtifactKind.Binary, binary.ArtifactKind);
+            TestHarness.AssertEqual(ApplicationAccessMode.ReadOnly, binary.AccessMode);
+            TestHarness.AssertEqual(ContextRequirement.PlanningItem, binary.ContextRequirement);
+            TestHarness.AssertEqual(LaunchKind.EsapiContextScript, source.LaunchKind);
+            TestHarness.AssertEqual(ApplicationArtifactKind.SingleFile, source.ArtifactKind);
+            TestHarness.AssertEqual(ApplicationAccessMode.ReadOnly, source.AccessMode);
+            TestHarness.AssertTrue(configuration.Validate().IsValid, string.Join("; ", configuration.Validate().Errors));
+        }
+    }
+}
