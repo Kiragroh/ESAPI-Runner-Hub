@@ -1,10 +1,20 @@
 [CmdletBinding()]
-param()
+param(
+    [string]$FixturePath = ''
+)
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $launcherSource = Join-Path $repoRoot 'citrix\Start-ESAPI-Runner-Hub.cmd'
-$fixtureSource = Join-Path $repoRoot 'tests\RunnerFixture\bin\x64\Release\RunnerFixture.exe'
+$fixtureSource = if ([string]::IsNullOrWhiteSpace($FixturePath)) {
+    Join-Path $repoRoot 'tests\RunnerFixture\bin\x64\Release\RunnerFixture.exe'
+}
+else {
+    [System.IO.Path]::GetFullPath($FixturePath)
+}
+if (-not (Test-Path -LiteralPath $fixtureSource -PathType Leaf)) {
+    throw "Runner fixture not found: $fixtureSource"
+}
 $testRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('esapi-runner-hub-citrix-test-' + [Guid]::NewGuid().ToString('N'))
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $failures = 0
@@ -34,6 +44,8 @@ function Invoke-TestCase {
     param(
         [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Pointer,
         [string[]]$Arguments = @(),
+        [string]$ConfiguredLogDirectory = '',
+        [string]$PointerLineEnding = "`r`n",
         [switch]$OmitSettings
     )
 
@@ -47,9 +59,13 @@ function Invoke-TestCase {
 
     Copy-Item -LiteralPath $launcherSource -Destination (Join-Path $citrix 'Start-ESAPI-Runner-Hub.cmd')
     Copy-Item -LiteralPath $fixtureSource -Destination (Join-Path $versions 'ESAPI-Runner-Hub.v9.9.9.exe')
-    [System.IO.File]::WriteAllText((Join-Path $citrix 'current.txt'), $Pointer + "`r`n", $utf8NoBom)
+    [System.IO.File]::WriteAllText((Join-Path $citrix 'current.txt'), $Pointer + $PointerLineEnding, $utf8NoBom)
     if (-not $OmitSettings) {
-        [System.IO.File]::WriteAllText((Join-Path $dist 'settings.ini'), "[Hub]`r`n", $utf8NoBom)
+        $settingsText = "[Hub]`r`n"
+        if (-not [string]::IsNullOrWhiteSpace($ConfiguredLogDirectory)) {
+            $settingsText += "LogDirectory=$ConfiguredLogDirectory`r`n"
+        }
+        [System.IO.File]::WriteAllText((Join-Path $dist 'settings.ini'), $settingsText, $utf8NoBom)
     }
 
     $expandedArguments = @($Arguments | ForEach-Object {
@@ -77,7 +93,12 @@ function Invoke-TestCase {
     $stderr = $process.StandardError.ReadToEnd()
     $process.WaitForExit()
 
-    $logPath = Join-Path $localAppData 'ESAPI-Runner-Hub\Logs\CitrixLauncher.log'
+    $logPath = if ([string]::IsNullOrWhiteSpace($ConfiguredLogDirectory)) {
+        Join-Path $localAppData 'ESAPI-Runner-Hub\Logs\CitrixLauncher.log'
+    }
+    else {
+        Join-Path $ConfiguredLogDirectory ("CitrixLauncher-{0}.log" -f $env:COMPUTERNAME)
+    }
     [pscustomobject]@{
         ExitCode = $process.ExitCode
         StdOut = $stdout
@@ -110,6 +131,12 @@ try {
 
     New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
 
+    Test-Case 'launcher keeps the Hub in the Citrix process tree' {
+        $launcherText = Get-Content -Raw -LiteralPath $launcherSource
+        Assert-Contains $launcherText '"%TARGET%" --settings "%SETTINGS%" %*' 'The Hub must be invoked directly by the published launcher.'
+        Assert-NotContains $launcherText 'start "" /wait' 'START detaches the Hub from reliable Citrix process tracking.'
+    }
+
     Test-Case 'valid pointer launches and keeps arguments out of logs' {
         $result = Invoke-TestCase -Pointer 'ESAPI-Runner-Hub.v9.9.9.exe' -Arguments @(
             '--mode', 'capture', '--capture', '{CAPTURE}', '--secret', 'DO-NOT-LOG')
@@ -120,6 +147,19 @@ try {
         Assert-NotContains $result.LogText 'DO-NOT-LOG' 'Arguments must not be logged.'
         Assert-Contains $result.LogText 'START release=ESAPI-Runner-Hub.v9.9.9.exe' 'Start must be logged.'
         Assert-Contains $result.LogText 'EXIT release=ESAPI-Runner-Hub.v9.9.9.exe code=0' 'Exit must be logged.'
+    }
+
+    Test-Case 'launcher writes diagnostics to the settings log directory' {
+        $sharedLogDirectory = Join-Path $testRoot 'shared launcher logs'
+        $result = Invoke-TestCase -Pointer 'ESAPI-Runner-Hub.v9.9.9.exe' -ConfiguredLogDirectory $sharedLogDirectory
+        Assert-Equal 0 $result.ExitCode 'A configured shared log directory must not prevent launch.'
+        Assert-Equal $sharedLogDirectory (Split-Path -Parent $result.LogPath) 'The launcher log must use LogDirectory from settings.ini.'
+        Assert-Contains $result.LogText 'START release=ESAPI-Runner-Hub.v9.9.9.exe' 'The shared launcher log must contain the start boundary.'
+    }
+
+    Test-Case 'LF-only release pointer launches on Windows' {
+        $result = Invoke-TestCase -Pointer 'ESAPI-Runner-Hub.v9.9.9.exe' -PointerLineEnding "`n"
+        Assert-Equal 0 $result.ExitCode 'The tracked current.txt may use Git LF line endings and must still launch.'
     }
 
     Test-Case 'path pointer is rejected' {

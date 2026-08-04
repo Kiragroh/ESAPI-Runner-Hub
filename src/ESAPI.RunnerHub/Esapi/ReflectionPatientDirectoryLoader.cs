@@ -98,7 +98,7 @@ namespace EsapiRunnerHub.Esapi
                 var root = exception is TargetInvocationException && exception.InnerException != null
                     ? exception.InnerException
                     : exception;
-                return PatientDirectoryLoadResult.Offline("esapi_unavailable", root.Message);
+                return PatientDirectoryLoadResult.Offline("esapi_unavailable", root.Message, root);
             }
             finally
             {

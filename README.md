@@ -4,7 +4,7 @@
 
 ESAPI Runner Hub is a portable Windows catalogue for launching ESAPI runner applications and standalone executables from one place. It can load the Eclipse patient directory once, search the detached local index immediately, retain an optional patient selection across several launches, and keep every child application isolated in its own process.
 
-The launcher is vendor-free: the repository and release package contain no Varian/VMS or EsapiEssentials assemblies. On a workstation without ESAPI it starts in offline catalogue mode, so patient-independent tools and optional tools can still run.
+The launcher package is vendor-free: the repository and release package contain no Varian/VMS or EsapiEssentials binary files. The entry executable declares only the VMS API metadata reference required for standalone ESAPI authorization and is built against Eclipse 18 metadata. On a workstation without ESAPI it starts in offline catalogue mode, so patient-independent tools and optional tools can still run.
 
 > This project is research and workflow infrastructure, not a medical device. Every configured target application keeps its own validation, authorization, write-access, and clinical-use requirements.
 
@@ -86,7 +86,7 @@ The fully expanded command line and environment value are never displayed or log
 
 ## ESAPI behavior
 
-The launcher has no compile-time reference to `VMS.TPS.*`. It loads the configured API assembly by reflection on a dedicated STA thread, calls `Application.CreateApplication()`, copies `PatientSummaries` into plain strings, and disposes the ESAPI application immediately. Local filtering then uses only detached records. If the configured assembly pair is unavailable, it checks the locally installed Varian RTM versions in descending order and uses the first complete API/Types pair.
+The launcher declares a non-copying compile-time reference to `VMS.TPS.Common.Model.API` because ESAPI rejects a purely reflection-based standalone entry assembly. The current release is compiled and validated against Eclipse 18 API metadata. It still locates and loads the configured API assembly by reflection on a dedicated STA thread, calls `Application.CreateApplication()`, copies `PatientSummaries` into plain strings, and disposes the ESAPI application immediately. Local filtering then uses only detached records. If the configured assembly pair is unavailable, it checks the locally installed Varian RTM versions in descending order and uses the first complete API/Types pair.
 
 Version 0.1 does not search courses/plans or pass live ESAPI objects to a child. Eclipse plug-ins can be listed in the catalogue, but remain inside the Eclipse `ScriptContext`; an external launch still requires a compatible runner EXE. A patient-aware standalone EXE must explicitly implement the configured argument or environment contract.
 
@@ -101,7 +101,7 @@ Crash isolation protects the Hub from child failures; it does not guarantee that
 Requirements: Windows x64, Visual Studio/MSBuild with the .NET Framework 4.8 targeting pack, and PowerShell 5.1 or newer.
 
 ```powershell
-MSBuild.exe ESAPI-Runner-Hub.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64
+MSBuild.exe ESAPI-Runner-Hub.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:EsapiReferenceDirectory="C:\Program Files (x86)\Varian\RTM\18.0\esapi\API"
 .\tests\ESAPI.RunnerHub.Tests\bin\x64\Release\ESAPI.RunnerHub.Tests.exe
 ```
 

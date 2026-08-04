@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace EsapiRunnerHub.Tests
 {
@@ -8,12 +9,16 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
-            TestHarness.Test("release metadata identifies version 0.1.3 build 4", HasReleaseMetadata);
+            TestHarness.Test("release metadata identifies version 0.1.6 build 7", HasReleaseMetadata);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
             TestHarness.Test("release build executes the Citrix launcher contract", ExecutesCitrixLauncherContract);
+            TestHarness.Test("release build uses an isolated staging output", UsesIsolatedBuildOutput);
             TestHarness.Test("public documentation and example settings contain no clinical paths", PublicFilesArePortable);
             TestHarness.Test("repository contains no vendor assemblies", HasNoVendorBinaries);
+            TestHarness.Test("entry assembly declares the ESAPI runtime authorization reference", DeclaresEsapiAuthorizationReference);
+            TestHarness.Test("release validator permits API metadata but rejects vendor binaries", AllowsMetadataReferenceOnly);
+            TestHarness.Test("release build references Eclipse 18 assets", UsesEclipse18Assets);
         }
 
         private static void HasReleaseMetadata()
@@ -23,11 +28,11 @@ namespace EsapiRunnerHub.Tests
             var license = File.ReadAllText(TestHarness.PathFromRoot("LICENSE"));
             var assemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Properties/AssemblyInfo.cs"));
 
-            TestHarness.AssertContains(version, "\"version\": \"0.1.3\"");
-            TestHarness.AssertContains(version, "\"build\": 4");
-            TestHarness.AssertContains(changelog, "## [0.1.3] - 2026-08-04");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.1.3.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.1.3.0\")");
+            TestHarness.AssertContains(version, "\"version\": \"0.1.6\"");
+            TestHarness.AssertContains(version, "\"build\": 7");
+            TestHarness.AssertContains(changelog, "## [0.1.6] - 2026-08-04");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.1.6.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.1.6.0\")");
             TestHarness.AssertContains(license, "MIT License");
         }
 
@@ -54,6 +59,22 @@ namespace EsapiRunnerHub.Tests
             var script = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
             TestHarness.AssertContains(script, "Test-CitrixLauncher.ps1");
             TestHarness.AssertContains(script, "Citrix launcher tests failed with exit code");
+            TestHarness.AssertContains(script, "-FixturePath");
+            TestHarness.AssertContains(
+                File.ReadAllText(TestHarness.PathFromRoot("tests/Test-CitrixLauncher.ps1")),
+                "[string]$FixturePath");
+        }
+
+        private static void UsesIsolatedBuildOutput()
+        {
+            var script = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            TestHarness.AssertContains(script, "$buildOutput");
+            TestHarness.AssertContains(script, "/p:OutputPath=");
+            TestHarness.AssertContains(script, "Join-Path $buildOutput 'ESAPI.RunnerHub.Tests.exe'");
+            TestHarness.AssertContains(script, "Join-Path $buildOutput 'ESAPI-Runner-Hub.exe'");
+            TestHarness.AssertFalse(
+                script.Contains("src\\ESAPI.RunnerHub\\bin\\x64\\Release\\ESAPI-Runner-Hub.exe"),
+                "Release packaging must not depend on a mutable or locked shared bin output.");
         }
 
         private static void PublicFilesArePortable()
@@ -75,6 +96,35 @@ namespace EsapiRunnerHub.Tests
                 .Where(path => Path.GetFileName(path).StartsWith("VMS.TPS.", StringComparison.OrdinalIgnoreCase))
                 .ToList();
             TestHarness.AssertEqual(0, forbidden.Count);
+        }
+
+        private static void DeclaresEsapiAuthorizationReference()
+        {
+            var assembly = typeof(EsapiRunnerHub.ViewModels.MainViewModel).Assembly;
+            TestHarness.AssertTrue(
+                assembly.GetReferencedAssemblies().Any(name =>
+                    string.Equals(name.Name, "VMS.TPS.Common.Model.API", StringComparison.OrdinalIgnoreCase)),
+                "ESAPI 16.1 rejects reflection-only entry assemblies with UnauthorizedScriptingAPIAccessException.");
+        }
+
+        private static void AllowsMetadataReferenceOnly()
+        {
+            var validator = File.ReadAllText(TestHarness.PathFromRoot("tools/validate-vendor-free.ps1"));
+            TestHarness.AssertFalse(validator.Contains("Forbidden assembly references"),
+                "A metadata-only VMS reference is required for ESAPI standalone authorization.");
+            TestHarness.AssertContains(validator, "VMS\\.TPS");
+            TestHarness.AssertContains(validator, "forbiddenExtensions");
+        }
+
+        private static void UsesEclipse18Assets()
+        {
+            var project = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/ESAPI.RunnerHub.csproj"));
+            var build = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            TestHarness.AssertContains(project, @"\..\..\..\_Assets");
+            TestHarness.AssertFalse(project.Contains(@"\RTM\16.1\"),
+                "The Hub must not silently compile against the retired Eclipse 16.1 API.");
+            TestHarness.AssertContains(build, "EsapiReferenceDirectory");
+            TestHarness.AssertContains(build, "_Assets");
         }
     }
 }

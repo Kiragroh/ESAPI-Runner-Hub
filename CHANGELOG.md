@@ -2,6 +2,44 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.1.6] - 2026-08-04
+
+### Changed
+
+- Compile-time authorization metadata and the UKL live configuration now use the Eclipse 18 API/Types pair from the managed `_Assets` directory.
+- The release build rejects missing references and versions other than Eclipse 18 before compiling.
+
+### Validation
+
+- The Citrix pointer remains immutable and rollback-capable while the Eclipse 18 build is tested independently.
+
+## [0.1.5] - 2026-08-04
+
+### Fixed
+
+- The Citrix launcher accepts both CRLF and Git-style LF line endings in `current.txt`.
+- Launcher boundaries and stable error codes are written to the configured shared log directory.
+- The entry executable declares the ESAPI API metadata reference required by ESAPI 16.1 standalone authorization; no Varian DLL is copied into the repository or release package.
+
+### Validation
+
+- Added regressions for LF release pointers, shared launcher diagnostics, and the ESAPI entry-assembly authorization contract.
+
+## [0.1.4] - 2026-08-04
+
+### Fixed
+
+- The stable Citrix batch entry invokes the Hub directly so the runner window remains in the published application process tree.
+- ESAPI initialization failures retain their root exception for privacy-safe technical logging.
+
+### Privacy
+
+- Shared logs record only the exception type; exception messages, arguments, search text, and patient data remain excluded.
+
+### Validation
+
+- Added a synthetic regression for a nested `Application.CreateApplication()` failure and its root exception type.
+
 ## [0.1.3] - 2026-08-04
 
 ### Added

@@ -73,7 +73,7 @@ namespace EsapiRunnerHub
                         : "ESAPI offline · catalogue available");
                 TechnicalLog.Current.Write(patientResult.IsAvailable ? "INFO" : "WARN",
                     patientResult.IsAvailable ? "esapi_directory_loaded" : patientResult.ErrorCode,
-                    string.Empty, null);
+                    string.Empty, patientResult.Exception);
             }
 
             var pathProbe = new PathProbe();
@@ -166,7 +166,7 @@ namespace EsapiRunnerHub
                 }
                 catch (Exception exception)
                 {
-                    completion.SetResult(PatientDirectoryLoadResult.Offline("esapi_unavailable", exception.Message));
+                    completion.SetResult(PatientDirectoryLoadResult.Offline("esapi_unavailable", exception.Message, exception));
                 }
             }) { IsBackground = true, Name = "ESAPI patient directory loader" };
             thread.SetApartmentState(ApartmentState.STA);

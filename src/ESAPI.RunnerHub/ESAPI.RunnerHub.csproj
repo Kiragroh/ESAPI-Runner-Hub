@@ -15,6 +15,8 @@
     <LangVersion>7.3</LangVersion>
     <Deterministic>true</Deterministic>
     <ApplicationIcon>..\..\assets\ESAPI-Runner-Hub.ico</ApplicationIcon>
+    <EsapiReferenceDirectory Condition=" '$(EsapiReferenceDirectory)' == '' and Exists('C:\Program Files (x86)\Varian\RTM\18.0\esapi\API\VMS.TPS.Common.Model.API.dll') ">C:\Program Files (x86)\Varian\RTM\18.0\esapi\API</EsapiReferenceDirectory>
+    <EsapiReferenceDirectory Condition=" '$(EsapiReferenceDirectory)' == '' ">$(MSBuildProjectDirectory)\..\..\..\_Assets</EsapiReferenceDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -40,6 +42,10 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
+    <Reference Include="VMS.TPS.Common.Model.API">
+      <HintPath>$(EsapiReferenceDirectory)\VMS.TPS.Common.Model.API.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="..\..\assets\ESAPI-Runner-Hub.png">
@@ -68,6 +74,7 @@
     <Compile Include="Configuration\IniConfigurationStore.cs" />
     <Compile Include="Esapi\PatientDirectoryLoadResult.cs" />
     <Compile Include="Esapi\EsapiAssemblyLocator.cs" />
+    <Compile Include="Esapi\EsapiAuthorizationMarker.cs" />
     <Compile Include="Esapi\ReflectionPatientDirectoryLoader.cs" />
     <Compile Include="Infrastructure\ObservableObject.cs" />
     <Compile Include="Infrastructure\RelayCommand.cs" />

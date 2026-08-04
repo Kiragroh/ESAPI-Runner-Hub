@@ -19,6 +19,11 @@ namespace VMS.TPS.Common.Model.API
 
         public static Application CreateApplication()
         {
+            if (string.Equals(Environment.GetEnvironmentVariable("FAKE_VMS_THROW_CREATE"), "1", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("Synthetic ESAPI startup failure.");
+            }
+
             return new Application();
         }
 

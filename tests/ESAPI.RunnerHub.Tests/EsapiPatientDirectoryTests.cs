@@ -11,6 +11,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("ESAPI loader returns an offline result when assemblies are missing", MissingAssemblyIsOffline);
             TestHarness.Test("ESAPI loader copies synthetic patients and disposes application", LoadsAndDisposesApplication);
             TestHarness.Test("ESAPI loader falls back to an installed RTM version", FallsBackToInstalledRtmVersion);
+            TestHarness.Test("ESAPI loader preserves the root startup exception for technical logging", PreservesRootStartupException);
         }
 
         private static void MissingAssemblyIsOffline()
@@ -64,6 +65,24 @@ namespace EsapiRunnerHub.Tests
             finally
             {
                 Directory.Delete(root, true);
+            }
+        }
+
+        private static void PreservesRootStartupException()
+        {
+            var apiPath = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Release/VMS.TPS.Common.Model.API.dll");
+            Environment.SetEnvironmentVariable("FAKE_VMS_THROW_CREATE", "1");
+            try
+            {
+                var result = new ReflectionPatientDirectoryLoader().Load(apiPath, string.Empty);
+
+                TestHarness.AssertFalse(result.IsAvailable);
+                TestHarness.AssertEqual("esapi_unavailable", result.ErrorCode);
+                TestHarness.AssertEqual("InvalidOperationException", result.Exception.GetType().Name);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("FAKE_VMS_THROW_CREATE", null);
             }
         }
     }

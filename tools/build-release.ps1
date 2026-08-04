@@ -13,6 +13,22 @@ $versionedExeName = "ESAPI-Runner-Hub.v$version.exe"
 $versionedExePath = Join-Path $versionedDist $versionedExeName
 $zipName = "ESAPI-Runner-Hub-v$version-win-x64.zip"
 $zipPath = Join-Path $distRoot $zipName
+$stagingParent = Join-Path $repoRoot 'obj\release-staging'
+$stagingRoot = Join-Path $stagingParent ([Guid]::NewGuid().ToString('N'))
+$buildOutput = Join-Path $stagingRoot 'build'
+$packageRoot = Join-Path $stagingRoot 'package'
+$stagedZip = Join-Path $stagingRoot $zipName
+$esapiReferenceDirectory = [System.IO.Path]::GetFullPath((Join-Path $repoRoot '..\_Assets'))
+$esapiApiReference = Join-Path $esapiReferenceDirectory 'VMS.TPS.Common.Model.API.dll'
+$esapiTypesReference = Join-Path $esapiReferenceDirectory 'VMS.TPS.Common.Model.Types.dll'
+foreach ($reference in $esapiApiReference, $esapiTypesReference) {
+    if (-not (Test-Path -LiteralPath $reference -PathType Leaf)) {
+        throw "Eclipse 18 build reference missing: $reference"
+    }
+    if (-not ([System.Diagnostics.FileVersionInfo]::GetVersionInfo($reference).FileVersion).StartsWith('18.')) {
+        throw "Eclipse 18 build reference expected, found another version: $reference"
+    }
+}
 
 function Resolve-MSBuild {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
@@ -61,31 +77,29 @@ function Publish-ImmutableBinary {
     Copy-FileWithRetry -Source $Source -Destination $Destination
 }
 
-$msbuild = Resolve-MSBuild
-& $msbuild $solution /t:Rebuild /p:Configuration=Release /p:Platform=x64 /v:minimal
-if ($LASTEXITCODE -ne 0) { throw "Release build failed with exit code $LASTEXITCODE." }
-
-$tests = Join-Path $repoRoot 'tests\ESAPI.RunnerHub.Tests\bin\x64\Release\ESAPI.RunnerHub.Tests.exe'
-& $tests
-if ($LASTEXITCODE -ne 0) { throw "Automated tests failed with exit code $LASTEXITCODE." }
-
-$launcherTests = Join-Path $repoRoot 'tests\Test-CitrixLauncher.ps1'
-$windowsPowerShell = (Get-Command powershell.exe -ErrorAction Stop).Source
-& $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $launcherTests
-if ($LASTEXITCODE -ne 0) { throw "Citrix launcher tests failed with exit code $LASTEXITCODE." }
-
 $expectedDist = [System.IO.Path]::GetFullPath((Join-Path $repoRoot 'dist'))
 if ([System.IO.Path]::GetFullPath($distRoot) -ne $expectedDist -or -not $distRoot.StartsWith($repoRoot + [System.IO.Path]::DirectorySeparatorChar)) {
     throw 'Resolved dist path is outside the repository.'
 }
-$stagingRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("esapi-runner-hub-release-" + [Guid]::NewGuid().ToString('N'))
-$packageRoot = Join-Path $stagingRoot 'package'
-$stagedZip = Join-Path $stagingRoot $zipName
 try {
-    New-Item -ItemType Directory -Path (Join-Path $packageRoot 'assets'), (Join-Path $packageRoot 'docs'), $distRoot, $versionedDist -Force | Out-Null
+    New-Item -ItemType Directory -Path $buildOutput, (Join-Path $packageRoot 'assets'), (Join-Path $packageRoot 'docs'), $distRoot, $versionedDist -Force | Out-Null
+
+    $msbuild = Resolve-MSBuild
+    & $msbuild $solution /t:Rebuild /p:Configuration=Release /p:Platform=x64 ("/p:OutputPath={0}" -f $buildOutput) ("/p:EsapiReferenceDirectory={0}" -f $esapiReferenceDirectory) /v:minimal
+    if ($LASTEXITCODE -ne 0) { throw "Release build failed with exit code $LASTEXITCODE." }
+
+    $tests = Join-Path $buildOutput 'ESAPI.RunnerHub.Tests.exe'
+    & $tests
+    if ($LASTEXITCODE -ne 0) { throw "Automated tests failed with exit code $LASTEXITCODE." }
+
+    $launcherTests = Join-Path $repoRoot 'tests\Test-CitrixLauncher.ps1'
+    $fixture = Join-Path $buildOutput 'RunnerFixture.exe'
+    $windowsPowerShell = (Get-Command powershell.exe -ErrorAction Stop).Source
+    & $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $launcherTests -FixturePath $fixture
+    if ($LASTEXITCODE -ne 0) { throw "Citrix launcher tests failed with exit code $LASTEXITCODE." }
 
     $copies = @{
-        (Join-Path $repoRoot 'src\ESAPI.RunnerHub\bin\x64\Release\ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
+        (Join-Path $buildOutput 'ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
         (Join-Path $repoRoot 'settings.example.ini') = (Join-Path $packageRoot 'settings.example.ini')
         (Join-Path $repoRoot 'README.md') = (Join-Path $packageRoot 'README.md')
         (Join-Path $repoRoot 'LICENSE') = (Join-Path $packageRoot 'LICENSE')
@@ -121,6 +135,11 @@ try {
 }
 finally {
     if (Test-Path -LiteralPath $stagingRoot) {
+        $resolvedStaging = [System.IO.Path]::GetFullPath($stagingRoot)
+        $resolvedParent = [System.IO.Path]::GetFullPath($stagingParent) + [System.IO.Path]::DirectorySeparatorChar
+        if (-not $resolvedStaging.StartsWith($resolvedParent, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "Refusing to remove release staging outside the expected directory: $resolvedStaging"
+        }
         Remove-Item -LiteralPath $stagingRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
 }

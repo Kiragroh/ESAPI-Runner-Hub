@@ -100,8 +100,15 @@ namespace EsapiRunnerHub.Tests
             {
                 if (File.Exists(path))
                 {
-                    var text = File.ReadAllText(path);
-                    if (text.Contains(expected)) return text;
+                    try
+                    {
+                        var text = File.ReadAllText(path);
+                        if (text.Contains(expected)) return text;
+                    }
+                    catch (IOException)
+                    {
+                        // The background writer may still own its short append window.
+                    }
                 }
 
                 Thread.Sleep(20);

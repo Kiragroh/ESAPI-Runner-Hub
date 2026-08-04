@@ -1,9 +1,39 @@
 {
-  "version": "0.1.3",
-  "build": 4,
+  "version": "0.1.6",
+  "build": 7,
   "lastUpdate": "2026-08-04",
-  "lastChange": "Ein stabiler Citrix-Einstieg aktiviert unveränderliche versionierte Runner-Binaries, ohne die gesperrte Legacy-EXE zu überschreiben.",
+  "lastChange": "Build und Live-Patientensuche verwenden die verwalteten Eclipse-18-Assemblies aus _Assets; die Citrix-Version bleibt unveränderlich und rollbackfähig.",
   "changelog": [
+    {
+      "build": 7,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.1.6",
+      "changes": [
+        "Compile-time-Autorisierungsreferenz und Live-Loader verwenden Eclipse 18.0.1 aus dem zentralen _Assets-Verzeichnis.",
+        "Der Release-Build bricht bei fehlenden oder nicht zu Eclipse 18 passenden Referenzen vor dem Kompilieren ab.",
+        "Die zuvor getestete Version bleibt als direkt umschaltbarer Citrix-Rollback erhalten."
+      ]
+    },
+    {
+      "build": 6,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.1.5",
+      "changes": [
+        "Der Citrix-Launcher liest sein gemeinsames LogDirectory aus settings.ini und akzeptiert current.txt mit CRLF- oder LF-Zeilenende.",
+        "Die EXE enthält die von ESAPI 16.1 erwartete API-Metadatenreferenz, ohne Varian-DLLs in Repository oder Release zu übernehmen.",
+        "UnauthorizedScriptingAPIAccessException ist durch einen reproduzierbaren Entry-Assembly-Vertrag abgedeckt."
+      ]
+    },
+    {
+      "build": 5,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.1.4",
+      "changes": [
+        "Der Hub wird direkt durch den stabilen CMD-Einstieg gestartet, damit Citrix das Runner-Fenster zuverlässig verfolgt.",
+        "ESAPI-Startfehler protokollieren nur den Exception-Typ; Meldungen, Argumente und Patientendaten bleiben ausgeschlossen.",
+        "Der synthetische Loader-Test deckt verschachtelte Startfehler und ihre sichere Diagnose ab."
+      ]
+    },
     {
       "build": 4,
       "date": "2026-08-04",

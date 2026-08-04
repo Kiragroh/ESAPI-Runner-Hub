@@ -7,8 +7,17 @@ set "POINTER=%LAUNCHER_DIR%current.txt"
 set "VERSIONS=%ROOT%\dist\versions"
 set "SETTINGS=%ROOT%\dist\settings.ini"
 set "LOGDIR=%LOCALAPPDATA%\ESAPI-Runner-Hub\Logs"
+if exist "%SETTINGS%" (
+  for /f "usebackq tokens=1,* delims==" %%A in (`%SystemRoot%\System32\findstr.exe /B /I /C:"LogDirectory=" "%SETTINGS%"`) do (
+    if not "%%B"=="" set "LOGDIR=%%B"
+  )
+)
 if not exist "%LOGDIR%" md "%LOGDIR%" >nul 2>&1
-set "LOGFILE=%LOGDIR%\CitrixLauncher.log"
+if "%LOGDIR%"=="%LOCALAPPDATA%\ESAPI-Runner-Hub\Logs" (
+  set "LOGFILE=%LOGDIR%\CitrixLauncher.log"
+) else (
+  set "LOGFILE=%LOGDIR%\CitrixLauncher-%COMPUTERNAME%.log"
+)
 
 if not exist "%POINTER%" goto PointerMissing
 
@@ -20,7 +29,7 @@ for /f "usebackq delims=" %%I in ("%POINTER%") do (
 
 if not defined TARGET_FILE goto PointerInvalid
 if defined POINTER_EXTRA goto PointerInvalid
-%SystemRoot%\System32\findstr.exe /R /X /I /C:"ESAPI-Runner-Hub\.v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.exe" "%POINTER%" >nul
+"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoLogo -NoProfile -NonInteractive -Command "$value=[IO.File]::ReadAllText($env:POINTER); if ($value -notmatch '\AESAPI-Runner-Hub\.v\d+\.\d+\.\d+\.exe(?:\r?\n)?\z') { exit 1 }" >nul 2>&1
 if errorlevel 1 goto PointerInvalid
 
 set "TARGET=%VERSIONS%\%TARGET_FILE%"
@@ -29,7 +38,7 @@ if not exist "%SETTINGS%" goto SettingsMissing
 
 call :Log START release=%TARGET_FILE%
 pushd "%VERSIONS%" || goto WorkingDirectoryFailed
-start "" /wait "%TARGET%" --settings "%SETTINGS%" %*
+"%TARGET%" --settings "%SETTINGS%" %*
 set "CHILD_EXIT=%ERRORLEVEL%"
 popd
 call :Log EXIT release=%TARGET_FILE% code=%CHILD_EXIT%
