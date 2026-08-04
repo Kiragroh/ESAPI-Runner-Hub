@@ -11,6 +11,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("release metadata identifies version 0.1.3 build 4", HasReleaseMetadata);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
+            TestHarness.Test("release build executes the Citrix launcher contract", ExecutesCitrixLauncherContract);
             TestHarness.Test("public documentation and example settings contain no clinical paths", PublicFilesArePortable);
             TestHarness.Test("repository contains no vendor assemblies", HasNoVendorBinaries);
         }
@@ -46,6 +47,13 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertFalse(
                 script.Contains("-Destination (Join-Path $distRoot 'ESAPI-Runner-Hub.exe')"),
                 "The release build must not overwrite the Citrix-published legacy path.");
+        }
+
+        private static void ExecutesCitrixLauncherContract()
+        {
+            var script = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            TestHarness.AssertContains(script, "Test-CitrixLauncher.ps1");
+            TestHarness.AssertContains(script, "Citrix launcher tests failed with exit code");
         }
 
         private static void PublicFilesArePortable()

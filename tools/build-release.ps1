@@ -69,6 +69,11 @@ $tests = Join-Path $repoRoot 'tests\ESAPI.RunnerHub.Tests\bin\x64\Release\ESAPI.
 & $tests
 if ($LASTEXITCODE -ne 0) { throw "Automated tests failed with exit code $LASTEXITCODE." }
 
+$launcherTests = Join-Path $repoRoot 'tests\Test-CitrixLauncher.ps1'
+$windowsPowerShell = (Get-Command powershell.exe -ErrorAction Stop).Source
+& $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $launcherTests
+if ($LASTEXITCODE -ne 0) { throw "Citrix launcher tests failed with exit code $LASTEXITCODE." }
+
 $expectedDist = [System.IO.Path]::GetFullPath((Join-Path $repoRoot 'dist'))
 if ([System.IO.Path]::GetFullPath($distRoot) -ne $expectedDist -or -not $distRoot.StartsWith($repoRoot + [System.IO.Path]::DirectorySeparatorChar)) {
     throw 'Resolved dist path is outside the repository.'
