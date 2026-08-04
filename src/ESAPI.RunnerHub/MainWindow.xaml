@@ -170,6 +170,7 @@
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Margin="0,0,0,12">
@@ -183,31 +184,43 @@
                     </StackPanel>
                     <TextBox Grid.Column="1" Style="{StaticResource Input}" Text="{Binding ApplicationFilter, UpdateSourceTrigger=PropertyChanged}" ToolTip="Filter applications" />
                 </Grid>
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBlock Text="Format" Foreground="{StaticResource Muted}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,9,0" />
+                    <ComboBox ItemsSource="{Binding ArtifactFilters}" SelectedItem="{Binding SelectedArtifactFilter}" DisplayMemberPath="Label"
+                              MinWidth="170" Padding="8,5" />
+                </StackPanel>
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding VisibleApplications}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="340" MinHeight="204" Background="White" CornerRadius="10" BorderBrush="#E0DED8" BorderThickness="1" Margin="0,0,12,12" Padding="18">
+                                <Border Width="340" MinHeight="264" Background="White" CornerRadius="10" BorderBrush="#E0DED8" BorderThickness="1" Margin="0,0,12,12" Padding="18">
                                     <Grid>
                                         <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="*" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                            <TextBlock Text="{Binding Category}" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" />
-                                            <Border Grid.Column="1" Background="#F0EEE8" CornerRadius="10" Padding="8,3">
-                                                <TextBlock Text="{Binding ModeLabel}" FontSize="10" Foreground="{StaticResource Muted}" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Category}" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                            <Border Background="#EAF4F1" CornerRadius="10" Padding="8,3" Margin="0,0,6,0">
+                                                <TextBlock Text="{Binding ArtifactLabel}" FontSize="10" Foreground="#176C64" />
                                             </Border>
-                                        </Grid>
+                                            <Border Background="#F0EEE8" CornerRadius="10" Padding="8,3">
+                                                <TextBlock Text="{Binding AccessLabel}" FontSize="10" Foreground="{StaticResource Muted}" />
+                                            </Border>
+                                        </StackPanel>
                                         <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,4" />
-                                        <TextBlock Grid.Row="2" Text="{Binding Description}" Foreground="{StaticResource Muted}" TextWrapping="Wrap" />
+                                        <StackPanel Grid.Row="2">
+                                            <TextBlock Text="{Binding Description}" Foreground="{StaticResource Muted}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding CompactPath}" ToolTip="{Binding FullPath}" Foreground="#4E5D70" FontFamily="Consolas" FontSize="10.5"
+                                                       TextTrimming="CharacterEllipsis" Margin="0,8,0,0" />
+                                        </StackPanel>
                                         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,11">
                                             <Ellipse Width="7" Height="7" Margin="0,0,7,0" VerticalAlignment="Center">
                                                 <Ellipse.Style>
@@ -219,7 +232,14 @@
                                             </Ellipse>
                                             <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{StaticResource Muted}" />
                                         </StackPanel>
-                                        <WrapPanel Grid.Row="4">
+                                        <Grid Grid.Row="4" Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding ModeLabel}" FontSize="10" Foreground="{StaticResource Muted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                            <Button Grid.Column="1" Content="STR Hub README" Command="{Binding DataContext.OpenReadmeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" Visibility="{Binding HasHubReadme, Converter={StaticResource BoolToVisibility}}"
+                                                    Style="{StaticResource SecondaryButton}" Padding="9,5" FontSize="10" />
+                                        </Grid>
+                                        <WrapPanel Grid.Row="5">
                                             <Button Content="{Binding WithPatientLabel}" Command="{Binding DataContext.StartWithPatientCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding}" IsEnabled="{Binding CanStartWithPatient}" Visibility="{Binding WithPatientVisibility}"
                                                     Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" />

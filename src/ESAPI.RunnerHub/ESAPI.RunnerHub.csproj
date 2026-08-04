@@ -70,6 +70,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Configuration\ApplicationDefinition.cs" />
+    <Compile Include="Catalog\ApplicationArtifactFilter.cs" />
     <Compile Include="Catalog\ApplicationMetadata.cs" />
     <Compile Include="Configuration\ConfigurationValidator.cs" />
     <Compile Include="Configuration\HubConfiguration.cs" />

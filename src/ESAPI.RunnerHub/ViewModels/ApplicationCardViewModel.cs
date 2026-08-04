@@ -46,6 +46,7 @@ namespace EsapiRunnerHub.ViewModels
         public string ArtifactLabel { get; private set; }
         public string AccessLabel { get; private set; }
         public string CompactPath { get; private set; }
+        public string FullPath { get { return string.IsNullOrWhiteSpace(Definition.ResolvedExecutable) ? Definition.Executable : Definition.ResolvedExecutable; } }
         public System.Uri HubReadmeUri { get; private set; }
         public bool HasHubReadme { get { return HubReadmeUri != null; } }
         public string ModeLabel

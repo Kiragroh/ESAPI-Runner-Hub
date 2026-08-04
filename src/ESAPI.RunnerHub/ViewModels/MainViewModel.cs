@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Input;
@@ -10,6 +11,7 @@ using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
 using EsapiRunnerHub.Privacy;
 using EsapiRunnerHub.Context;
+using EsapiRunnerHub.Catalog;
 
 namespace EsapiRunnerHub.ViewModels
 {
@@ -21,6 +23,7 @@ namespace EsapiRunnerHub.ViewModels
         private string searchText;
         private string applicationFilter;
         private string selectedCategory;
+        private ArtifactFilterOption selectedArtifactFilter;
         private string esapiStatusText;
         private bool isEsapiAvailable;
         private string notificationText;
@@ -43,6 +46,13 @@ namespace EsapiRunnerHub.ViewModels
             VisibleApplications = new ObservableCollection<ApplicationCardViewModel>();
             Categories = new ObservableCollection<string>(new[] { "All tools" }.Concat(
                 Applications.Select(item => item.Category).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(item => item)));
+            ArtifactFilters = new ObservableCollection<ArtifactFilterOption>(new[]
+            {
+                new ArtifactFilterOption(ApplicationArtifactFilter.All, "All formats"),
+                new ArtifactFilterOption(ApplicationArtifactFilter.Standalone, "Standalone"),
+                new ArtifactFilterOption(ApplicationArtifactFilter.SingleFile, "Single-file (.cs)"),
+                new ArtifactFilterOption(ApplicationArtifactFilter.Binary, "Binary (.dll)")
+            });
             Suggestions = new ObservableCollection<PatientRecord>();
             Processes = new ObservableCollection<ProcessRowViewModel>();
             Courses = new ObservableCollection<CourseDescriptor>();
@@ -56,7 +66,10 @@ namespace EsapiRunnerHub.ViewModels
             StartWithPatientCommand = new RelayCommand(parameter => Start(parameter as ApplicationCardViewModel, true));
             StartWithoutPatientCommand = new RelayCommand(parameter => Start(parameter as ApplicationCardViewModel, false));
             StartContextCommand = new RelayCommand(parameter => StartContext(parameter as ApplicationCardViewModel));
+            OpenReadmeCommand = new RelayCommand(parameter => OpenReadme(parameter as ApplicationCardViewModel),
+                parameter => parameter is ApplicationCardViewModel card && card.HasHubReadme);
             selectedCategory = "All tools";
+            selectedArtifactFilter = ArtifactFilters[0];
             SetPatients(patients ?? Enumerable.Empty<PatientRecord>());
             SetEsapiStatus(false, "Loading patient directory…");
             UpdateVisibleApplications();
@@ -66,6 +79,7 @@ namespace EsapiRunnerHub.ViewModels
         public ObservableCollection<ApplicationCardViewModel> Applications { get; private set; }
         public ObservableCollection<ApplicationCardViewModel> VisibleApplications { get; private set; }
         public ObservableCollection<string> Categories { get; private set; }
+        public ObservableCollection<ArtifactFilterOption> ArtifactFilters { get; private set; }
         public ObservableCollection<PatientRecord> Suggestions { get; private set; }
         public ObservableCollection<ProcessRowViewModel> Processes { get; private set; }
         public ObservableCollection<CourseDescriptor> Courses { get; private set; }
@@ -79,6 +93,7 @@ namespace EsapiRunnerHub.ViewModels
         public ICommand StartWithPatientCommand { get; private set; }
         public ICommand StartWithoutPatientCommand { get; private set; }
         public ICommand StartContextCommand { get; private set; }
+        public ICommand OpenReadmeCommand { get; private set; }
         public event Action<PatientRecord> PatientSelectionChanged;
 
         public PatientRecord SelectedPatient { get { return selectedPatient; } }
@@ -136,6 +151,18 @@ namespace EsapiRunnerHub.ViewModels
                 {
                     ContextSelection.CourseId = value == null ? null : value.Id;
                     NotifyContextChanged();
+                }
+            }
+        }
+
+        public ArtifactFilterOption SelectedArtifactFilter
+        {
+            get { return selectedArtifactFilter; }
+            set
+            {
+                if (SetProperty(ref selectedArtifactFilter, value))
+                {
+                    UpdateVisibleApplications();
                 }
             }
         }
@@ -346,6 +373,12 @@ namespace EsapiRunnerHub.ViewModels
                     .IndexOf(applicationFilter.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
             }
 
+            if (selectedArtifactFilter != null && selectedArtifactFilter.Kind != ApplicationArtifactFilter.All)
+            {
+                var artifactKind = ArtifactKindFor(selectedArtifactFilter.Kind);
+                query = query.Where(item => item.ArtifactKind == artifactKind);
+            }
+
             VisibleApplications.Clear();
             foreach (var application in query)
             {
@@ -405,6 +438,30 @@ namespace EsapiRunnerHub.ViewModels
             }
 
             RaisePropertyChanged(nameof(NotificationText));
+        }
+
+        private static ApplicationArtifactKind ArtifactKindFor(ApplicationArtifactFilter filter)
+        {
+            if (filter == ApplicationArtifactFilter.Standalone) return ApplicationArtifactKind.Standalone;
+            if (filter == ApplicationArtifactFilter.SingleFile) return ApplicationArtifactKind.SingleFile;
+            if (filter == ApplicationArtifactFilter.Binary) return ApplicationArtifactKind.Binary;
+            return ApplicationArtifactKind.Auto;
+        }
+
+        private void OpenReadme(ApplicationCardViewModel card)
+        {
+            if (card == null || !card.HasHubReadme) return;
+            try
+            {
+                Process.Start(new ProcessStartInfo(card.HubReadmeUri.AbsoluteUri) { UseShellExecute = true });
+                TechnicalLog.Current.Write("INFO", "hub_readme_opened", card.Id, null);
+            }
+            catch (Exception exception)
+            {
+                notificationText = "STR Hub README could not be opened: " + exception.Message;
+                TechnicalLog.Current.Write("WARN", "hub_readme_open_failed", card.Id, exception);
+                RaisePropertyChanged(nameof(NotificationText));
+            }
         }
 
         private void StartContext(ApplicationCardViewModel card)

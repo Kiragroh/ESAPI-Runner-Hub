@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using EsapiRunnerHub.Catalog;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
@@ -18,6 +19,8 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("main view model retains and clears selected patient", RetainsPatientContext);
             TestHarness.Test("optional and required cards follow patient context", AppliesPatientModes);
             TestHarness.Test("catalogue filters by category and text", FiltersCatalogue);
+            TestHarness.Test("catalogue combines artifact category and text filters", CombinesCatalogueFilters);
+            TestHarness.Test("STR Hub README command is available only for linked cards", ExposesReadmeCommand);
             TestHarness.Test("offline ESAPI state stays explicit", ShowsOfflineState);
             TestHarness.Test("Eclipse plug-in cards are visible but never launched externally", KeepsPluginInsideEclipse);
             TestHarness.Test("successful child launches and exits are logged technically", LogsChildLifecycle);
@@ -65,6 +68,70 @@ namespace EsapiRunnerHub.Tests
             viewModel.ApplicationFilter = "document";
             TestHarness.AssertEqual(1, viewModel.VisibleApplications.Count);
             TestHarness.AssertEqual("optional", viewModel.VisibleApplications[0].Id);
+        }
+
+        private static void CombinesCatalogueFilters()
+        {
+            var configuration = new HubConfiguration();
+            configuration.Applications.Add(new ApplicationDefinition
+            {
+                Id = "source-discovery",
+                Name = "Patient Data Discovery",
+                Category = "Scripts",
+                Executable = @"plugins\PatientDataDiscovery.cs",
+                Enabled = true
+            });
+            configuration.Applications.Add(new ApplicationDefinition
+            {
+                Id = "binary-discovery",
+                Name = "Plan Discovery",
+                Category = "Scripts",
+                Executable = @"plugins\PlanDiscovery.esapi.dll",
+                Enabled = true
+            });
+            configuration.Applications.Add(new ApplicationDefinition
+            {
+                Id = "source-review",
+                Name = "Plan Review",
+                Category = "Review",
+                Executable = @"plugins\PlanReview.cs",
+                Enabled = true
+            });
+
+            var viewModel = new MainViewModel(configuration, new List<PatientRecord>());
+            viewModel.SelectedArtifactFilter = viewModel.ArtifactFilters.Single(item => item.Kind == ApplicationArtifactFilter.SingleFile);
+            viewModel.SelectedCategory = "Scripts";
+            viewModel.ApplicationFilter = "discovery";
+
+            TestHarness.AssertEqual(1, viewModel.VisibleApplications.Count);
+            TestHarness.AssertEqual("source-discovery", viewModel.VisibleApplications[0].Id);
+        }
+
+        private static void ExposesReadmeCommand()
+        {
+            var configuration = new HubConfiguration();
+            configuration.Hub.StrHubBaseUrl = "https://str-hub.example/";
+            configuration.Applications.Add(new ApplicationDefinition
+            {
+                Id = "linked",
+                Name = "Linked",
+                Executable = "linked.exe",
+                HubScriptId = 62,
+                Enabled = true
+            });
+            configuration.Applications.Add(new ApplicationDefinition
+            {
+                Id = "unlinked",
+                Name = "Unlinked",
+                Executable = "unlinked.exe",
+                Enabled = true
+            });
+            var viewModel = new MainViewModel(configuration, new List<PatientRecord>());
+            var linked = viewModel.Applications.Single(item => item.Id == "linked");
+            var unlinked = viewModel.Applications.Single(item => item.Id == "unlinked");
+
+            TestHarness.AssertTrue(viewModel.OpenReadmeCommand.CanExecute(linked));
+            TestHarness.AssertFalse(viewModel.OpenReadmeCommand.CanExecute(unlinked));
         }
 
         private static void ShowsOfflineState()
