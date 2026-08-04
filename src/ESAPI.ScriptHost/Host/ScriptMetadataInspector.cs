@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
-using EsapiRunnerHub.Configuration;
+using EsapiScriptHost.Contracts;
 
 namespace EsapiScriptHost.Host
 {

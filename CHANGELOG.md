@@ -2,6 +2,17 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.2.1] - 2026-08-04
+
+### Fixed
+
+- Removed the Script Host runtime dependency on the Hub executable while preserving the serialized launch contract.
+- Direct binary and single-file context scripts can now use the stable host beside an immutable versioned Citrix Hub binary.
+
+### Validation
+
+- Added cross-assembly payload compatibility and host runtime-independence tests.
+
 ## [0.2.0] - 2026-08-04
 
 ### Added

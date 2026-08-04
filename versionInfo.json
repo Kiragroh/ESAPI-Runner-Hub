@@ -1,9 +1,19 @@
 {
-  "version": "0.2.0",
-  "build": 8,
+  "version": "0.2.1",
+  "build": 9,
   "lastUpdate": "2026-08-04",
-  "lastChange": "Direkte ESAPI-Kontextskripte, Plan-/StructureSet-/Image-Auswahl, geschützte Sitzungsverläufe und erneut ausführbare Starts sind im Runner Hub verfügbar.",
+  "lastChange": "Der isolierte ESAPI Script Host ist im Live- und Citrix-Betrieb vollständig unabhängig von der Runner-Assembly paketiert.",
   "changelog": [
+    {
+      "build": 9,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.1",
+      "changes": [
+        "Der ESAPI Script Host enthält seinen minimalen Startvertrag selbst und benötigt keine benachbarte Runner-Assembly mehr.",
+        "Der serialisierte Kontextvertrag zwischen Hub und Host wird durch einen eigenen Kompatibilitätstest abgesichert.",
+        "Der direkte Live-Start von Binary- und Single-File-Kontextskripten funktioniert damit auch neben der unveränderlich versionierten Citrix-Binary."
+      ]
+    },
     {
       "build": 8,
       "date": "2026-08-04",

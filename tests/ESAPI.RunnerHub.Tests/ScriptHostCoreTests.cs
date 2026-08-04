@@ -1,8 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
-using EsapiRunnerHub.Configuration;
-using EsapiRunnerHub.Launching;
+using EsapiScriptHost.Contracts;
 using EsapiScriptHost.Host;
 
 namespace EsapiRunnerHub.Tests

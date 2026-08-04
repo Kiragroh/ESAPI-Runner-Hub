@@ -1,4 +1,4 @@
-using EsapiRunnerHub.Configuration;
+using EsapiScriptHost.Contracts;
 
 namespace EsapiScriptHost.Host
 {

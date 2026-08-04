@@ -30,6 +30,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
     <Reference Include="VMS.TPS.Common.Model.API">
       <HintPath>$(EsapiReferenceDirectory)\VMS.TPS.Common.Model.API.dll</HintPath>
@@ -38,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="Contracts\ContextLaunchPayload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EsapiAuthorizationMarker.cs" />
     <Compile Include="Host\ContextResolver.cs" />
@@ -50,12 +52,6 @@
     <Compile Include="Host\ScriptHostApplication.cs" />
     <Compile Include="Host\ScriptMetadataInspector.cs" />
     <Compile Include="Host\SourceScriptCompiler.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ESAPI.RunnerHub\ESAPI.RunnerHub.csproj">
-      <Project>{154FE10C-5EE3-4162-BDA0-354412E26B77}</Project>
-      <Name>ESAPI.RunnerHub</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

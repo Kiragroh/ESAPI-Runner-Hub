@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using EsapiRunnerHub.Configuration;
+using EsapiScriptHost.Contracts;
 using EsapiScriptHost.Host;
 
 namespace EsapiRunnerHub.Tests

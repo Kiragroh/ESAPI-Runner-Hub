@@ -50,6 +50,12 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertEqual(script, payload.ScriptPath);
             TestHarness.AssertEqual(api, payload.ApiAssemblyPath);
             TestHarness.AssertEqual(WriteMode.ConfirmSave, payload.WriteMode);
+
+            var hostPayload = EsapiScriptHost.Contracts.ContextLaunchPayload.Decode(
+                request.EnvironmentVariables[ContextLaunchPayload.EnvironmentKey]);
+            TestHarness.AssertEqual(patient.Id, hostPayload.PatientId);
+            TestHarness.AssertEqual("P1", hostPayload.PlanId);
+            TestHarness.AssertEqual("ConfirmSave", hostPayload.WriteMode.ToString());
         }
 
         private static void RejectsMissingContext()
