@@ -2,6 +2,59 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.2.8] - 2026-08-04
+
+### Fixed
+
+- Shared context requests written by Windows PowerShell 5.1 are read correctly when the JSON file starts with a UTF-8 byte-order mark.
+
+### Validation
+
+- A regression writes the request in the same BOM-bearing encoding as the production helper and executes it through the real request reader.
+- `docs/CONTEXT_DEBUGGING.md` documents the exact request/result contract, workstation helper, direct VDA modes, automation rules, and safe failure interpretation.
+
+## [0.2.7] - 2026-08-04
+
+### Fixed
+
+- Automated Citrix debugging now uses a per-user pending marker and the normal installed published-app shortcut; it no longer depends on unreliable client-side `qlaunch`, `wfcrun32`, or `%**` parameter forwarding.
+- Startup atomically claims at most one pending request for the current Windows user, runs it before opening the catalogue, and exits with the script result.
+
+### Validation
+
+- A regression covers pending-marker claiming, exact request execution, result creation, and marker cleanup.
+
+## [0.2.6] - 2026-08-04
+
+### Added
+
+- `--run-request <request-id>` runs one or more explicit contexts from the configured protected request directory and writes a matching result JSON.
+- `tools/Invoke-CitrixContextDebug.ps1` creates an explicit request and waits for completion through the published Runner.
+- `ContextRequestDirectory` is editable in `settings.ini` and the Settings GUI.
+
+### Validation
+
+- Synthetic regressions cover exact request execution, result creation, retained request evidence, and rejection of unsafe request IDs.
+- Live validation covers the published shell-free launcher and explicit cross-VDA request routing without relying on client command-line forwarding or `latest` history.
+
+## [0.2.5] - 2026-08-04
+
+### Added
+
+- `--run-contexts` applies an explicit ordered context series to one configured read-only context script.
+- The series is transferred as JSON through `ESAPI_RUNNER_CONTEXTS`; patient and planning identifiers remain outside command-line arguments and technical logs.
+- A shell-free `ESAPI-Runner-Hub.CitrixLauncher.exe` provides a stable Citrix Studio target, resolves only the version selected by `current.txt`, and accepts one packed Runner command.
+
+### Safety
+
+- Context series run sequentially, stop at the first non-zero child exit, reject write-enabled applications, and accept at most 100 entries.
+- The direct Citrix launcher invokes only the validated versioned Runner path, waits for its exit, propagates the exit code, and never logs forwarded argument values.
+
+### Validation
+
+- Synthetic regressions cover two ordered context launches and refusal of a write-enabled series.
+- End-to-end launcher tests cover separate and Citrix-packed arguments, invalid pointers, missing settings, exit-code propagation, and privacy-safe logs.
+
 ## [0.2.4] - 2026-08-04
 
 ### Fixed

@@ -62,7 +62,20 @@ namespace EsapiRunnerHub.Tests
                 var runner = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Launching/ContextCommandLineRunner.cs"));
                 TestHarness.AssertContains(runner, "--run-context");
                 TestHarness.AssertContains(runner, "--replay-latest");
+                TestHarness.AssertContains(runner, "--run-request");
                 TestHarness.AssertContains(app, "ContextCommandLineRunner");
+                TestHarness.AssertContains(app, "TryRunPending");
+            });
+
+            TestHarness.Test("Citrix debug helper creates an explicit context request", () =>
+            {
+                var helper = File.ReadAllText(TestHarness.PathFromRoot("tools/Invoke-CitrixContextDebug.ps1"));
+                TestHarness.AssertContains(helper, "ApplicationId");
+                TestHarness.AssertContains(helper, "PatientId");
+                TestHarness.AssertContains(helper, ".result.json");
+                TestHarness.AssertContains(helper, ".pending");
+                TestHarness.AssertFalse(helper.Contains("-cmdline"));
+                TestHarness.AssertContains(helper, "ESAPI-Runner-Hub.lnk");
             });
         }
     }

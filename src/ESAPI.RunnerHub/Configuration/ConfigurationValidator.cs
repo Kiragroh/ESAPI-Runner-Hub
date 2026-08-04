@@ -43,6 +43,11 @@ namespace EsapiRunnerHub.Configuration
                 errors.Add("Hub.HistoryMaxEntries must be between 1 and 1000.");
             }
 
+            if (string.IsNullOrWhiteSpace(configuration.Hub.ContextRequestDirectory))
+            {
+                errors.Add("Hub.ContextRequestDirectory is required.");
+            }
+
             foreach (var duplicate in configuration.Applications
                 .GroupBy(application => application.Id ?? string.Empty, StringComparer.OrdinalIgnoreCase)
                 .Where(group => group.Count() > 1))

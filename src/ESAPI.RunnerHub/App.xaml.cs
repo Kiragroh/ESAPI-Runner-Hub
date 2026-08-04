@@ -25,6 +25,12 @@ namespace EsapiRunnerHub
                 Shutdown(ContextCommandLineRunner.Run(e.Args));
                 return;
             }
+            int pendingExitCode;
+            if (ContextCommandLineRunner.TryRunPending(e.Args, out pendingExitCode))
+            {
+                Shutdown(pendingExitCode);
+                return;
+            }
             var window = new MainWindow(e.Args ?? Array.Empty<string>());
             MainWindow = window;
             window.Show();

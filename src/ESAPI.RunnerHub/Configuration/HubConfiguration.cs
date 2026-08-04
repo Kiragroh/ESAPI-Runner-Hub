@@ -14,6 +14,7 @@ namespace EsapiRunnerHub.Configuration
             LogDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs";
             ScriptHostExecutable = "ESAPI-Script-Host.exe";
             HistoryFile = @"%LOCALAPPDATA%\ESAPI Runner Hub\launch-history.json";
+            ContextRequestDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\ContextRequests";
             HistoryRetentionDays = 30;
             HistoryMaxEntries = 100;
             ExtraValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -30,11 +31,13 @@ namespace EsapiRunnerHub.Configuration
         public string ScriptHostExecutable { get; set; }
         public string StrHubBaseUrl { get; set; }
         public string HistoryFile { get; set; }
+        public string ContextRequestDirectory { get; set; }
         public int HistoryRetentionDays { get; set; }
         public int HistoryMaxEntries { get; set; }
         public string ResolvedLogDirectory { get; internal set; }
         public string ResolvedScriptHostExecutable { get; internal set; }
         public string ResolvedHistoryFile { get; internal set; }
+        public string ResolvedContextRequestDirectory { get; internal set; }
         public IDictionary<string, string> ExtraValues { get; private set; }
     }
 
@@ -64,6 +67,7 @@ namespace EsapiRunnerHub.Configuration
             Hub.ResolvedLogDirectory = ResolvePath(baseDirectory, Hub.LogDirectory);
             Hub.ResolvedScriptHostExecutable = ResolvePath(baseDirectory, Hub.ScriptHostExecutable);
             Hub.ResolvedHistoryFile = ResolvePath(baseDirectory, Hub.HistoryFile);
+            Hub.ResolvedContextRequestDirectory = ResolvePath(baseDirectory, Hub.ContextRequestDirectory);
             foreach (var application in Applications)
             {
                 application.ResolvePaths(baseDirectory);

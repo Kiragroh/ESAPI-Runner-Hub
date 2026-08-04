@@ -98,9 +98,15 @@ try {
     & $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $launcherTests -FixturePath $fixture
     if ($LASTEXITCODE -ne 0) { throw "Citrix launcher tests failed with exit code $LASTEXITCODE." }
 
+    $exeLauncherTests = Join-Path $repoRoot 'tests\Test-CitrixExeLauncher.ps1'
+    $exeLauncher = Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe'
+    & $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $exeLauncherTests -LauncherPath $exeLauncher -FixturePath $fixture
+    if ($LASTEXITCODE -ne 0) { throw "Citrix EXE launcher tests failed with exit code $LASTEXITCODE." }
+
     $copies = @{
         (Join-Path $buildOutput 'ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
         (Join-Path $buildOutput 'ESAPI-Script-Host.exe') = (Join-Path $packageRoot 'ESAPI-Script-Host.exe')
+        (Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.CitrixLauncher.exe')
         (Join-Path $repoRoot 'settings.example.ini') = (Join-Path $packageRoot 'settings.example.ini')
         (Join-Path $repoRoot 'README.md') = (Join-Path $packageRoot 'README.md')
         (Join-Path $repoRoot 'LICENSE') = (Join-Path $packageRoot 'LICENSE')
@@ -108,6 +114,7 @@ try {
         (Join-Path $repoRoot 'versionInfo.json') = (Join-Path $packageRoot 'versionInfo.json')
         (Join-Path $repoRoot 'assets\ESAPI-Runner-Hub.png') = (Join-Path $packageRoot 'assets\ESAPI-Runner-Hub.png')
         (Join-Path $repoRoot 'docs\CLINICAL_VALIDATION.md') = (Join-Path $packageRoot 'docs\CLINICAL_VALIDATION.md')
+        (Join-Path $repoRoot 'docs\CONTEXT_DEBUGGING.md') = (Join-Path $packageRoot 'docs\CONTEXT_DEBUGGING.md')
     }
     foreach ($source in $copies.Keys) {
         if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Release source missing: $source" }
@@ -131,6 +138,9 @@ try {
     Copy-FileWithRetry `
         -Source (Join-Path $buildOutput 'ESAPI-Script-Host.exe') `
         -Destination (Join-Path $distRoot 'ESAPI-Script-Host.exe')
+    Copy-FileWithRetry `
+        -Source (Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe') `
+        -Destination (Join-Path $repoRoot 'citrix\ESAPI-Runner-Hub.CitrixLauncher.exe')
     Copy-FileWithRetry -Source $stagedZip -Destination $zipPath
 
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()

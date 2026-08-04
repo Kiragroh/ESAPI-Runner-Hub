@@ -112,6 +112,12 @@ namespace EsapiRunnerHub.ViewModels
             set { workingConfiguration.Hub.HistoryFile = value; RaisePropertyChanged(); UpdateValidation(); }
         }
 
+        public string ContextRequestDirectory
+        {
+            get { return workingConfiguration.Hub.ContextRequestDirectory; }
+            set { workingConfiguration.Hub.ContextRequestDirectory = value; RaisePropertyChanged(); UpdateValidation(); }
+        }
+
         public int HistoryRetentionDays
         {
             get { return workingConfiguration.Hub.HistoryRetentionDays; }

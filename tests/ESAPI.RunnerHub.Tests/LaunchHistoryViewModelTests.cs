@@ -50,6 +50,7 @@ namespace EsapiRunnerHub.Tests
                 var card = Ready(first);
                 first.StartWithPatientCommand.Execute(card);
                 WaitForFile(capture);
+                WaitForTerminal(first.Activities[0]);
                 File.Delete(capture);
 
                 var restored = CreateStandaloneViewModel(store, Fixture(), arguments, PatientMode.Required, PatientTransport.Environment);
@@ -57,6 +58,7 @@ namespace EsapiRunnerHub.Tests
                 var row = restored.Activities[0];
                 restored.RunAgainCommand.Execute(row);
                 WaitForFile(capture);
+                WaitForTerminal(restored.Activities[0]);
 
                 TestHarness.AssertContains(File.ReadAllText(capture), "patient=SYN-4242");
             });

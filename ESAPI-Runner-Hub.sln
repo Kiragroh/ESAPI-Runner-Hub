@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeEsapiEssentials", "test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptFixtures", "tests\ScriptFixtures\ScriptFixtures.csproj", "{6A9228D4-5F34-456F-9EDF-9B311E588A97}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESAPI.CitrixLauncher", "src\ESAPI.CitrixLauncher\ESAPI.CitrixLauncher.csproj", "{A2913ED6-A1A3-43E8-8B94-24BAA5E2B1AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -50,6 +52,10 @@ Global
 		{6A9228D4-5F34-456F-9EDF-9B311E588A97}.Debug|x64.Build.0 = Debug|x64
 		{6A9228D4-5F34-456F-9EDF-9B311E588A97}.Release|x64.ActiveCfg = Release|x64
 		{6A9228D4-5F34-456F-9EDF-9B311E588A97}.Release|x64.Build.0 = Release|x64
+		{A2913ED6-A1A3-43E8-8B94-24BAA5E2B1AA}.Debug|x64.ActiveCfg = Debug|x64
+		{A2913ED6-A1A3-43E8-8B94-24BAA5E2B1AA}.Debug|x64.Build.0 = Debug|x64
+		{A2913ED6-A1A3-43E8-8B94-24BAA5E2B1AA}.Release|x64.ActiveCfg = Release|x64
+		{A2913ED6-A1A3-43E8-8B94-24BAA5E2B1AA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

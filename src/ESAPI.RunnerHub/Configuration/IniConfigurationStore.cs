@@ -90,6 +90,7 @@ namespace EsapiRunnerHub.Configuration
             Append(builder, "ScriptHostExecutable", configuration.Hub.ScriptHostExecutable);
             Append(builder, "StrHubBaseUrl", configuration.Hub.StrHubBaseUrl);
             Append(builder, "HistoryFile", configuration.Hub.HistoryFile);
+            Append(builder, "ContextRequestDirectory", configuration.Hub.ContextRequestDirectory);
             Append(builder, "HistoryRetentionDays", configuration.Hub.HistoryRetentionDays.ToString(CultureInfo.InvariantCulture));
             Append(builder, "HistoryMaxEntries", configuration.Hub.HistoryMaxEntries.ToString(CultureInfo.InvariantCulture));
             AppendExtras(builder, configuration.Hub.ExtraValues);
@@ -185,6 +186,7 @@ namespace EsapiRunnerHub.Configuration
                     case "scripthostexecutable": hub.ScriptHostExecutable = pair.Value; break;
                     case "strhubbaseurl": hub.StrHubBaseUrl = pair.Value; break;
                     case "historyfile": hub.HistoryFile = pair.Value; break;
+                    case "contextrequestdirectory": hub.ContextRequestDirectory = pair.Value; break;
                     case "historyretentiondays": hub.HistoryRetentionDays = ParseInt(pair.Key, pair.Value); break;
                     case "historymaxentries": hub.HistoryMaxEntries = ParseInt(pair.Key, pair.Value); break;
                     default: hub.ExtraValues[pair.Key] = pair.Value; break;

@@ -8,6 +8,18 @@ namespace RunnerFixture
     {
         private static int Main(string[] args)
         {
+            var sequencePath = Environment.GetEnvironmentVariable("RUNNER_FIXTURE_SEQUENCE");
+            if (!string.IsNullOrWhiteSpace(sequencePath))
+            {
+                File.AppendAllText(sequencePath, "run" + Environment.NewLine);
+            }
+            var contextLeakPath = Environment.GetEnvironmentVariable("RUNNER_FIXTURE_CONTEXT_LEAK");
+            if (!string.IsNullOrWhiteSpace(contextLeakPath))
+            {
+                var value = Environment.GetEnvironmentVariable("ESAPI_RUNNER_CONTEXTS");
+                File.AppendAllText(contextLeakPath, (string.IsNullOrEmpty(value) ? "cleared" : "present") + Environment.NewLine);
+            }
+
             var mode = ValueAfter(args, "--mode") ?? "success";
             if (string.Equals(mode, "exit7", StringComparison.OrdinalIgnoreCase))
             {

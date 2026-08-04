@@ -9,7 +9,7 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
-            TestHarness.Test("release metadata identifies version 0.2.4 build 12", HasReleaseMetadata);
+            TestHarness.Test("release metadata identifies version 0.2.8 build 17", HasReleaseMetadata);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
             TestHarness.Test("release build executes the Citrix launcher contract", ExecutesCitrixLauncherContract);
@@ -20,6 +20,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("release validator permits API metadata but rejects vendor binaries", AllowsMetadataReferenceOnly);
             TestHarness.Test("release build references Eclipse 18 assets", UsesEclipse18Assets);
             TestHarness.Test("release packages the isolated script host beside the Hub", PackagesScriptHost);
+            TestHarness.Test("release packages the context debugging guide", PackagesContextDebuggingGuide);
             TestHarness.Test("isolated script host has no runtime dependency on the Hub executable", ScriptHostIsRuntimeIndependent);
         }
 
@@ -31,19 +32,22 @@ namespace EsapiRunnerHub.Tests
             var assemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Properties/AssemblyInfo.cs"));
             var hostAssemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Properties/AssemblyInfo.cs"));
 
-            TestHarness.AssertContains(version, "\"version\": \"0.2.4\"");
-            TestHarness.AssertContains(version, "\"build\": 12");
+            TestHarness.AssertContains(version, "\"version\": \"0.2.8\"");
+            TestHarness.AssertContains(version, "\"build\": 17");
+            TestHarness.AssertContains(version, "\"build\": 16");
+            TestHarness.AssertContains(version, "\"build\": 15");
+            TestHarness.AssertContains(version, "\"build\": 14");
             TestHarness.AssertContains(version, "\"build\": 11");
-            TestHarness.AssertContains(changelog, "## [0.2.4] - 2026-08-04");
+            TestHarness.AssertContains(changelog, "## [0.2.8] - 2026-08-04");
             TestHarness.AssertContains(changelog, "encrypted launch history");
             TestHarness.AssertContains(changelog, "Direct context scripts");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.2.4.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.2.4.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.2.4\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.2.4.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.2.4.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.2.4\")");
-            TestHarness.AssertContains(File.ReadAllText(TestHarness.PathFromRoot("citrix/current.txt")), "ESAPI-Runner-Hub.v0.2.4.exe");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.2.8.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.2.8.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.2.8\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.2.8.0\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.2.8.0\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.2.8\")");
+            TestHarness.AssertContains(File.ReadAllText(TestHarness.PathFromRoot("citrix/current.txt")), "ESAPI-Runner-Hub.v0.2.8.exe");
             TestHarness.AssertContains(license, "MIT License");
         }
 
@@ -91,7 +95,8 @@ namespace EsapiRunnerHub.Tests
         private static void PublicFilesArePortable()
         {
             var publicText = File.ReadAllText(TestHarness.PathFromRoot("README.md")) +
-                             File.ReadAllText(TestHarness.PathFromRoot("settings.example.ini"));
+                             File.ReadAllText(TestHarness.PathFromRoot("settings.example.ini")) +
+                             File.ReadAllText(TestHarness.PathFromRoot("docs/CONTEXT_DEBUGGING.md"));
             TestHarness.AssertFalse(publicText.IndexOf(@"C:\Users\", StringComparison.OrdinalIgnoreCase) >= 0);
             TestHarness.AssertFalse(publicText.IndexOf(@"\\medizin.uni-leipzig.de", StringComparison.OrdinalIgnoreCase) >= 0);
             TestHarness.AssertFalse(publicText.IndexOf("SYN-100", StringComparison.OrdinalIgnoreCase) >= 0,
@@ -147,6 +152,13 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(build, "Join-Path $distRoot 'ESAPI-Script-Host.exe'");
             TestHarness.AssertContains(validator, "'ESAPI-Script-Host.exe'");
             TestHarness.AssertContains(validator, "VMS\\.TPS");
+        }
+
+        private static void PackagesContextDebuggingGuide()
+        {
+            var build = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            TestHarness.AssertContains(build, "docs\\CONTEXT_DEBUGGING.md");
+            TestHarness.AssertContains(build, "Join-Path $packageRoot 'docs\\CONTEXT_DEBUGGING.md'");
         }
 
         private static void ScriptHostIsRuntimeIndependent()

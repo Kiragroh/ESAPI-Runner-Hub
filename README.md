@@ -70,6 +70,16 @@ The same executable can start a configured context script without opening the Hu
 ESAPI-Runner-Hub.exe --replay-latest plugin-fb-info --settings .\settings.ini
 ```
 
+For exact cross-VDA Citrix debugging, use a shared request instead of `latest`. The request JSON contains the application and one or more explicit patient/planning contexts; the Runner writes a matching result JSON with VDA and exit code. The request directory is configured as `Hub.ContextRequestDirectory`. From a configured workstation:
+
+```powershell
+.\tools\Invoke-CitrixContextDebug.ps1 -ApplicationId plugin-color-code -PatientId PATIENT-ID -CourseId C7 -PlanId PLAN-ID
+```
+
+The helper writes a per-user pending marker and opens the normal published Citrix shortcut without extra client parameters. On the assigned VDA the versioned Runner claims that marker, reads `<request-id>.request.json`, runs the context script through the isolated Script Host, and writes `<request-id>.result.json`. This path is deterministic across VDAs and does not depend on client-side command-line forwarding or a local activity history. A direct VDA shell may still use `--run-request <request-id>`.
+
+See [Context and Citrix debugging](docs/CONTEXT_DEBUGGING.md) for the complete request contract, direct VDA commands, series behavior, result fields, and an automation-oriented procedure.
+
 For an explicit context, place the identifiers in process environment variables rather than command-line arguments:
 
 ```powershell
@@ -84,11 +94,29 @@ Remove-Item Env:ESAPI_RUNNER_CONTEXT_PATIENT, Env:ESAPI_RUNNER_CONTEXT_COURSE, E
 
 Plan sums use `ESAPI_RUNNER_CONTEXT_PLAN_SUM`. Optional semicolon-separated scopes use `ESAPI_RUNNER_CONTEXT_PLAN_SCOPE` and `ESAPI_RUNNER_CONTEXT_PLAN_SUM_SCOPE`. Identifiers are transferred only through the child environment and are not written to the command line or technical log. The command waits for the isolated Script Host and returns its exit code.
 
+For an ordered series of explicit contexts, provide one JSON envelope through the private process environment and use `--run-contexts`:
+
+```powershell
+$contexts = @{
+    Contexts = @(
+        @{ PatientId = 'PATIENT-A'; CourseId = 'C1'; PlanId = 'P1' },
+        @{ PatientId = 'PATIENT-B'; CourseId = 'C2'; PlanId = 'P2' }
+    )
+}
+$env:ESAPI_RUNNER_CONTEXTS = $contexts | ConvertTo-Json -Depth 4 -Compress
+ESAPI-Runner-Hub.exe --run-contexts plugin-fb-info --settings .\settings.ini
+Remove-Item Env:ESAPI_RUNNER_CONTEXTS
+```
+
+Each entry also accepts `PlanSumId`, `StructureSetId`, `ImageId`, `PlanIdsInScope`, and `PlanSumIdsInScope`. The Hub starts one isolated host at a time, stops at the first non-zero exit, and accepts at most 100 entries. Series are restricted to applications configured with `WriteMode=ReadOnly`; write-enabled scripts remain deliberate single-context interactions.
+
 ### Stable Citrix launcher
 
-For a published Citrix application, use `cmd.exe` as the stable executable and call `citrix\Start-ESAPI-Runner-Hub.cmd`. The batch file reads `citrix\current.txt`, starts the selected immutable binary from `dist\versions`, and passes the shared `dist\settings.ini` explicitly.
+For a published Citrix application, use `citrix\ESAPI-Runner-Hub.CitrixLauncher.exe` as the stable executable. The small launcher reads `citrix\current.txt`, starts only the selected immutable binary from `dist\versions`, passes the shared `dist\settings.ini` explicitly, waits for the child process, and propagates its exit code. It never invokes a command shell.
 
-New releases use a new filename such as `ESAPI-Runner-Hub.v0.1.3.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
+The launcher can forward a Runner option supplied directly on the VDA, but productive automation does not assume that Citrix Workspace transports client-side command-line parameters. Exact workstation-driven tests use the shared request plus per-user pending marker described above and open the ordinary published shortcut without arguments. Argument contents are never logged. The legacy `cmd.exe` plus `citrix\Start-ESAPI-Runner-Hub.cmd` route remains available as a no-argument fallback.
+
+New releases use a new filename such as `ESAPI-Runner-Hub.v0.2.8.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
 
 ## Configuration
 

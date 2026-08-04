@@ -1,9 +1,59 @@
 {
-  "version": "0.2.4",
-  "build": 12,
+  "version": "0.2.8",
+  "build": 17,
   "lastUpdate": "2026-08-04",
-  "lastChange": "Kontextauflösung und CLI-Replay sind kursgebunden; kurzlebige Diagnoseaufrufe schreiben ihren sicheren Abschluss mit lokalem Fallback.",
+  "lastChange": "Request-JSON aus Windows PowerShell 5.1 wird einschließlich UTF-8-BOM zuverlässig auf dem VDA eingelesen.",
   "changelog": [
+    {
+      "build": 17,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.8",
+      "changes": [
+        "Der Request-Reader erkennt UTF-8-BOM aus Windows PowerShell 5.1 und übernimmt den exakten App- und Planungskontext zuverlässig.",
+        "Ein Regressionstest bildet die tatsächlich vom Citrix-Debug-Helper geschriebene Dateikodierung ab.",
+        "Der zentrale Request-/Result-Workflow bleibt ohne Citrix-Kommandozeilenparameter nutzbar und ist als reproduzierbarer Ablauf für Menschen und Automatisierung dokumentiert."
+      ]
+    },
+    {
+      "build": 16,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.7",
+      "changes": [
+        "Ein benutzerspezifischer Pending-Marker startet den exakten Request auf dem zugewiesenen VDA ohne Citrix-Kommandozeilenparameter.",
+        "Der normale installierte Citrix-Shortcut genügt; qlaunch-, wfcrun32- und Prozent-Platzhalter-Verschachtelungen entfallen für das Debugging.",
+        "Der Helper wartet weiter auf die maschinenlesbare Result-JSON mit VDA, Status und Exitcode."
+      ]
+    },
+    {
+      "build": 15,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.6",
+      "changes": [
+        "Explizite App-, Patienten-, Course-, Plan-, PlanSum-, Structure-Set- und Image-Kontexte können als zentrale Request-JSON gestartet werden.",
+        "Der veröffentlichte Citrix-Launcher akzeptiert eine Request-ID als Diagnoseargument; der Runner schreibt VDA, Status und Exitcode in eine passende Result-JSON.",
+        "Ein PowerShell-Helper erzeugt den Request und wartet maschinenlesbar auf VDA und Exitcode."
+      ]
+    },
+    {
+      "build": 14,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.5",
+      "changes": [
+        "Eine feste Citrix-Launcher-EXE ersetzt für den empfohlenen Betrieb die fehleranfällige cmd.exe-Verschachtelung.",
+        "Der Launcher startet ausschließlich die streng geprüfte Runner-Datei aus current.txt, wartet auf deren Ende und reicht den Exitcode weiter.",
+        "Ein einzelnes gepacktes Citrix-Argument wird für Runner-Kommandos aufgelöst; Argumentwerte und Patientenkontext bleiben aus den technischen Logs heraus."
+      ]
+    },
+    {
+      "build": 13,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.5",
+      "changes": [
+        "Ein beliebiger Patient-, Course-, Plan-, PlanSum-, Structure-Set- oder Image-Kontext kann gezielt ohne Kennungen in der Befehlszeile gestartet werden.",
+        "Mehrere explizite Kontexte können als private JSON-Umgebungsvariable nacheinander auf dasselbe lesende Skript angewendet werden.",
+        "Serien brechen beim ersten Fehler ab, sind auf 100 Einträge begrenzt und für schreibfähige Skripte gesperrt."
+      ]
+    },
     {
       "build": 12,
       "date": "2026-08-04",
