@@ -1,9 +1,21 @@
 {
-  "version": "0.2.9",
-  "build": 18,
+  "version": "0.3.0",
+  "build": 19,
   "lastUpdate": "2026-08-04",
-  "lastChange": "Citrix-Kontextrequests sind an die Windows-SID gebunden und bleiben als lesbarer Verlauf im zentralen Logordner erhalten.",
+  "lastChange": "Compact privacy-safe catalogue, reliable replay actions, English product copy, and a documented single-entry Citrix workflow.",
   "changelog": [
+    {
+      "build": 19,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.3.0",
+      "changes": [
+        "The responsive catalogue places search, category, format, and reset controls in one centered filter bar and fits four application cards on a wide screen without horizontal scrolling.",
+        "Recent activity keeps protected context across sessions and explains exactly why Run again is available or unavailable.",
+        "Privacy mode obscures patient identifiers, treatment context, application paths, and activity context while keeping the workflow visible for documentation screenshots.",
+        "Public documentation now explains the single-entry Citrix deployment and the user-scoped shared-request workflow without relying on client argument forwarding.",
+        "Visible product, host, launcher, and settings copy is English; live paths and launch arguments remain unchanged."
+      ]
+    },
     {
       "build": 18,
       "date": "2026-08-04",

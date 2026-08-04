@@ -2,6 +2,29 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.0] - 2026-08-04
+
+### Changed
+
+- The catalogue uses a centered search/category/format filter bar, responsive compact cards, and no horizontal scrolling.
+- Recent activity uses proportional columns and exposes a reusable `Run again` action whenever the configured application and protected context remain available.
+- Visible Hub, Script Host, Citrix launcher, example settings, and live catalogue copy is English.
+
+### Privacy
+
+- A header action obscures patient identifiers, treatment context, application paths, and activity context while preserving enough workflow detail for documentation screenshots.
+- Patient-specific action labels become generic while privacy mode is enabled; hidden paths are also removed from tooltips.
+
+### Citrix workflow
+
+- Public documentation explains why one published Runner entry is preferable to separate ARIA toolbar links or interactive remote desktop access for every standalone utility.
+- Exact automated context tests use the user-scoped shared-request channel and do not depend on client argument forwarding.
+
+### Validation
+
+- Synthetic UI smoke data exercises a selected plan, four application modes, privacy redaction, and a replayable terminal activity without clinical data.
+- Regression coverage includes replay availability reasons, filter reset state, privacy state, centered layout, English product copy, and Citrix documentation.
+
 ## [0.2.9] - 2026-08-04
 
 ### Security

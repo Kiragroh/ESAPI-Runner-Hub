@@ -124,7 +124,7 @@ For a published Citrix application, use `citrix\ESAPI-Runner-Hub.CitrixLauncher.
 
 The launcher can forward a Runner option supplied directly on the VDA, but productive automation does not assume that Citrix Workspace transports client-side command-line parameters. Exact workstation-driven tests use the shared request plus per-user pending marker described above and open the ordinary published shortcut without arguments. Argument contents are never logged. The legacy `cmd.exe` plus `citrix\Start-ESAPI-Runner-Hub.cmd` route remains available as a no-argument fallback.
 
-New releases use a new filename such as `ESAPI-Runner-Hub.v0.2.9.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
+New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.0.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
 
 ## Configuration
 

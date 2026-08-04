@@ -1,45 +1,42 @@
-# Release verification: v0.1.0
+# Release verification: v0.3.0
 
-Date: 2026-08-01
+Date: 2026-08-04
 
-This record documents the release gates for ESAPI Runner Hub v0.1.0. The automated checks use synthetic data only; live Eclipse validation remains a separate workstation gate.
+This record covers the v0.3.0 source, vendor-free release artifacts, synthetic UI inspection, and Citrix activation. It does not claim clinical validation of configured child applications.
 
-## Automated release gates
-
-- Release build: x64, .NET Framework 4.8, single executable.
-- Test suite: 26 automated tests, including configuration parsing, detached patient search, reflection-only ESAPI loading, launch contracts, child-process isolation, privacy-safe diagnostics, and release metadata.
-- Vendor-free package: no `VMS.TPS.*`, Varian, or EsapiEssentials binaries in the public repository or ZIP.
-- Packaging: deterministic ZIP generation with package-internal and release-level SHA-256 manifests.
-- Offline UI smoke mode: synthetic patients and applications, no ESAPI access.
-- Branding: the project icon is embedded as the executable, taskbar, and window icon and is also displayed in the application header.
+## Automated gates
 
 Authoritative command:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\build-release.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps1
 ```
 
-Final ZIP SHA-256: `cd1384f50e02c9d24d5b9607fab0e3429120ccaa920ebae57b7c3cbffe0d2d0f`. The same value is recorded in `dist/SHA256SUMS.txt` and on the GitHub release.
+- x64 .NET Framework 4.8 release build against Eclipse 18 metadata references
+- 139 automated tests passed, 0 failed
+- CMD launcher tests passed, 0 failed
+- shell-free EXE launcher tests passed, 0 failed
+- vendor-free package validation passed
+- deterministic ZIP generation passed
+- isolated Script Host and context-debugging guide included
 
-## Internal deployment gates
+## Artifacts
 
-- Shared checkout: `\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\ESAPI-MG\ESAPI-Runner-Hub`
-- Portable executable: `dist\ESAPI-Runner-Hub.exe`
-- Local configuration: `dist\settings.ini` (ignored by Git and preserved by the release build)
-- Configured applications: ClearPlan / PlanCheck, eDoc Uploader, and Eclipse Data Miner
-- Configured ESAPI assemblies: local Eclipse 16.1 API and Types paths
-- Path check: all three configured application executables existed at verification time
-- STR-Hub InHouse record: ID 62, category `Eclipse`, version source `git`
-- Visible STR-Hub check: the authenticated InHouse view displayed `ESAPI Runner Hub` as version `v0.1.0.1` in the Eclipse category
-- InHouse database backup before insertion: `inhouse_backup_before_add_esapi_runner_hub_20260801_140350.db`
+- Citrix binary: `dist\versions\ESAPI-Runner-Hub.v0.3.0.exe`
+- Citrix binary file version: `0.3.0.0`
+- Citrix binary SHA-256: `0cba382f090610af324c4159182d0b15fd164ec04f41dd4f7c323f601b36ed16`
+- Release ZIP: `dist\ESAPI-Runner-Hub-v0.3.0-win-x64.zip`
+- Release ZIP SHA-256: `515d5d7b6e70dc6ba143201d1d82284b0023f6e5484b890a9db7204cf150bc53`
+- Active pointer: `citrix\current.txt` -> `ESAPI-Runner-Hub.v0.3.0.exe`
+
+## Synthetic UI inspection
+
+The final offline smoke build was inspected at 1586 x 893 pixels. It displayed four cards in one row, no horizontal catalogue scrollbar, a replayable completed activity, a selected synthetic plan, and the centered filter bar. Privacy mode was then enabled and visibly obscured patient/context/path fields while replacing patient-specific launch labels with generic text. The resulting public screenshot is `docs/images/esapi-runner-hub-overview.png`.
+
+## Live configuration integrity
+
+The ignored `dist/settings.ini` remains the sole live configuration. Before and after the English catalogue-copy update, all lines except `Name`, `Category`, and `Description` were byte-equivalent after normalization: 452 lines, SHA-256 `2027f0cf9531597585903c7a021c52af735b5346d01256e93e38c1bf0b51b021`. Paths, arguments, access modes, context rules, ESAPI assemblies, and logging locations were not changed.
 
 ## Clinical boundary
 
-The current workstation does not provide the Eclipse/ESAPI runtime. Therefore, the following are not claimed by this release record:
-
-- successful connection to the production Eclipse database;
-- authorization for a specific clinical user role;
-- compatibility of every configured child application with concurrent ESAPI use;
-- clinical validation of any child application.
-
-Run the separate [clinical validation checklist](CLINICAL_VALIDATION.md) on a designated Eclipse workstation before clinical use.
+The release verifies launcher behavior and synthetic context handling. Each configured read-only or write-enabled application still requires its own Eclipse authorization, save confirmation where applicable, clinical review, and local validation before clinical use.
