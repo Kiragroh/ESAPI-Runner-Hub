@@ -2,7 +2,7 @@
 
 ![ESAPI Runner Hub logo](assets/ESAPI-Runner-Hub.png)
 
-ESAPI Runner Hub is a portable Windows catalogue for launching ESAPI runner applications and standalone executables from one place. It can load the Eclipse patient directory once, search the detached local index immediately, retain an optional patient selection across several launches, and keep every child application isolated in its own process.
+ESAPI Runner Hub is a portable Windows catalogue for launching ESAPI runner applications, standalone executables, compiled ESAPI binaries, and single-file C# scripts from one place. It loads the Eclipse patient directory once, searches the detached local index immediately, lets the user choose course, plan, plan sum, structure set, or image context, and keeps every application isolated in its own process.
 
 The launcher package is vendor-free: the repository and release package contain no Varian/VMS or EsapiEssentials binary files. The entry executable declares only the VMS API metadata reference required for standalone ESAPI authorization and is built against Eclipse 18 metadata. On a workstation without ESAPI it starts in offline catalogue mode, so patient-independent tools and optional tools can still run.
 
@@ -20,6 +20,9 @@ flowchart LR
     HUB --> A["Runner EXE"]
     HUB --> B["Standalone EXE"]
     HUB --> C["Patient-independent EXE"]
+    HUB --> HOST["Isolated ESAPI script host"]
+    HOST --> DLL["Compiled .esapi.dll"]
+    HOST --> CS["Cached single-file .cs"]
 ```
 
 ## Features
@@ -28,13 +31,17 @@ flowchart LR
 - No retained ESAPI patient, course, plan, or `ScriptContext` object.
 - Optional patient-ID transfer by argument or child-only environment variable.
 - Applications that require, optionally accept, or ignore a patient context.
-- Visible Eclipse plug-in cards for `.esapi.dll` and single-file scripts, clearly marked to start inside Eclipse rather than as external processes.
+- Direct context launch for supported `.esapi.dll` and `.cs` scripts through a separate Eclipse 18 host process, while reference-only cards remain available for scripts that must still start inside Eclipse.
+- Reusable selection of course, plan, plan sum, structure set, or image, including scripts that work without a plan.
+- Catalogue filters for standalone, single-file, and binary tools, plus visible artifact type, read/write intent, compact source path, and optional STR Hub README link.
+- A DPAPI-protected local activity history with current status and **Run again**; context identifiers are encrypted for the current Windows account and commands are always recomposed from current settings.
+- Explicit save/discard confirmation after every write-enabled direct context script.
 - Multiple sequential or overlapping child processes; non-zero exits and crashes do not close the Hub.
 - Independent asynchronous path checks with explicit missing/local and unavailable/network states.
 - A graphical settings editor for the same portable `settings.ini` used at runtime.
 - Privacy-safe per-process technical logs without patient names, IDs, search text, expanded arguments, environment values, or child output; a bounded background queue keeps unavailable network storage off the UI and launch path.
 - Synthetic `--offline-ui-smoke` mode for screenshots and UI checks.
-- x64 .NET Framework 4.8 single-EXE launcher with its own window/taskbar icon.
+- x64 .NET Framework 4.8 launcher and isolated script-host binaries with a shared window/taskbar icon.
 
 ## Install and run
 
@@ -63,7 +70,7 @@ New releases use a new filename such as `ESAPI-Runner-Hub.v0.1.3.exe`. Activatin
 
 ## Configuration
 
-Paths may be absolute, relative to the INI file, or use Windows environment variables. Only `.exe` targets are launched; arbitrary shell text, scripts, URLs, and plug-in DLLs are deliberately unsupported.
+Paths may be absolute, relative to the INI file, or use Windows environment variables. Executable targets start directly; explicitly configured context scripts are delegated to the adjacent `ESAPI-Script-Host.exe`. Arbitrary shell text and URLs are not launch targets.
 
 Patient modes:
 
@@ -81,6 +88,11 @@ Launch kinds:
 
 - `Executable`: starts an isolated external `.exe` process.
 - `EclipsePlugin`: catalogues a `.esapi.dll` or `.cs` plug-in and shows that it must be opened from Eclipse under **Tools > Scripts**; the Hub never attempts to execute it externally.
+- `EsapiContextScript`: starts a supported `.esapi.dll` or `.cs` script in the isolated host using the selected patient/planning context. `ContextRequirement`, `ScopeMode`, `ScriptEngine`, and `WriteMode` define the contract.
+
+Catalogue metadata can be explicit (`ArtifactKind`, `AccessMode`, and `HubScriptId`) or inferred conservatively. The live `settings.ini` remains editable in the Settings window, including ESAPI assembly paths, script-host path, STR Hub base URL, history path, and retention.
+
+Single-file sources are compiled into a per-user local cache keyed by source and reference content. Compiled binaries and sources use the same context resolver. A write-enabled entry must declare `WriteMode=ConfirmSave`; the host never saves automatically and asks again on every launch and relaunch.
 
 The fully expanded command line and environment value are never displayed or logged. See [settings.example.ini](settings.example.ini) for complete examples.
 
@@ -88,11 +100,11 @@ The fully expanded command line and environment value are never displayed or log
 
 The launcher declares a non-copying compile-time reference to `VMS.TPS.Common.Model.API` because ESAPI rejects a purely reflection-based standalone entry assembly. The current release is compiled and validated against Eclipse 18 API metadata. It still locates and loads the configured API assembly by reflection on a dedicated STA thread, calls `Application.CreateApplication()`, copies `PatientSummaries` into plain strings, and disposes the ESAPI application immediately. Local filtering then uses only detached records. If the configured assembly pair is unavailable, it checks the locally installed Varian RTM versions in descending order and uses the first complete API/Types pair.
 
-Version 0.1 does not search courses/plans or pass live ESAPI objects to a child. Eclipse plug-ins can be listed in the catalogue, but remain inside the Eclipse `ScriptContext`; an external launch still requires a compatible runner EXE. A patient-aware standalone EXE must explicitly implement the configured argument or environment contract.
+No live ESAPI object is retained in the Hub. A direct child opens the selected identifiers afresh in its own ESAPI session and closes that session after execution. A patient-aware standalone EXE must still implement its configured argument or environment contract.
 
 ## Privacy and resilience
 
-Patient records and recent selections are not persisted. Logs contain UTC time, event category, configured application ID, and exception type only. Child start, successful exit, and non-zero exit are recorded without arguments or patient context. Child stdout/stderr is not captured. A slow optional UNC path disables only its own application card.
+Patient names, search text, commands, environments, and child output are not persisted. Recent launch identifiers needed for **Run again** are serialized minimally and encrypted with Windows DPAPI in `CurrentUser` scope; the default local file retains at most 100 records for 30 days. Logs contain UTC time, event category, configured application ID, and exception type only. A slow optional UNC path disables only its own application card.
 
 Crash isolation protects the Hub from child failures; it does not guarantee that every pair of ESAPI applications may safely access Eclipse concurrently. Follow the validation and concurrency requirements of each target application.
 

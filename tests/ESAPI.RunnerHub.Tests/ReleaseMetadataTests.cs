@@ -19,6 +19,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("entry assembly declares the ESAPI runtime authorization reference", DeclaresEsapiAuthorizationReference);
             TestHarness.Test("release validator permits API metadata but rejects vendor binaries", AllowsMetadataReferenceOnly);
             TestHarness.Test("release build references Eclipse 18 assets", UsesEclipse18Assets);
+            TestHarness.Test("release packages the isolated script host beside the Hub", PackagesScriptHost);
         }
 
         private static void HasReleaseMetadata()
@@ -125,6 +126,17 @@ namespace EsapiRunnerHub.Tests
                 "The Hub must not silently compile against the retired Eclipse 16.1 API.");
             TestHarness.AssertContains(build, "EsapiReferenceDirectory");
             TestHarness.AssertContains(build, "_Assets");
+        }
+
+        private static void PackagesScriptHost()
+        {
+            var build = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            var validator = File.ReadAllText(TestHarness.PathFromRoot("tools/validate-vendor-free.ps1"));
+            TestHarness.AssertContains(build, "Join-Path $buildOutput 'ESAPI-Script-Host.exe'");
+            TestHarness.AssertContains(build, "Join-Path $packageRoot 'ESAPI-Script-Host.exe'");
+            TestHarness.AssertContains(build, "Join-Path $distRoot 'ESAPI-Script-Host.exe'");
+            TestHarness.AssertContains(validator, "'ESAPI-Script-Host.exe'");
+            TestHarness.AssertContains(validator, "VMS\\.TPS");
         }
     }
 }

@@ -34,6 +34,7 @@ if (-not (Test-Path -LiteralPath $launcher -PathType Leaf)) {
 
 $required = @(
     'ESAPI-Runner-Hub.exe',
+    'ESAPI-Script-Host.exe',
     'settings.example.ini',
     'README.md',
     'LICENSE',

@@ -100,6 +100,7 @@ try {
 
     $copies = @{
         (Join-Path $buildOutput 'ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
+        (Join-Path $buildOutput 'ESAPI-Script-Host.exe') = (Join-Path $packageRoot 'ESAPI-Script-Host.exe')
         (Join-Path $repoRoot 'settings.example.ini') = (Join-Path $packageRoot 'settings.example.ini')
         (Join-Path $repoRoot 'README.md') = (Join-Path $packageRoot 'README.md')
         (Join-Path $repoRoot 'LICENSE') = (Join-Path $packageRoot 'LICENSE')
@@ -127,6 +128,9 @@ try {
     Publish-ImmutableBinary `
         -Source (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe') `
         -Destination $versionedExePath
+    Copy-FileWithRetry `
+        -Source (Join-Path $buildOutput 'ESAPI-Script-Host.exe') `
+        -Destination (Join-Path $distRoot 'ESAPI-Script-Host.exe')
     Copy-FileWithRetry -Source $stagedZip -Destination $zipPath
 
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()

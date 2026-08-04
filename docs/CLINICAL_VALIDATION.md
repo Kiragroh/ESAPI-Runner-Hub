@@ -8,6 +8,7 @@ Automated tests and public screenshots use only synthetic data. Before local cli
 - Start the Hub and confirm the ESAPI status reaches `ready` without retaining an open patient.
 - Search by exact test ID, partial ID, first name, last name, and multiple tokens.
 - Select, clear, refresh, and switch the test patient repeatedly.
+- Verify courses, plans, plan sums, structure sets, and images populate correctly and that a structure set or image can be selected without a plan.
 
 ## Launch contracts
 
@@ -16,6 +17,8 @@ Automated tests and public screenshots use only synthetic data. Before local cli
 - Verify an environment-aware test EXE receives the ID only under its configured child key.
 - Verify a required-patient card cannot start without an exact selection.
 - Start several applications for the same patient, then switch patient and repeat.
+- Start a validated direct binary and direct single-file source with the required patient/planning context.
+- For a write-enabled test script, verify the host presents save/discard confirmation on every start and every relaunch; verify failure never saves.
 
 ## Isolation and paths
 
@@ -27,5 +30,7 @@ Automated tests and public screenshots use only synthetic data. Before local cli
 
 - Inspect technical logs and crash reports; verify they contain no patient ID/name, search text, expanded argument, environment value, or child output.
 - Confirm closing and reopening the Hub restores no recent patient selection.
+- Confirm recent activity is restored but its JSON contains no clear patient, course, plan, structure-set, or image identifier.
+- Confirm **Run again** reconstructs the current configuration, resolves the saved context afresh, and safely disables entries whose application or context no longer exists.
 
 Record the Eclipse version, ESAPI assembly versions, Hub commit/tag, target application versions, workstation class, test date, tester, and result in the local validation system. Do not commit clinical identifiers or screenshots to the public repository.
