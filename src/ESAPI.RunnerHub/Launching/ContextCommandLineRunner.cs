@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
+using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -51,12 +52,12 @@ namespace EsapiRunnerHub.Launching
                 var configuration = IniConfigurationStore.Load(settingsPath);
                 var directory = configuration.Hub.ResolvedContextRequestDirectory;
                 if (string.IsNullOrWhiteSpace(directory)) return false;
-                var userFile = Regex.Replace(Environment.UserName ?? string.Empty, "[^A-Za-z0-9._-]", "_");
-                if (string.IsNullOrWhiteSpace(userFile)) return false;
-                var pendingPath = Path.Combine(directory, userFile + ".pending");
+                var userSid = CurrentUserSid();
+                if (string.IsNullOrWhiteSpace(userSid)) return false;
+                var pendingPath = Path.Combine(directory, userSid + ".pending");
                 if (!File.Exists(pendingPath)) return false;
 
-                claimPath = Path.Combine(directory, userFile + ".claimed-" + Guid.NewGuid().ToString("N"));
+                claimPath = Path.Combine(directory, userSid + ".claimed-" + Guid.NewGuid().ToString("N"));
                 try
                 {
                     File.Move(pendingPath, claimPath);
@@ -161,6 +162,11 @@ namespace EsapiRunnerHub.Launching
                 WriteContextRequestResult(configuration, requestId, application.Id, 0, startedUtc, null);
                 return 0;
             }
+            catch (ContextRequestOwnerMismatchException exception)
+            {
+                TechnicalLog.Current.WriteImmediate("WARN", "context_request_owner_mismatch", string.Empty, exception);
+                return 2;
+            }
             catch (Exception exception)
             {
                 TechnicalLog.Current.WriteImmediate("ERROR", "cli_context_failed", appId, exception);
@@ -193,6 +199,9 @@ namespace EsapiRunnerHub.Launching
                 {
                     var request = serializer.ReadObject(stream) as ContextRunRequest;
                     if (request == null) throw new SerializationException("No context request payload was found.");
+                    if (string.IsNullOrWhiteSpace(request.RequestedBySid) ||
+                        !string.Equals(request.RequestedBySid, CurrentUserSid(), StringComparison.OrdinalIgnoreCase))
+                        throw new ContextRequestOwnerMismatchException();
                     return request;
                 }
             }
@@ -355,6 +364,14 @@ namespace EsapiRunnerHub.Launching
             return value;
         }
 
+        private static string CurrentUserSid()
+        {
+            using (var identity = WindowsIdentity.GetCurrent())
+            {
+                return identity.User == null ? string.Empty : identity.User.Value;
+            }
+        }
+
         [DataContract]
         private sealed class ContextSeriesEnvelope
         {
@@ -364,8 +381,18 @@ namespace EsapiRunnerHub.Launching
         [DataContract]
         private sealed class ContextRunRequest
         {
-            [DataMember(Order = 1)] public string ApplicationId { get; set; }
-            [DataMember(Order = 2)] public List<ContextSeriesItem> Contexts { get; set; }
+            [DataMember(Order = 1)] public string RequestedBySid { get; set; }
+            [DataMember(Order = 2)] public string RequestedBy { get; set; }
+            [DataMember(Order = 3)] public string ApplicationId { get; set; }
+            [DataMember(Order = 4)] public List<ContextSeriesItem> Contexts { get; set; }
+        }
+
+        private sealed class ContextRequestOwnerMismatchException : InvalidOperationException
+        {
+            public ContextRequestOwnerMismatchException()
+                : base("The context request belongs to another Windows identity.")
+            {
+            }
         }
 
         [DataContract]

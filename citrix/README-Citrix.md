@@ -56,7 +56,14 @@ For a deterministic patient/course/plan test from a workstation, create a shared
 & '..\tools\Invoke-CitrixContextDebug.ps1' -ApplicationId plugin-color-code -PatientId PATIENT-ID -CourseId C7 -PlanId PLAN-ID
 ```
 
-The helper writes request and result JSON files below the protected directory configured as `Hub.ContextRequestDirectory`. These files may contain clinical IDs by local policy. It also writes a per-user pending marker and opens the ordinary installed Citrix shortcut without parameters. The Runner on the assigned VDA atomically claims the marker and the result records VDA, status and exit code. This is the recommended automated debugging path and works independently of client parameter forwarding and the VDA-local `latest` history. Request JSON may be UTF-8 with or without a byte-order mark.
+The helper writes request and result JSON files below the protected directory configured as `Hub.ContextRequestDirectory`. In live operation this is the `requests` child of the same central `LogDirectory`, so readable process logs and request history stay together. These files may contain clinical IDs by local policy. The helper records the Windows SID in the JSON, creates `<SID>.pending`, and opens the ordinary installed Citrix shortcut without parameters. The Runner on the assigned VDA atomically claims only that SID's marker and verifies ownership again before execution. A different user cannot accidentally start or consume it, including through `--run-request`. The pending marker is claimable for at most 30 seconds by default and normally disappears within seconds; request and result JSON remain as readable history. This workflow is independent of client parameter forwarding and VDA-local `latest` history. Request JSON may be UTF-8 with or without a byte-order mark.
+
+The corresponding live settings are intentionally visible and editable in the Hub:
+
+```ini
+LogDirectory=\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\Logs\ESAPI-Runner-Hub
+ContextRequestDirectory=\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\Logs\ESAPI-Runner-Hub\requests
+```
 
 A direct VDA shell does not depend on the Studio placeholder, for example:
 
@@ -101,7 +108,7 @@ ESAPI-Runner-Hub\
   dist\
     settings.ini
     versions\
-      ESAPI-Runner-Hub.v0.2.8.exe
+      ESAPI-Runner-Hub.v0.2.9.exe
 ```
 
 `dist\settings.ini` is the only live configuration. The launcher passes it with `--settings`; do not copy a second settings file into `dist\versions`.
@@ -115,7 +122,7 @@ $citrix = '\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\ESA
 $next = Join-Path $citrix 'current.txt.new'
 $current = Join-Path $citrix 'current.txt'
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-[System.IO.File]::WriteAllText($next, "ESAPI-Runner-Hub.v0.2.8.exe`r`n", $utf8NoBom)
+[System.IO.File]::WriteAllText($next, "ESAPI-Runner-Hub.v0.2.9.exe`r`n", $utf8NoBom)
 Move-Item -LiteralPath $next -Destination $current -Force
 ```
 

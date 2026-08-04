@@ -9,11 +9,12 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
-            TestHarness.Test("release metadata identifies version 0.2.8 build 17", HasReleaseMetadata);
+            TestHarness.Test("release metadata identifies version 0.2.9 build 18", HasReleaseMetadata);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
             TestHarness.Test("release build executes the Citrix launcher contract", ExecutesCitrixLauncherContract);
             TestHarness.Test("release build uses an isolated staging output", UsesIsolatedBuildOutput);
+            TestHarness.Test("release build leaves byte-identical locked live files untouched", SkipsIdenticalLiveFiles);
             TestHarness.Test("public documentation and example settings contain no clinical paths", PublicFilesArePortable);
             TestHarness.Test("repository contains no vendor assemblies", HasNoVendorBinaries);
             TestHarness.Test("entry assembly declares the ESAPI runtime authorization reference", DeclaresEsapiAuthorizationReference);
@@ -32,22 +33,23 @@ namespace EsapiRunnerHub.Tests
             var assemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Properties/AssemblyInfo.cs"));
             var hostAssemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Properties/AssemblyInfo.cs"));
 
-            TestHarness.AssertContains(version, "\"version\": \"0.2.8\"");
+            TestHarness.AssertContains(version, "\"version\": \"0.2.9\"");
+            TestHarness.AssertContains(version, "\"build\": 18");
             TestHarness.AssertContains(version, "\"build\": 17");
             TestHarness.AssertContains(version, "\"build\": 16");
             TestHarness.AssertContains(version, "\"build\": 15");
             TestHarness.AssertContains(version, "\"build\": 14");
             TestHarness.AssertContains(version, "\"build\": 11");
-            TestHarness.AssertContains(changelog, "## [0.2.8] - 2026-08-04");
+            TestHarness.AssertContains(changelog, "## [0.2.9] - 2026-08-04");
             TestHarness.AssertContains(changelog, "encrypted launch history");
             TestHarness.AssertContains(changelog, "Direct context scripts");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.2.8.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.2.8.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.2.8\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.2.8.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.2.8.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.2.8\")");
-            TestHarness.AssertContains(File.ReadAllText(TestHarness.PathFromRoot("citrix/current.txt")), "ESAPI-Runner-Hub.v0.2.8.exe");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.2.9.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.2.9.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.2.9\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.2.9.0\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.2.9.0\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.2.9\")");
+            TestHarness.AssertContains(File.ReadAllText(TestHarness.PathFromRoot("citrix/current.txt")), "ESAPI-Runner-Hub.v0.2.9.exe");
             TestHarness.AssertContains(license, "MIT License");
         }
 
@@ -90,6 +92,17 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertFalse(
                 script.Contains("src\\ESAPI.RunnerHub\\bin\\x64\\Release\\ESAPI-Runner-Hub.exe"),
                 "Release packaging must not depend on a mutable or locked shared bin output.");
+        }
+
+        private static void SkipsIdenticalLiveFiles()
+        {
+            var script = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            var start = script.IndexOf("function Copy-FileWithRetry", StringComparison.Ordinal);
+            var end = script.IndexOf("function Publish-ImmutableBinary", StringComparison.Ordinal);
+            TestHarness.AssertTrue(start >= 0 && end > start);
+            var helper = script.Substring(start, end - start);
+            TestHarness.AssertContains(helper, "Get-FileHash");
+            TestHarness.AssertContains(helper, "destinationHash");
         }
 
         private static void PublicFilesArePortable()

@@ -70,13 +70,13 @@ The same executable can start a configured context script without opening the Hu
 ESAPI-Runner-Hub.exe --replay-latest plugin-fb-info --settings .\settings.ini
 ```
 
-For exact cross-VDA Citrix debugging, use a shared request instead of `latest`. The request JSON contains the application and one or more explicit patient/planning contexts; the Runner writes a matching result JSON with VDA and exit code. The request directory is configured as `Hub.ContextRequestDirectory`. From a configured workstation:
+For exact cross-VDA Citrix debugging, use a shared request instead of `latest`. The request JSON contains the requesting Windows SID, application, and one or more explicit patient/planning contexts; the Runner writes a matching result JSON with VDA and exit code. The request directory is configured as `Hub.ContextRequestDirectory` and defaults to the `requests` child of the readable log tree. From a configured workstation:
 
 ```powershell
 .\tools\Invoke-CitrixContextDebug.ps1 -ApplicationId plugin-color-code -PatientId PATIENT-ID -CourseId C7 -PlanId PLAN-ID
 ```
 
-The helper writes a per-user pending marker and opens the normal published Citrix shortcut without extra client parameters. On the assigned VDA the versioned Runner claims that marker, reads `<request-id>.request.json`, runs the context script through the isolated Script Host, and writes `<request-id>.result.json`. This path is deterministic across VDAs and does not depend on client-side command-line forwarding or a local activity history. A direct VDA shell may still use `--run-request <request-id>`.
+The helper writes a Windows-SID-specific pending marker and opens the normal published Citrix shortcut without extra client parameters. On the assigned VDA the versioned Runner atomically claims that marker, verifies the same SID in `<request-id>.request.json`, runs the context script through the isolated Script Host, and writes `<request-id>.result.json`. Another Windows identity cannot claim or directly execute the request. The pending marker is available for at most 30 seconds by default and normally disappears within seconds; request and result JSON remain as readable protected history. A direct VDA shell may still use `--run-request <request-id>`, subject to the same SID check.
 
 See [Context and Citrix debugging](docs/CONTEXT_DEBUGGING.md) for the complete request contract, direct VDA commands, series behavior, result fields, and an automation-oriented procedure.
 
@@ -116,7 +116,7 @@ For a published Citrix application, use `citrix\ESAPI-Runner-Hub.CitrixLauncher.
 
 The launcher can forward a Runner option supplied directly on the VDA, but productive automation does not assume that Citrix Workspace transports client-side command-line parameters. Exact workstation-driven tests use the shared request plus per-user pending marker described above and open the ordinary published shortcut without arguments. Argument contents are never logged. The legacy `cmd.exe` plus `citrix\Start-ESAPI-Runner-Hub.cmd` route remains available as a no-argument fallback.
 
-New releases use a new filename such as `ESAPI-Runner-Hub.v0.2.8.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
+New releases use a new filename such as `ESAPI-Runner-Hub.v0.2.9.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
 
 ## Configuration
 

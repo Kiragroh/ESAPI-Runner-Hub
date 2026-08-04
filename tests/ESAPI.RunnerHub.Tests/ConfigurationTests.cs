@@ -9,6 +9,7 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
+            TestHarness.Test("context requests default to the readable log tree", ContextRequestsDefaultToLogTree);
             TestHarness.Test("Eclipse plug-in kind parses and round trips", ParsesEclipsePluginKind);
             TestHarness.Test("Eclipse plug-ins cannot declare external patient transfer", RejectsPluginPatientTransfer);
             TestHarness.Test("launch kind must match the configured target extension", RejectsMismatchedLaunchKind);
@@ -108,6 +109,12 @@ Enabled=true
                     Directory.Delete(directory, true);
                 }
             });
+        }
+
+        private static void ContextRequestsDefaultToLogTree()
+        {
+            var settings = new HubSettings();
+            TestHarness.AssertEqual(@"%LOCALAPPDATA%\ESAPI Runner Hub\Logs\requests", settings.ContextRequestDirectory);
         }
 
         private static void ParsesEclipsePluginKind()

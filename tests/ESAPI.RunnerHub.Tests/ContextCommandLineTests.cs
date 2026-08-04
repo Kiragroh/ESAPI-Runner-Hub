@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security.Principal;
 using System.Text;
 using EsapiRunnerHub.Context;
 using EsapiRunnerHub.History;
@@ -17,8 +18,9 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("CLI replays the latest protected context without identifiers in arguments", ReplaysLatestContext);
             TestHarness.Test("CLI runs an exact shared context request and writes a result file", RunsSharedContextRequest);
             TestHarness.Test("CLI accepts a Windows PowerShell UTF-8 request file", RunsBomEncodedSharedContextRequest);
+            TestHarness.Test("CLI refuses another Windows identity's request without consuming it", RejectsForeignOwnerRequest);
             TestHarness.Test("CLI rejects an unsafe shared context request id", RejectsUnsafeContextRequestId);
-            TestHarness.Test("Hub startup consumes the current user's pending context request", RunsPendingContextRequest);
+            TestHarness.Test("Hub startup consumes only the current Windows SID's pending context request", RunsPendingContextRequest);
         }
 
         private static void RunsEnvironmentContext()
@@ -106,7 +108,7 @@ namespace EsapiRunnerHub.Tests
                 var requestPath = Path.Combine(requestDirectory, requestId + ".request.json");
                 var resultPath = Path.Combine(requestDirectory, requestId + ".result.json");
                 File.WriteAllText(requestPath,
-                    "{\"ApplicationId\":\"direct\",\"Contexts\":[" +
+                    "{\"RequestedBySid\":\"" + CurrentUserSid() + "\",\"ApplicationId\":\"direct\",\"Contexts\":[" +
                     "{\"PatientId\":\"SYN-REQUEST\",\"CourseId\":\"C7\",\"PlanId\":\"P7\",\"StructureSetId\":\"SS7\",\"ImageId\":\"IMG7\"}]}");
 
                 var arguments = new[] { ContextCommandLineRunner.RunRequestOption, requestId, "--settings", settingsPath };
@@ -138,7 +140,7 @@ namespace EsapiRunnerHub.Tests
                 Directory.CreateDirectory(requestDirectory);
                 var requestId = "debug-bom-" + Guid.NewGuid().ToString("N");
                 var requestPath = Path.Combine(requestDirectory, requestId + ".request.json");
-                var payload = "{\"ApplicationId\":\"direct\",\"Contexts\":[{\"PatientId\":\"SYN-BOM\",\"CourseId\":\"C7\",\"PlanId\":\"P7\"}]}";
+                var payload = "{\"RequestedBySid\":\"" + CurrentUserSid() + "\",\"ApplicationId\":\"direct\",\"Contexts\":[{\"PatientId\":\"SYN-BOM\",\"CourseId\":\"C7\",\"PlanId\":\"P7\"}]}";
                 var preamble = Encoding.UTF8.GetPreamble();
                 var content = Encoding.UTF8.GetBytes(payload);
                 var bytes = new byte[preamble.Length + content.Length];
@@ -159,8 +161,8 @@ namespace EsapiRunnerHub.Tests
                 Directory.CreateDirectory(requestDirectory);
                 var requestId = "pending-" + Guid.NewGuid().ToString("N");
                 File.WriteAllText(Path.Combine(requestDirectory, requestId + ".request.json"),
-                    "{\"ApplicationId\":\"direct\",\"Contexts\":[{\"PatientId\":\"SYN-PENDING\",\"CourseId\":\"C1\",\"PlanId\":\"P1\"}]}");
-                var pendingPath = Path.Combine(requestDirectory, Environment.UserName + ".pending");
+                    "{\"RequestedBySid\":\"" + CurrentUserSid() + "\",\"ApplicationId\":\"direct\",\"Contexts\":[{\"PatientId\":\"SYN-PENDING\",\"CourseId\":\"C1\",\"PlanId\":\"P1\"}]}");
+                var pendingPath = Path.Combine(requestDirectory, CurrentUserSid() + ".pending");
                 File.WriteAllText(pendingPath, requestId);
 
                 int exitCode;
@@ -168,6 +170,25 @@ namespace EsapiRunnerHub.Tests
                 TestHarness.AssertEqual(0, exitCode);
                 TestHarness.AssertFalse(File.Exists(pendingPath));
                 TestHarness.AssertTrue(File.Exists(Path.Combine(requestDirectory, requestId + ".result.json")));
+            });
+        }
+
+        private static void RejectsForeignOwnerRequest()
+        {
+            WithFixture((settingsPath, historyPath) =>
+            {
+                var requestDirectory = Path.Combine(Path.GetDirectoryName(settingsPath), "requests");
+                Directory.CreateDirectory(requestDirectory);
+                var requestId = "foreign-" + Guid.NewGuid().ToString("N");
+                var requestPath = Path.Combine(requestDirectory, requestId + ".request.json");
+                var resultPath = Path.Combine(requestDirectory, requestId + ".result.json");
+                File.WriteAllText(requestPath,
+                    "{\"RequestedBySid\":\"S-1-5-21-999999999-999999999-999999999-9999\",\"ApplicationId\":\"direct\",\"Contexts\":[{\"PatientId\":\"SYN-FOREIGN\",\"CourseId\":\"C1\",\"PlanId\":\"P1\"}]}");
+
+                var arguments = new[] { ContextCommandLineRunner.RunRequestOption, requestId, "--settings", settingsPath };
+                TestHarness.AssertEqual(2, ContextCommandLineRunner.Run(arguments));
+                TestHarness.AssertTrue(File.Exists(requestPath));
+                TestHarness.AssertFalse(File.Exists(resultPath));
             });
         }
 
@@ -235,6 +256,14 @@ namespace EsapiRunnerHub.Tests
             Environment.SetEnvironmentVariable(ContextCommandLineRunner.PlanEnvironmentKey, plan);
             Environment.SetEnvironmentVariable(ContextCommandLineRunner.StructureSetEnvironmentKey, structureSet);
             Environment.SetEnvironmentVariable(ContextCommandLineRunner.ImageEnvironmentKey, image);
+        }
+
+        private static string CurrentUserSid()
+        {
+            using (var identity = WindowsIdentity.GetCurrent())
+            {
+                return identity.User.Value;
+            }
         }
     }
 }

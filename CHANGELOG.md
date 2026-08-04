@@ -2,6 +2,20 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.2.9] - 2026-08-04
+
+### Security
+
+- Pending markers use the Windows SID, and each request records the same mandatory owner SID. Startup and direct `--run-request` execution both reject another identity.
+- An ownership mismatch does not create a result file, leaving the request available to its rightful owner.
+- The workstation helper limits the claim window to 30 seconds by default and removes its unclaimed marker on timeout.
+
+### Operations
+
+- Request and result JSON remain readable history in the protected `requests` child of the configured log tree; pending and claimed markers remain short-lived.
+- The Settings GUI continues to expose both paths explicitly.
+- The release build skips byte-identical live artifacts, avoiding needless replacement failures while an identical Script Host is still running.
+
 ## [0.2.8] - 2026-08-04
 
 ### Fixed

@@ -9,19 +9,26 @@ param(
     [string]$ImageId,
     [string[]]$PlanIdsInScope,
     [string[]]$PlanSumIdsInScope,
+    [int]$ClaimSeconds = 30,
     [int]$WaitSeconds = 180,
     [string]$RequestDirectory = '\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\Logs\ESAPI-Runner-Hub\requests'
 )
 
 $ErrorActionPreference = 'Stop'
+$ClaimSeconds = [Math]::Min($ClaimSeconds, $WaitSeconds)
+if ($ClaimSeconds -lt 1 -or $ClaimSeconds -gt 120) { throw 'ClaimSeconds must be between 1 and 120.' }
 if ($WaitSeconds -lt 1 -or $WaitSeconds -gt 1800) { throw 'WaitSeconds must be between 1 and 1800.' }
 
 $requestId = 'debug-{0}-{1}' -f (Get-Date -Format 'yyyyMMdd-HHmmss'), ([Guid]::NewGuid().ToString('N').Substring(0, 10))
 $requestPath = Join-Path $RequestDirectory ($requestId + '.request.json')
 $resultPath = Join-Path $RequestDirectory ($requestId + '.result.json')
-$pendingPath = Join-Path $RequestDirectory ($env:USERNAME + '.pending')
+$identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+$requestedBySid = [string]$identity.User.Value
+$requestedBy = [string]$identity.Name
+if ([string]::IsNullOrWhiteSpace($requestedBySid)) { throw 'The current Windows SID could not be resolved.' }
+$pendingPath = Join-Path $RequestDirectory ($requestedBySid + '.pending')
 New-Item -ItemType Directory -Path $RequestDirectory -Force | Out-Null
-if (Test-Path -LiteralPath $pendingPath) { throw "Another Citrix context request is pending for $env:USERNAME: $pendingPath" }
+if (Test-Path -LiteralPath $pendingPath) { throw "Another Citrix context request is pending for ${requestedBy}: $pendingPath" }
 
 $context = [ordered]@{ PatientId = $PatientId }
 if ($CourseId) { $context.CourseId = $CourseId }
@@ -33,6 +40,8 @@ if ($PlanIdsInScope) { $context.PlanIdsInScope = @($PlanIdsInScope) }
 if ($PlanSumIdsInScope) { $context.PlanSumIdsInScope = @($PlanSumIdsInScope) }
 
 $request = [ordered]@{
+    RequestedBySid = $requestedBySid
+    RequestedBy = $requestedBy
     ApplicationId = $ApplicationId
     Contexts = @($context)
 }
@@ -47,11 +56,33 @@ if (-not (Test-Path -LiteralPath $shortcut -PathType Leaf)) { throw "Citrix ESAP
 Start-Process -FilePath $shortcut | Out-Null
 
 $deadline = (Get-Date).AddSeconds($WaitSeconds)
-while (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
-    if ((Get-Date) -ge $deadline) {
-        throw "Citrix context request timed out after $WaitSeconds seconds. Request: $requestPath"
+$claimDeadline = (Get-Date).AddSeconds($ClaimSeconds)
+try {
+    while ((Test-Path -LiteralPath $pendingPath -PathType Leaf) -and
+           -not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
+        if ((Get-Date) -ge $claimDeadline) {
+            throw "Citrix context request was not claimed within $ClaimSeconds seconds. Request: $requestPath"
+        }
+        Start-Sleep -Milliseconds 250
     }
-    Start-Sleep -Seconds 1
+    while (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
+        if ((Get-Date) -ge $deadline) {
+            throw "Citrix context request timed out after $WaitSeconds seconds. Request: $requestPath"
+        }
+        Start-Sleep -Seconds 1
+    }
+}
+finally {
+    try {
+        if (Test-Path -LiteralPath $pendingPath -PathType Leaf) {
+            $pendingRequest = (Get-Content -Raw -LiteralPath $pendingPath).Trim()
+            if ($pendingRequest -eq $requestId) {
+                Remove-Item -LiteralPath $pendingPath -Force
+            }
+        }
+    }
+    catch [System.IO.IOException] { }
+    catch [System.Management.Automation.ItemNotFoundException] { }
 }
 
 $result = Get-Content -Raw -LiteralPath $resultPath | ConvertFrom-Json

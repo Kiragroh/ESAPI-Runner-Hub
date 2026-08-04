@@ -97,7 +97,7 @@
                             <TextBlock Text="Protected activity history" FontWeight="SemiBold" />
                             <TextBox Text="{Binding HistoryFile, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock Text="Shared context debug requests" FontWeight="SemiBold" />
-                            <TextBox Text="{Binding ContextRequestDirectory, UpdateSourceTrigger=PropertyChanged}" ToolTip="Protected clinic directory for explicit context request and result JSON files." />
+                            <TextBox Text="{Binding ContextRequestDirectory, UpdateSourceTrigger=PropertyChanged}" ToolTip="Protected request and result history; placing this below LogDirectory keeps all readable diagnostics together." />
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
                                 <StackPanel><TextBlock Text="Retention (days)" FontWeight="SemiBold" /><TextBox Text="{Binding HistoryRetentionDays}" /></StackPanel>

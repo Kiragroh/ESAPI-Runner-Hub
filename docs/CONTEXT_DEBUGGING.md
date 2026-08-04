@@ -7,7 +7,7 @@ The Runner Hub exposes a deterministic command-oriented interface for configured
 There are two separate transport steps:
 
 1. A workstation writes an exact request into the configured protected request directory.
-2. The ordinary published Citrix application starts without extra client arguments. On the assigned VDA, the Runner claims the current user's pending request, executes it, and writes a result file.
+2. The ordinary published Citrix application starts without extra client arguments. On the assigned VDA, the Runner claims only the pending request for the current Windows SID, verifies the same SID in the request, executes it, and writes a result file.
 
 This design avoids relying on Citrix Workspace to forward a command line and avoids VDA-local `latest` history. Patient and planning identifiers are present only in the explicitly protected request file and the private Runner-to-Host context payload; technical logs do not contain them.
 
@@ -21,22 +21,24 @@ This design avoids relying on Citrix Workspace to forward a command line and avo
   -PlanId PLAN-ID
 ```
 
-Optional parameters are `PlanSumId`, `StructureSetId`, `ImageId`, `PlanIdsInScope`, `PlanSumIdsInScope`, `WaitSeconds`, and `RequestDirectory`.
+Optional parameters are `PlanSumId`, `StructureSetId`, `ImageId`, `PlanIdsInScope`, `PlanSumIdsInScope`, `ClaimSeconds`, `WaitSeconds`, and `RequestDirectory`.
 
 The helper:
 
 1. validates the application ID and timeout;
 2. writes `<request-id>.request.json`;
-3. atomically writes `<windows-user>.pending` containing only the request ID;
+3. atomically writes `<windows-SID>.pending` containing only the request ID;
 4. opens the installed `ESAPI-Runner-Hub` Citrix shortcut without arguments;
 5. waits for `<request-id>.result.json` and returns its fields as a PowerShell object.
 
-Only one request may be pending per Windows user. The request remains as traceable evidence; the pending or claimed marker is removed after processing.
+Only one request may be pending per Windows SID. The marker can be claimed for at most 30 seconds by default and is normally moved atomically within seconds. Opening the Hub as another user cannot start it. The request and result remain as readable evidence in the protected request directory; pending and claimed markers are short-lived and are removed after processing or timeout.
 
 ## Request contract
 
 ```json
 {
+  "RequestedBySid": "S-1-5-21-...",
+  "RequestedBy": "DOMAIN\\user",
   "ApplicationId": "plugin-color-code",
   "Contexts": [
     {
@@ -53,7 +55,7 @@ Only one request may be pending per Windows user. The request remains as traceab
 }
 ```
 
-JSON may be UTF-8 with or without a byte-order mark. Request IDs must match the Runner's restricted filename-safe format. A request with more than 100 contexts is rejected. More than one context is accepted only for applications configured as read-only.
+JSON may be UTF-8 with or without a byte-order mark. `RequestedBySid` is mandatory and must equal the Windows SID executing the Runner; a mismatch is refused without writing a result, so the rightful user can still process the request. Request IDs must match the Runner's restricted filename-safe format. A request with more than 100 contexts is rejected. More than one context is accepted only for applications configured as read-only.
 
 ## Result contract
 
@@ -73,7 +75,7 @@ JSON may be UTF-8 with or without a byte-order mark. Request IDs must match the 
 
 ## Direct commands inside a VDA session
 
-If a shell is already open inside the assigned VDA, an existing request can be executed directly:
+If a shell is already open inside the assigned VDA, an existing request owned by the same Windows SID can be executed directly:
 
 ```powershell
 ESAPI-Runner-Hub.exe --run-request REQUEST-ID --settings .\settings.ini
@@ -95,7 +97,7 @@ These commands must run inside the VDA. Starting the shared executable directly 
 
 ## Automation procedure for humans or agents
 
-1. Read the live `settings.ini`; resolve `ContextRequestDirectory`, the application ID, context requirement, scope mode, and write mode.
+1. Read the live `settings.ini`; resolve `LogDirectory`, `ContextRequestDirectory`, the application ID, context requirement, scope mode, and write mode. Keep the request directory below the protected readable log tree (the default is `%LOCALAPPDATA%\ESAPI Runner Hub\Logs\requests`).
 2. Verify that the selected application is enabled and that its configured target exists.
 3. Use the helper whenever the caller is outside the VDA. Do not construct `wfcrun32`, `qlaunch`, or nested `cmd.exe` quoting to transport clinical context.
 4. Wait for the matching result file, not for a guessed delay or the presence of a Citrix window.
@@ -105,8 +107,9 @@ These commands must run inside the VDA. Starting the shared executable directly 
 
 ## Common failures
 
-- No result and a remaining `.pending` marker: the normal published application did not start for that Windows user.
+- No result and a remaining `.pending` marker: the normal published application did not claim it for that Windows SID; the helper removes its own marker after the claim timeout.
 - No result and a `.claimed-*` marker: the VDA claimed the job but terminated before cleanup; inspect launcher and Runner logs.
+- `context_request_owner_mismatch`: another Windows identity attempted the request; no result is written and the request remains available to its owner.
 - Result with exit code `2`: invalid request, unavailable application, unsupported context mode, or configuration failure.
 - Result with the Script Host's non-zero code: context resolution or the target script failed; inspect the safe Script Host phase and exception type.
 - `wfcrun32` error before a launcher `START` entry: failure occurred in the Citrix client path, not in the Runner.

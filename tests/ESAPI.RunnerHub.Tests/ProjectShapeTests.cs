@@ -74,6 +74,10 @@ namespace EsapiRunnerHub.Tests
                 TestHarness.AssertContains(helper, "PatientId");
                 TestHarness.AssertContains(helper, ".result.json");
                 TestHarness.AssertContains(helper, ".pending");
+                TestHarness.AssertContains(helper, "RequestedBySid");
+                TestHarness.AssertContains(helper, "WindowsIdentity");
+                TestHarness.AssertContains(helper, "ClaimSeconds");
+                TestHarness.AssertFalse(helper.Contains("$requestedBy:"));
                 TestHarness.AssertFalse(helper.Contains("-cmdline"));
                 TestHarness.AssertContains(helper, "ESAPI-Runner-Hub.lnk");
             });

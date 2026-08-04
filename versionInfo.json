@@ -1,9 +1,20 @@
 {
-  "version": "0.2.8",
-  "build": 17,
+  "version": "0.2.9",
+  "build": 18,
   "lastUpdate": "2026-08-04",
-  "lastChange": "Request-JSON aus Windows PowerShell 5.1 wird einschließlich UTF-8-BOM zuverlässig auf dem VDA eingelesen.",
+  "lastChange": "Citrix-Kontextrequests sind an die Windows-SID gebunden und bleiben als lesbarer Verlauf im zentralen Logordner erhalten.",
   "changelog": [
+    {
+      "build": 18,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.9",
+      "changes": [
+        "Pending-Marker und Request-JSON sind an die Windows-SID gebunden; ein anderer Nutzer kann einen Request weder versehentlich noch direkt ausführen.",
+        "Ein fremder Aufruf verbraucht den Request nicht und erzeugt keine Result-Datei; der rechtmäßige Nutzer kann ihn weiter ausführen.",
+        "Pending-Marker sind standardmäßig höchstens 30 Sekunden claimbar, während Request- und Result-JSON als lesbarer Verlauf im requests-Unterordner des Logbereichs erhalten bleiben.",
+        "Der Release-Build lässt byteidentische, bereits laufende Live-Artefakte unangetastet und kann dadurch Dokumentations- und Helper-Updates ohne unnötigen Dateiaustausch veröffentlichen."
+      ]
+    },
     {
       "build": 17,
       "date": "2026-08-04",

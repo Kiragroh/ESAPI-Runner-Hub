@@ -14,7 +14,7 @@ namespace EsapiRunnerHub.Configuration
             LogDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs";
             ScriptHostExecutable = "ESAPI-Script-Host.exe";
             HistoryFile = @"%LOCALAPPDATA%\ESAPI Runner Hub\launch-history.json";
-            ContextRequestDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\ContextRequests";
+            ContextRequestDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs\requests";
             HistoryRetentionDays = 30;
             HistoryMaxEntries = 100;
             ExtraValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

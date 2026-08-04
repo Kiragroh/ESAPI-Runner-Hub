@@ -47,6 +47,12 @@ function Copy-FileWithRetry {
         [Parameter(Mandatory = $true)][string]$Destination
     )
 
+    if (Test-Path -LiteralPath $Destination -PathType Leaf) {
+        $sourceHash = (Get-FileHash -LiteralPath $Source -Algorithm SHA256).Hash
+        $destinationHash = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash
+        if ($sourceHash -eq $destinationHash) { return }
+    }
+
     for ($attempt = 1; $attempt -le 10; $attempt++) {
         try {
             Copy-Item -LiteralPath $Source -Destination $Destination -Force
