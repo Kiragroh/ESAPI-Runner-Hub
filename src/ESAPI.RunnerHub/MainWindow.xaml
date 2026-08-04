@@ -219,7 +219,7 @@
                                         <StackPanel Grid.Row="2">
                                             <TextBlock Text="{Binding Description}" Foreground="{StaticResource Muted}" TextWrapping="Wrap" />
                                             <TextBlock Text="{Binding CompactPath}" ToolTip="{Binding FullPath}" Foreground="#4E5D70" FontFamily="Consolas" FontSize="10.5"
-                                                       TextTrimming="CharacterEllipsis" Margin="0,8,0,0" />
+                                                       TextWrapping="Wrap" Margin="0,8,0,0" />
                                         </StackPanel>
                                         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,11">
                                             <Ellipse Width="7" Height="7" Margin="0,0,7,0" VerticalAlignment="Center">

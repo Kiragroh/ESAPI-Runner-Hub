@@ -36,6 +36,24 @@ namespace EsapiRunnerHub.Tests
                 TestHarness.AssertContains(xaml, "Started");
                 TestHarness.AssertContains(xaml, "Status");
             });
+
+            TestHarness.Test("application paths wrap instead of being clipped", () =>
+            {
+                var xaml = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml"));
+                var marker = "Text=\"{Binding CompactPath}\"";
+                var start = xaml.IndexOf(marker, System.StringComparison.Ordinal);
+                TestHarness.AssertTrue(start >= 0, "CompactPath text block is missing.");
+                var declaration = xaml.Substring(start, System.Math.Min(500, xaml.Length - start));
+                TestHarness.AssertContains(declaration, "TextWrapping=\"Wrap\"");
+                TestHarness.AssertFalse(declaration.Contains("TextTrimming=\"CharacterEllipsis\""));
+            });
+
+            TestHarness.Test("script host error dialog identifies the safe execution phase", () =>
+            {
+                var program = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Program.cs"));
+                TestHarness.AssertContains(program, "Fehlerphase:");
+                TestHarness.AssertContains(program, "StageDataKey");
+            });
         }
     }
 }

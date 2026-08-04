@@ -2,6 +2,7 @@ namespace EsapiRunnerHub.Tests
 {
     internal static class Program
     {
+        [System.STAThread]
         private static int Main()
         {
             ProjectShapeTests.Register();

@@ -1,6 +1,8 @@
 using EsapiRunnerHub.Catalog;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.ViewModels;
+using EsapiRunnerHub.Context;
+using EsapiRunnerHub.Launching;
 
 namespace EsapiRunnerHub.Tests
 {
@@ -13,6 +15,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("institutional paths are displayed below Physik-Skripte", CompactsInstitutionalPath);
             TestHarness.Test("STR Hub README links require valid configured values", BuildsReadmeLinkSafely);
             TestHarness.Test("application cards expose type access path and README", CardExposesMetadata);
+            TestHarness.Test("Eclipse plug-in cards also offer direct context launch", PluginOffersContextLaunch);
         }
 
         private static void InfersArtifactKind()
@@ -69,6 +72,22 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertEqual("Read-only", card.AccessLabel);
             TestHarness.AssertTrue(card.CompactPath.StartsWith("Physik-Skripte\\"));
             TestHarness.AssertTrue(card.HasHubReadme);
+            TestHarness.AssertEqual(System.Windows.Visibility.Collapsed, card.ContextVisibility);
+        }
+
+        private static void PluginOffersContextLaunch()
+        {
+            var definition = Definition(@"C:\Scripts\Tool.esapi.dll");
+            definition.LaunchKind = LaunchKind.EclipsePlugin;
+            definition.ContextRequirement = ContextRequirement.Plan;
+            definition.PatientMode = PatientMode.Required;
+            var card = new ApplicationCardViewModel(definition);
+            card.SetReadiness(PathReadiness.Ready, "Ready");
+            card.SetContext(new ContextSelection { PatientId = "SYN-1001", PlanId = "P1" });
+
+            TestHarness.AssertEqual(System.Windows.Visibility.Visible, card.ReferenceVisibility);
+            TestHarness.AssertEqual(System.Windows.Visibility.Visible, card.ContextVisibility);
+            TestHarness.AssertTrue(card.CanStartContext);
         }
 
         private static ApplicationDefinition Definition(string executable)

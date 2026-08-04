@@ -2,6 +2,23 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.2.2] - 2026-08-04
+
+### Added
+
+- Configured Eclipse plug-in cards can launch their `.esapi.dll` or `.cs` target directly with the selected patient, plan, plan sum, or structure set while retaining the Eclipse entry.
+- Script Host failures identify a privacy-safe execution phase in addition to the exception type.
+
+### Fixed
+
+- Long compact application paths wrap inside catalogue cards.
+- The isolated host creates the WPF `Application` required by UI plug-ins such as ClearPlan.
+- Single-file compilation includes the XML and XAML framework references required by the Eclipse 18 API surface.
+
+### Validation
+
+- Regression tests cover dual Eclipse/direct cards, reference-only cards, WPF application hosting, source references, safe failure stages, and path wrapping.
+
 ## [0.2.1] - 2026-08-04
 
 ### Fixed

@@ -87,7 +87,7 @@ Patient transports:
 Launch kinds:
 
 - `Executable`: starts an isolated external `.exe` process.
-- `EclipsePlugin`: catalogues a `.esapi.dll` or `.cs` plug-in and shows that it must be opened from Eclipse under **Tools > Scripts**; the Hub never attempts to execute it externally.
+- `EclipsePlugin`: catalogues a `.esapi.dll` or `.cs` plug-in for Eclipse under **Tools > Scripts**. When `PatientMode=Required` plus a context contract is configured, the same card also starts it through the isolated host; otherwise it remains a reference-only card.
 - `EsapiContextScript`: starts a supported `.esapi.dll` or `.cs` script in the isolated host using the selected patient/planning context. `ContextRequirement`, `ScopeMode`, `ScriptEngine`, and `WriteMode` define the contract.
 
 Catalogue metadata can be explicit (`ArtifactKind`, `AccessMode`, and `HubScriptId`) or inferred conservatively. The live `settings.ini` remains editable in the Settings window, including ESAPI assembly paths, script-host path, STR Hub base URL, history path, and retention.

@@ -53,7 +53,10 @@ namespace EsapiRunnerHub.ViewModels
         {
             get
             {
-                if (Definition.LaunchKind == LaunchKind.EclipsePlugin) return "Eclipse plug-in";
+                if (Definition.LaunchKind == LaunchKind.EclipsePlugin)
+                    return SupportsContextLaunch
+                        ? (Definition.WriteMode == WriteMode.ConfirmSave ? "Eclipse plug-in · direct context · save confirmation" : "Eclipse plug-in · direct context · read-only")
+                        : "Eclipse plug-in";
                 if (Definition.LaunchKind == LaunchKind.EsapiContextScript)
                     return Definition.WriteMode == WriteMode.ConfirmSave ? "Context script · save confirmation" : "Context script · read-only";
                 if (Definition.PatientMode == PatientMode.Required) return "Patient required";
@@ -78,8 +81,17 @@ namespace EsapiRunnerHub.ViewModels
         {
             get
             {
-                return Definition.LaunchKind == LaunchKind.EsapiContextScript && IsReady && contextSelection != null &&
+                return SupportsContextLaunch && IsReady && contextSelection != null &&
                        string.IsNullOrWhiteSpace(contextSelection.MissingFor(Definition.ContextRequirement));
+            }
+        }
+
+        public bool SupportsContextLaunch
+        {
+            get
+            {
+                return Definition.LaunchKind == LaunchKind.EsapiContextScript ||
+                       (Definition.LaunchKind == LaunchKind.EclipsePlugin && Definition.PatientMode == PatientMode.Required);
             }
         }
 
@@ -87,7 +99,7 @@ namespace EsapiRunnerHub.ViewModels
         {
             get
             {
-                if (Definition.LaunchKind != LaunchKind.EsapiContextScript) return string.Empty;
+                if (!SupportsContextLaunch) return string.Empty;
                 return contextSelection == null ? "Patient required" : contextSelection.MissingFor(Definition.ContextRequirement);
             }
         }
@@ -116,8 +128,8 @@ namespace EsapiRunnerHub.ViewModels
         }
 
         public Visibility ReferenceVisibility { get { return Definition.LaunchKind == LaunchKind.EclipsePlugin ? Visibility.Visible : Visibility.Collapsed; } }
-        public Visibility ContextVisibility { get { return Definition.LaunchKind == LaunchKind.EsapiContextScript ? Visibility.Visible : Visibility.Collapsed; } }
-        public string ReferenceHint { get { return "Available in Eclipse · Tools > Scripts"; } }
+        public Visibility ContextVisibility { get { return SupportsContextLaunch ? Visibility.Visible : Visibility.Collapsed; } }
+        public string ReferenceHint { get { return SupportsContextLaunch ? "Also available in Eclipse" : "Available in Eclipse · Tools > Scripts"; } }
 
         public string WithPatientLabel
         {

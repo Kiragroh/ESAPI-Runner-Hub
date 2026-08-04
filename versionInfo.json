@@ -1,9 +1,19 @@
 {
-  "version": "0.2.1",
-  "build": 9,
+  "version": "0.2.2",
+  "build": 10,
   "lastUpdate": "2026-08-04",
-  "lastChange": "Der isolierte ESAPI Script Host ist im Live- und Citrix-Betrieb vollständig unabhängig von der Runner-Assembly paketiert.",
+  "lastChange": "Binary- und Single-File-Kacheln können denselben Eclipse-18-Kontexthost nutzen; lange Pfade umbrechen und Hostfehler nennen ihre sichere Ausführungsphase.",
   "changelog": [
+    {
+      "build": 10,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.2",
+      "changes": [
+        "Konfigurierte Eclipse-Plug-in-Kacheln bieten neben dem Start in Eclipse nun direkt den passenden Patienten-, Plan- oder Structure-Set-Kontext an.",
+        "Lange kompakte Skriptpfade umbrechen innerhalb der Kachel statt abgeschnitten zu werden.",
+        "Der Script Host stellt WPF-Plug-ins eine Application bereit, ergänzt XML/XAML-Compilerreferenzen und nennt bei Fehlern die sichere Ausführungsphase."
+      ]
+    },
     {
       "build": 9,
       "date": "2026-08-04",

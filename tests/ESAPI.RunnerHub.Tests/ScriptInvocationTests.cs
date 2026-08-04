@@ -14,6 +14,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("write metadata must agree with configured write mode", ValidatesWriteMetadata);
             TestHarness.Test("successful writable host run saves exactly once", SuccessfulRunSavesOnce);
             TestHarness.Test("failed writable host run never saves", FailedRunNeverSaves);
+            TestHarness.Test("script host supplies a WPF application for UI plug-ins", SuppliesWpfApplication);
         }
 
         private static void InvokesEssentials()
@@ -80,14 +81,37 @@ namespace EsapiRunnerHub.Tests
                 payload.ScriptEngine = ScriptEngine.Eclipse;
                 payload.WriteMode = WriteMode.ConfirmSave;
 
-                TestHarness.AssertThrows<System.Reflection.TargetInvocationException>(() =>
+                var failure = TestHarness.AssertThrows<System.Reflection.TargetInvocationException>(() =>
                     new ScriptHostApplication().Run(payload, () => SaveChoice.Save));
 
                 TestHarness.AssertFalse(File.Exists(saveMarker));
+                TestHarness.AssertEqual("Skript ausführen", failure.Data[ScriptHostApplication.StageDataKey] as string);
             }
             finally
             {
                 ClearMarker("FAKE_VMS_SAVE_MARKER", saveMarker);
+            }
+        }
+
+        private static void SuppliesWpfApplication()
+        {
+            var marker = NewMarker("wpf-application");
+            Environment.SetEnvironmentVariable("SCRIPT_FIXTURE_MARKER", marker);
+            try
+            {
+                var payload = ScriptHostCoreTests.CreatePayloadForInvocation();
+                payload.ScriptPath = FixtureScriptPath();
+                payload.EntryType = "VMS.TPS.WpfApplicationAwareEclipseScript";
+                payload.ScriptEngine = ScriptEngine.Eclipse;
+                payload.WriteMode = WriteMode.ConfirmSave;
+
+                new ScriptHostApplication().Run(payload, () => SaveChoice.Discard);
+
+                TestHarness.AssertEqual("wpf-application-ready", File.ReadAllText(marker));
+            }
+            finally
+            {
+                ClearMarker("SCRIPT_FIXTURE_MARKER", marker);
             }
         }
 

@@ -81,6 +81,8 @@ namespace EsapiScriptHost.Host
                     typeof(Window).Assembly.Location,
                     typeof(System.Windows.Media.Color).Assembly.Location,
                     typeof(System.Windows.DependencyObject).Assembly.Location,
+                    typeof(System.Xml.XmlDocument).Assembly.Location,
+                    typeof(System.Xaml.XamlReader).Assembly.Location,
                     api,
                     types
                 }

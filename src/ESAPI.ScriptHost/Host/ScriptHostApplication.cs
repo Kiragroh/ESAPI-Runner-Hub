@@ -8,30 +8,50 @@ namespace EsapiScriptHost.Host
 {
     public sealed class ScriptHostApplication
     {
+        public const string StageDataKey = "ESAPI.RunnerHub.SafeFailureStage";
+
         public void Run(ContextLaunchPayload payload, Func<SaveChoice> saveChoice)
         {
             if (payload == null) throw new ArgumentNullException(nameof(payload));
             if (saveChoice == null) throw new ArgumentNullException(nameof(saveChoice));
-            if (payload.ScriptPath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
-                payload.ScriptPath = new SourceScriptCompiler().Compile(payload.ScriptPath, payload.ApiAssemblyPath,
-                    payload.TypesAssemblyPath, payload.ExtraReferencePaths);
-            var runtimeReferences = RuntimeReferences(payload).ToList();
-            ScriptMetadataInspector.ValidateWriteMode(payload.ScriptPath, payload.WriteMode, runtimeReferences);
-
-            using (var session = EsapiSession.Open(payload))
+            var stage = "WPF-Initialisierung";
+            try
             {
-                var context = new ContextResolver().Resolve(session.Patient, session.CurrentUser, payload, session.ApiAssembly);
-                var engine = payload.ScriptEngine == ScriptEngine.Auto ? DetectEngine(payload) : payload.ScriptEngine;
-                if (engine == ScriptEngine.EsapiEssentials)
-                    new EsapiEssentialsInvoker().Invoke(payload.ScriptPath, payload.EntryType, context, runtimeReferences);
-                else if (engine == ScriptEngine.Eclipse)
-                    new EclipseScriptInvoker().Invoke(payload.ScriptPath, payload.EntryType, context, runtimeReferences);
-                else
-                    throw new InvalidOperationException("The script engine could not be determined.");
+                WpfApplicationHost.EnsureCurrent();
+                if (payload.ScriptPath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                {
+                    stage = "C#-Kompilierung";
+                    payload.ScriptPath = new SourceScriptCompiler().Compile(payload.ScriptPath, payload.ApiAssemblyPath,
+                        payload.TypesAssemblyPath, payload.ExtraReferencePaths);
+                }
+                stage = "Skriptprüfung";
+                var runtimeReferences = RuntimeReferences(payload).ToList();
+                ScriptMetadataInspector.ValidateWriteMode(payload.ScriptPath, payload.WriteMode, runtimeReferences);
 
-                var choice = payload.WriteMode == WriteMode.ConfirmSave ? saveChoice() : SaveChoice.Discard;
-                if (SaveDecision.Decide(true, payload.WriteMode, choice) == SaveAction.SaveOnce)
-                    session.SaveModifications();
+                stage = "ESAPI-Sitzung öffnen";
+                using (var session = EsapiSession.Open(payload))
+                {
+                    stage = "Kontext auflösen";
+                    var context = new ContextResolver().Resolve(session.Patient, session.CurrentUser, payload, session.ApiAssembly);
+                    stage = "Skript ausführen";
+                    var engine = payload.ScriptEngine == ScriptEngine.Auto ? DetectEngine(payload) : payload.ScriptEngine;
+                    if (engine == ScriptEngine.EsapiEssentials)
+                        new EsapiEssentialsInvoker().Invoke(payload.ScriptPath, payload.EntryType, context, runtimeReferences);
+                    else if (engine == ScriptEngine.Eclipse)
+                        new EclipseScriptInvoker().Invoke(payload.ScriptPath, payload.EntryType, context, runtimeReferences);
+                    else
+                        throw new InvalidOperationException("The script engine could not be determined.");
+
+                    stage = "Änderungen speichern";
+                    var choice = payload.WriteMode == WriteMode.ConfirmSave ? saveChoice() : SaveChoice.Discard;
+                    if (SaveDecision.Decide(true, payload.WriteMode, choice) == SaveAction.SaveOnce)
+                        session.SaveModifications();
+                }
+            }
+            catch (Exception exception)
+            {
+                if (!exception.Data.Contains(StageDataKey)) exception.Data[StageDataKey] = stage;
+                throw;
             }
         }
 

@@ -31,6 +31,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
     <Reference Include="VMS.TPS.Common.Model.API">
       <HintPath>$(EsapiReferenceDirectory)\VMS.TPS.Common.Model.API.dll</HintPath>
@@ -52,6 +53,7 @@
     <Compile Include="Host\ScriptHostApplication.cs" />
     <Compile Include="Host\ScriptMetadataInspector.cs" />
     <Compile Include="Host\SourceScriptCompiler.cs" />
+    <Compile Include="Host\WpfApplicationHost.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

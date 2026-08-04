@@ -12,6 +12,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("direct context script target extension is validated", ValidatesTargetExtension);
             TestHarness.Test("reference-only Eclipse entries cannot confirm saves", RejectsSaveForReferenceOnlyEntry);
             TestHarness.Test("script host path is editable and resolved from settings", ResolvesScriptHostPath);
+            TestHarness.Test("Eclipse plug-ins may opt into private patient context", AllowsPluginContext);
         }
 
         private static void ParsesAndRoundTrips()
@@ -109,6 +110,27 @@ ScriptHostExecutable=runtime\ESAPI-Script-Host.exe
 
             TestHarness.AssertEqual(@"C:\portable\runtime\ESAPI-Script-Host.exe", configuration.Hub.ResolvedScriptHostExecutable);
             TestHarness.AssertContains(IniConfigurationStore.Serialize(configuration), "ScriptHostExecutable=runtime\\ESAPI-Script-Host.exe");
+        }
+
+        private static void AllowsPluginContext()
+        {
+            var configuration = IniConfigurationStore.ParseText(@"
+[Hub]
+[Application.plugin]
+Name=Plugin
+Executable=Tool.esapi.dll
+LaunchKind=EclipsePlugin
+ScriptEngine=Eclipse
+ContextRequirement=Plan
+ScopeMode=Single
+WriteMode=ConfirmSave
+PatientMode=Required
+PatientTransport=None
+", @"C:\portable\settings.ini");
+
+            var validation = ConfigurationValidator.Validate(configuration);
+
+            TestHarness.AssertTrue(validation.IsValid, string.Join(" | ", validation.Errors));
         }
     }
 }

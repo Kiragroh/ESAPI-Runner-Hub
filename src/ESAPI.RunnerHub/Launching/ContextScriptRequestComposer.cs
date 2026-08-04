@@ -20,7 +20,7 @@ namespace EsapiRunnerHub.Launching
             if (application == null) throw new ArgumentNullException(nameof(application));
             if (selection == null) throw new ArgumentNullException(nameof(selection));
             if (hub == null) throw new ArgumentNullException(nameof(hub));
-            if (application.LaunchKind != LaunchKind.EsapiContextScript)
+            if (application.LaunchKind != LaunchKind.EsapiContextScript && application.LaunchKind != LaunchKind.EclipsePlugin)
                 throw new InvalidOperationException("The selected application is not a context script.");
 
             var missing = selection.MissingFor(application.ContextRequirement);

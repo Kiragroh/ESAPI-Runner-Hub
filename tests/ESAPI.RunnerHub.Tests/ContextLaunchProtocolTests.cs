@@ -14,6 +14,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("context launch payload round trips outside arguments and logs", RoundTripsPrivately);
             TestHarness.Test("context launch validates configured requirement", RejectsMissingContext);
             TestHarness.Test("context payload rejects invalid launch token", RejectsInvalidToken);
+            TestHarness.Test("Eclipse plug-ins use the private context host when requested", ComposesPluginContextLaunch);
         }
 
         private static void RoundTripsPrivately()
@@ -83,6 +84,26 @@ namespace EsapiRunnerHub.Tests
             var encoded = payload.Encode();
 
             TestHarness.AssertThrows<InvalidOperationException>(() => ContextLaunchPayload.Decode(encoded));
+        }
+
+        private static void ComposesPluginContextLaunch()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "runner-hub-plugin-protocol");
+            var configuration = IniConfigurationStore.ParseText(
+                "[Hub]\nEsapiApiAssembly=VMS.TPS.Common.Model.API.dll\nEsapiTypesAssembly=VMS.TPS.Common.Model.Types.dll" +
+                "\n[Application.plugin]\nName=Plugin\nExecutable=Tool.esapi.dll\nLaunchKind=EclipsePlugin" +
+                "\nScriptEngine=Eclipse\nContextRequirement=Plan\nScopeMode=Single\nWriteMode=ReadOnly" +
+                "\nPatientMode=Required\nPatientTransport=None\nEntryType=VMS.TPS.Script\n",
+                Path.Combine(directory, "settings.ini"));
+            var patient = new PatientRecord("SYN-1001", string.Empty, string.Empty, 0);
+            var selection = new ContextSelection { PatientId = patient.Id, CourseId = "C1", PlanId = "P1" };
+
+            var request = ContextScriptRequestComposer.Compose(configuration.Applications[0], patient, selection,
+                configuration.Hub, Path.Combine(directory, "ESAPI-Script-Host.exe"));
+
+            var payload = ContextLaunchPayload.Decode(request.EnvironmentVariables[ContextLaunchPayload.EnvironmentKey]);
+            TestHarness.AssertEqual("plugin", payload.ApplicationId);
+            TestHarness.AssertEqual("P1", payload.PlanId);
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using EsapiEssentials.Plugin;
 using VMS.TPS.Common.Model.API;
+using System.Windows;
 
 [assembly: ESAPIScript(IsWriteable = true)]
 
@@ -34,6 +35,16 @@ namespace VMS.TPS
         public void Execute(ScriptContext context)
         {
             throw new InvalidOperationException("Synthetic patient detail that must not reach host diagnostics.");
+        }
+    }
+
+    public sealed class WpfApplicationAwareEclipseScript
+    {
+        public void Execute(ScriptContext context)
+        {
+            if (System.Windows.Application.Current == null)
+                throw new InvalidOperationException("A WPF application host is required.");
+            File.WriteAllText(Environment.GetEnvironmentVariable("SCRIPT_FIXTURE_MARKER"), "wpf-application-ready");
         }
     }
 }

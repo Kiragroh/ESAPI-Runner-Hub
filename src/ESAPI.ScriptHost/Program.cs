@@ -29,11 +29,12 @@ namespace EsapiScriptHost
             }
             catch (Exception exception)
             {
+                var stage = exception.Data[ScriptHostApplication.StageDataKey] as string ?? "Unbekannt";
                 var root = exception is TargetInvocationException && exception.InnerException != null
                     ? exception.InnerException
                     : exception;
                 MessageBox.Show(
-                    "Das Skript wurde ohne Speichern beendet.\n\nFehlertyp: " + root.GetType().Name,
+                    "Das Skript wurde ohne Speichern beendet.\n\nFehlerphase: " + stage + "\nFehlertyp: " + root.GetType().Name,
                     "ESAPI Script Host", MessageBoxButton.OK, MessageBoxImage.Error);
                 return 10;
             }
