@@ -15,6 +15,14 @@ namespace EsapiRunnerHub.Tests
                 TestHarness.AssertContains(project, "<OutputType>WinExe</OutputType>");
                 TestHarness.AssertContains(project, "<ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548}");
             });
+
+            TestHarness.Test("synthetic test host permits assemblies from a UNC worktree", () =>
+            {
+                var path = TestHarness.PathFromRoot("tests/ESAPI.RunnerHub.Tests/App.config");
+                TestHarness.AssertTrue(File.Exists(path), "The test host App.config is missing.");
+                var config = File.ReadAllText(path);
+                TestHarness.AssertContains(config, "<loadFromRemoteSources enabled=\"true\" />");
+            });
         }
     }
 }
