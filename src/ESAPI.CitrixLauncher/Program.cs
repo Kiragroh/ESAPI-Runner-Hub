@@ -29,7 +29,7 @@ namespace EsapiCitrixLauncher
                 root = Directory.GetParent(launcherDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))?.FullName;
                 if (string.IsNullOrWhiteSpace(root))
                 {
-                    return Fail(24, "working_directory", "Das Installationsverzeichnis konnte nicht bestimmt werden.", null);
+                    return Fail(24, "working_directory", "The installation directory could not be determined.", null);
                 }
 
                 var pointerPath = Path.Combine(launcherDirectory, "current.txt");
@@ -38,25 +38,25 @@ namespace EsapiCitrixLauncher
 
                 if (!File.Exists(pointerPath))
                 {
-                    return Fail(20, "pointer_missing", "Die Versionsauswahl current.txt fehlt.", logDirectory);
+                    return Fail(20, "pointer_missing", "The version pointer current.txt is missing.", logDirectory);
                 }
 
                 var pointer = File.ReadAllText(pointerPath).TrimEnd('\r', '\n');
                 if (!PointerPattern.IsMatch(pointer))
                 {
-                    return Fail(21, "pointer_invalid", "current.txt enthält keinen gültigen Versions-Dateinamen.", logDirectory);
+                    return Fail(21, "pointer_invalid", "current.txt does not contain a valid versioned filename.", logDirectory);
                 }
 
                 var versionsDirectory = Path.Combine(root, "dist", "versions");
                 var targetPath = Path.Combine(versionsDirectory, pointer);
                 if (!File.Exists(targetPath))
                 {
-                    return Fail(22, "target_missing", "Die ausgewählte Programmversion wurde nicht gefunden.", logDirectory);
+                    return Fail(22, "target_missing", "The selected application version was not found.", logDirectory);
                 }
 
                 if (!File.Exists(settingsPath))
                 {
-                    return Fail(23, "settings_missing", "Die gemeinsame settings.ini wurde nicht gefunden.", logDirectory);
+                    return Fail(23, "settings_missing", "The shared settings.ini was not found.", logDirectory);
                 }
 
                 var forwardedArguments = ExpandPackedCitrixArgument(args);
@@ -83,7 +83,7 @@ namespace EsapiCitrixLauncher
             catch (Exception exception)
             {
                 WriteLog(logDirectory, "ERROR code=25 reason=launcher_failure type=" + exception.GetType().Name);
-                ShowError("Der ESAPI Runner Hub konnte nicht gestartet werden.");
+                ShowError("The ESAPI Runner Hub could not be started.");
                 return 25;
             }
         }

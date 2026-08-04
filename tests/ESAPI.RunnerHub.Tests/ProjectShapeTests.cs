@@ -51,9 +51,21 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("script host error dialog identifies the safe execution phase", () =>
             {
                 var program = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Program.cs"));
-                TestHarness.AssertContains(program, "Fehlerphase:");
-                TestHarness.AssertContains(program, "Fehlercode:");
+                TestHarness.AssertContains(program, "The script ended without saving");
+                TestHarness.AssertContains(program, "Failure phase:");
+                TestHarness.AssertContains(program, "Failure code:");
+                TestHarness.AssertContains(program, "Failure type:");
                 TestHarness.AssertContains(program, "StageDataKey");
+            });
+
+            TestHarness.Test("Citrix launcher shows only English product errors", () =>
+            {
+                var program = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.CitrixLauncher/Program.cs"));
+                TestHarness.AssertContains(program, "The installation directory could not be determined.");
+                TestHarness.AssertContains(program, "The selected application version was not found.");
+                TestHarness.AssertContains(program, "The ESAPI Runner Hub could not be started.");
+                TestHarness.AssertFalse(program.Contains("Das Installationsverzeichnis"));
+                TestHarness.AssertFalse(program.Contains("wurde nicht gefunden"));
             });
 
             TestHarness.Test("Hub exposes privacy-safe context command line modes", () =>

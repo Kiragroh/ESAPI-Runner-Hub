@@ -65,7 +65,7 @@ namespace EsapiRunnerHub.Tests
             var directory = Path.Combine(Path.GetTempPath(), "runner-host-log-" + Guid.NewGuid().ToString("N"));
             try
             {
-                var path = HostTechnicalLog.Write(directory, "Kontext auflösen", "direct", "plan_ambiguous",
+                var path = HostTechnicalLog.Write(directory, "Resolve context", "direct", "plan_ambiguous",
                     new InvalidOperationException("SYN-1004 Ada Example P1"));
                 var text = File.ReadAllText(path);
                 TestHarness.AssertContains(text, "plan_ambiguous");

@@ -60,11 +60,11 @@ namespace EsapiScriptHost.Host
                 var data = current.Data[ContextResolutionException.ReasonCodeDataKey] as string;
                 if (!string.IsNullOrWhiteSpace(data)) return data;
             }
-            if ((stage ?? string.Empty).IndexOf("Kontext", StringComparison.OrdinalIgnoreCase) >= 0)
+            if ((stage ?? string.Empty).IndexOf("context", StringComparison.OrdinalIgnoreCase) >= 0)
                 return "context_resolution_failed";
-            if ((stage ?? string.Empty).IndexOf("Skript ausführen", StringComparison.OrdinalIgnoreCase) >= 0)
+            if ((stage ?? string.Empty).IndexOf("Run script", StringComparison.OrdinalIgnoreCase) >= 0)
                 return "script_execution_failed";
-            if ((stage ?? string.Empty).IndexOf("Sitzung", StringComparison.OrdinalIgnoreCase) >= 0)
+            if ((stage ?? string.Empty).IndexOf("session", StringComparison.OrdinalIgnoreCase) >= 0)
                 return "esapi_session_failed";
             return "host_failure";
         }

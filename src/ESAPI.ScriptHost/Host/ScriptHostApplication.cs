@@ -14,26 +14,26 @@ namespace EsapiScriptHost.Host
         {
             if (payload == null) throw new ArgumentNullException(nameof(payload));
             if (saveChoice == null) throw new ArgumentNullException(nameof(saveChoice));
-            var stage = "WPF-Initialisierung";
+            var stage = "Initialize WPF";
             try
             {
                 WpfApplicationHost.EnsureCurrent();
                 if (payload.ScriptPath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                 {
-                    stage = "C#-Kompilierung";
+                    stage = "Compile C#";
                     payload.ScriptPath = new SourceScriptCompiler().Compile(payload.ScriptPath, payload.ApiAssemblyPath,
                         payload.TypesAssemblyPath, payload.ExtraReferencePaths);
                 }
-                stage = "Skriptprüfung";
+                stage = "Validate script";
                 var runtimeReferences = RuntimeReferences(payload).ToList();
                 ScriptMetadataInspector.ValidateWriteMode(payload.ScriptPath, payload.WriteMode, runtimeReferences);
 
-                stage = "ESAPI-Sitzung öffnen";
+                stage = "Open ESAPI session";
                 using (var session = EsapiSession.Open(payload))
                 {
-                    stage = "Kontext auflösen";
+                    stage = "Resolve context";
                     var context = new ContextResolver().Resolve(session.Patient, session.CurrentUser, payload, session.ApiAssembly);
-                    stage = "Skript ausführen";
+                    stage = "Run script";
                     var engine = payload.ScriptEngine == ScriptEngine.Auto ? DetectEngine(payload) : payload.ScriptEngine;
                     if (engine == ScriptEngine.EsapiEssentials)
                         new EsapiEssentialsInvoker().Invoke(payload.ScriptPath, payload.EntryType, context, runtimeReferences);
@@ -42,7 +42,7 @@ namespace EsapiScriptHost.Host
                     else
                         throw new InvalidOperationException("The script engine could not be determined.");
 
-                    stage = "Änderungen speichern";
+                    stage = "Save changes";
                     var choice = payload.WriteMode == WriteMode.ConfirmSave ? saveChoice() : SaveChoice.Discard;
                     if (SaveDecision.Decide(true, payload.WriteMode, choice) == SaveAction.SaveOnce)
                         session.SaveModifications();

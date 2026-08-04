@@ -85,7 +85,7 @@ namespace EsapiRunnerHub.Tests
                     new ScriptHostApplication().Run(payload, () => SaveChoice.Save));
 
                 TestHarness.AssertFalse(File.Exists(saveMarker));
-                TestHarness.AssertEqual("Skript ausführen", failure.Data[ScriptHostApplication.StageDataKey] as string);
+                TestHarness.AssertEqual("Run script", failure.Data[ScriptHostApplication.StageDataKey] as string);
             }
             finally
             {

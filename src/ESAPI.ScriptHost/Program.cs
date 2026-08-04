@@ -20,7 +20,7 @@ namespace EsapiScriptHost
                 if (payload.WriteMode == WriteMode.ConfirmSave)
                 {
                     var start = MessageBox.Show(
-                        "Dieses Skript darf den geöffneten Patienten verändern. Nach erfolgreichem Abschluss wird separat gefragt, ob gespeichert werden soll.",
+                        "This script may modify the open patient. After successful completion, you will be asked separately whether to save the changes.",
                         "ESAPI Script Host", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
                     if (start != MessageBoxResult.OK) return 2;
                 }
@@ -30,15 +30,15 @@ namespace EsapiScriptHost
             }
             catch (Exception exception)
             {
-                var stage = exception.Data[ScriptHostApplication.StageDataKey] as string ?? "Unbekannt";
+                var stage = exception.Data[ScriptHostApplication.StageDataKey] as string ?? "Unknown";
                 var root = HostTechnicalLog.RootException(exception);
                 var reasonCode = HostTechnicalLog.ReasonCode(exception, stage);
                 HostTechnicalLog.WriteBestEffort(payload == null ? null : payload.LogDirectory, stage,
                     payload == null ? string.Empty : payload.ApplicationId, reasonCode, exception);
                 MessageBox.Show(
-                    "Das Skript wurde ohne Speichern beendet.\n\nFehlerphase: " + stage +
-                    "\nFehlercode: " + reasonCode + "\nFehlertyp: " + root.GetType().Name +
-                    "\n\nTechnische Details wurden protokolliert.",
+                    "The script ended without saving.\n\nFailure phase: " + stage +
+                    "\nFailure code: " + reasonCode + "\nFailure type: " + root.GetType().Name +
+                    "\n\nTechnical details were recorded.",
                     "ESAPI Script Host", MessageBoxButton.OK, MessageBoxImage.Error);
                 return 10;
             }
@@ -47,7 +47,7 @@ namespace EsapiScriptHost
         private static SaveChoice AskForSave()
         {
             var result = MessageBox.Show(
-                "Das Skript wurde normal beendet. Änderungen jetzt dauerhaft speichern?\n\nNein oder Abbrechen verwirft die Änderungen.",
+                "The script completed normally. Save the changes permanently?\n\nNo or Cancel discards the changes.",
                 "ESAPI Script Host", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning,
                 MessageBoxResult.No);
             return result == MessageBoxResult.Yes ? SaveChoice.Save : SaveChoice.Discard;
