@@ -4,6 +4,7 @@ using EsapiRunnerHub.Infrastructure;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
 using EsapiRunnerHub.Context;
+using EsapiRunnerHub.Catalog;
 
 namespace EsapiRunnerHub.ViewModels
 {
@@ -15,10 +16,23 @@ namespace EsapiRunnerHub.ViewModels
         private ContextSelection contextSelection;
 
         public ApplicationCardViewModel(ApplicationDefinition definition)
+            : this(definition, string.Empty)
+        {
+        }
+
+        public ApplicationCardViewModel(ApplicationDefinition definition, string strHubBaseUrl)
         {
             Definition = definition;
             readiness = PathReadiness.Unavailable;
             statusText = "Path not checked";
+            ArtifactKind = ApplicationMetadata.ArtifactFor(definition);
+            AccessMode = ApplicationMetadata.AccessFor(definition);
+            ArtifactLabel = ApplicationMetadata.ArtifactLabel(ArtifactKind);
+            AccessLabel = ApplicationMetadata.AccessLabel(AccessMode);
+            CompactPath = ApplicationMetadata.CompactPath(string.IsNullOrWhiteSpace(definition.ResolvedExecutable)
+                ? definition.Executable
+                : definition.ResolvedExecutable);
+            HubReadmeUri = ApplicationMetadata.BuildReadmeUri(strHubBaseUrl, definition.HubScriptId);
         }
 
         public ApplicationDefinition Definition { get; private set; }
@@ -27,6 +41,13 @@ namespace EsapiRunnerHub.ViewModels
         public string Name { get { return Definition.Name; } }
         public string Category { get { return string.IsNullOrWhiteSpace(Definition.Category) ? "Other" : Definition.Category; } }
         public string Description { get { return Definition.Description; } }
+        public ApplicationArtifactKind ArtifactKind { get; private set; }
+        public ApplicationAccessMode AccessMode { get; private set; }
+        public string ArtifactLabel { get; private set; }
+        public string AccessLabel { get; private set; }
+        public string CompactPath { get; private set; }
+        public System.Uri HubReadmeUri { get; private set; }
+        public bool HasHubReadme { get { return HubReadmeUri != null; } }
         public string ModeLabel
         {
             get

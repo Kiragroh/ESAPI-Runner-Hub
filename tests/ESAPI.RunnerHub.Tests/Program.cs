@@ -8,6 +8,7 @@ namespace EsapiRunnerHub.Tests
             ConfigurationTests.Register();
             ContextConfigurationTests.Register();
             CatalogConfigurationTests.Register();
+            ApplicationMetadataTests.Register();
             ContextDirectoryTests.Register();
             ContextSelectionTests.Register();
             ContextLaunchProtocolTests.Register();

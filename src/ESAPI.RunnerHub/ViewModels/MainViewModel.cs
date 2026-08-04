@@ -39,7 +39,7 @@ namespace EsapiRunnerHub.ViewModels
                 configuration.Applications.Where(item => item.Enabled)
                     .OrderBy(item => item.SortOrder)
                     .ThenBy(item => item.Name)
-                    .Select(item => new ApplicationCardViewModel(item)));
+                    .Select(item => new ApplicationCardViewModel(item, configuration.Hub.StrHubBaseUrl)));
             VisibleApplications = new ObservableCollection<ApplicationCardViewModel>();
             Categories = new ObservableCollection<string>(new[] { "All tools" }.Concat(
                 Applications.Select(item => item.Category).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(item => item)));
