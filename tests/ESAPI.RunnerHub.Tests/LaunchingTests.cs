@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Launching;
+using EsapiRunnerHub.History;
 using EsapiRunnerHub.Patients;
 using EsapiRunnerHub.ViewModels;
 
@@ -17,7 +18,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("required patient and unsafe IDs are rejected", RejectsInvalidPatientContext);
             TestHarness.Test("path probe reports a missing local executable", ReportsMissingPath);
             TestHarness.Test("child exit and crash stay isolated from the hub", KeepsChildFailuresIsolated);
-            TestHarness.Test("process rows detect children that exited before subscription", DetectsEarlyExit);
+            TestHarness.Test("activity rows render children that exited before attachment", DetectsEarlyExit);
         }
 
         private static void ComposesSafeArguments()
@@ -86,7 +87,14 @@ namespace EsapiRunnerHub.Tests
                 new LaunchRequest("fixture", fixture, Path.GetDirectoryName(fixture), "--mode success"));
             WaitForExit(process);
 
-            var row = new ProcessRowViewModel("Fixture", process);
+            var row = new ActivityRowViewModel(new LaunchHistoryEntry
+            {
+                HistoryId = "early", ApplicationId = "fixture", ApplicationName = "Fixture",
+                StartedUtc = process.StartedUtc, FinishedUtc = process.ExitedUtc,
+                State = LaunchHistoryState.Exited, ExitCode = process.ExitCode,
+                LaunchMode = LaunchMode.WithoutPatient
+            }, "No patient");
+            row.AttachProcess(process);
             TestHarness.AssertEqual("Completed", row.Status);
         }
 

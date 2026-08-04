@@ -53,7 +53,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="76" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="168" />
+            <RowDefinition Height="220" />
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="{StaticResource Navy}" Padding="24,0">
@@ -267,16 +267,29 @@
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="3*" /></Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="Process activity" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="Recent activity" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="Protected locally for this Windows account · retained for 30 days" Foreground="{StaticResource Muted}" FontSize="10.5" Margin="0,3,20,0" TextWrapping="Wrap" />
                     <TextBlock Text="{Binding NotificationText}" Foreground="{StaticResource Muted}" Margin="0,6,20,0" TextWrapping="Wrap" />
                 </StackPanel>
-                <ListView Grid.Column="1" ItemsSource="{Binding Processes}" BorderThickness="0" Background="Transparent">
+                <ListView Grid.Column="1" ItemsSource="{Binding Activities}" BorderThickness="0" Background="Transparent"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Application" DisplayMemberBinding="{Binding ApplicationName}" Width="220" />
-                            <GridViewColumn Header="PID" DisplayMemberBinding="{Binding ProcessId}" Width="70" />
-                            <GridViewColumn Header="Started" DisplayMemberBinding="{Binding Started}" Width="90" />
-                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="160" />
+                            <GridViewColumn Header="Application" DisplayMemberBinding="{Binding ApplicationName}" Width="170" />
+                            <GridViewColumn Header="Type" DisplayMemberBinding="{Binding ArtifactLabel}" Width="105" />
+                            <GridViewColumn Header="Context" DisplayMemberBinding="{Binding ContextSummary}" Width="245" />
+                            <GridViewColumn Header="Started" DisplayMemberBinding="{Binding Started}" Width="110" />
+                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="120" />
+                            <GridViewColumn Header="Action" Width="95">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Run again"
+                                                Command="{Binding DataContext.RunAgainCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}" IsEnabled="{Binding CanRunAgain}"
+                                                Style="{StaticResource SecondaryButton}" Padding="8,5" FontSize="10.5" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>

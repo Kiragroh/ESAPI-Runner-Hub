@@ -12,6 +12,7 @@ namespace EsapiRunnerHub.History
         private readonly string path;
         private readonly int retentionDays;
         private readonly int maxEntries;
+        private readonly object fileGate = new object();
 
         public LaunchHistoryStore(string path, int retentionDays, int maxEntries)
         {
@@ -25,55 +26,61 @@ namespace EsapiRunnerHub.History
 
         public IList<LaunchHistoryEntry> Load()
         {
-            try
+            lock (fileGate)
             {
-                if (!File.Exists(path)) return new List<LaunchHistoryEntry>();
-                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                try
                 {
-                    var serializer = new DataContractJsonSerializer(typeof(List<LaunchHistoryEntry>));
-                    var entries = serializer.ReadObject(stream) as List<LaunchHistoryEntry>;
-                    return Retain(entries ?? new List<LaunchHistoryEntry>());
+                    if (!File.Exists(path)) return new List<LaunchHistoryEntry>();
+                    using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        var serializer = new DataContractJsonSerializer(typeof(List<LaunchHistoryEntry>));
+                        var entries = serializer.ReadObject(stream) as List<LaunchHistoryEntry>;
+                        return Retain(entries ?? new List<LaunchHistoryEntry>());
+                    }
                 }
-            }
-            catch (Exception exception)
-            {
-                TechnicalLog.Current.Write("WARN", "history_load_failed", string.Empty, exception);
-                return new List<LaunchHistoryEntry>();
+                catch (Exception exception)
+                {
+                    TechnicalLog.Current.Write("WARN", "history_load_failed", string.Empty, exception);
+                    return new List<LaunchHistoryEntry>();
+                }
             }
         }
 
         public bool Save(IEnumerable<LaunchHistoryEntry> entries)
         {
-            string temporaryPath = null;
-            try
+            lock (fileGate)
             {
-                var retained = Retain(entries ?? Enumerable.Empty<LaunchHistoryEntry>());
-                var directory = Path.GetDirectoryName(path);
-                if (!string.IsNullOrWhiteSpace(directory)) Directory.CreateDirectory(directory);
-                temporaryPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
-                var serializer = new DataContractJsonSerializer(typeof(List<LaunchHistoryEntry>));
-                using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                string temporaryPath = null;
+                try
                 {
-                    serializer.WriteObject(stream, retained.ToList());
-                    stream.Flush(true);
-                }
+                    var retained = Retain(entries ?? Enumerable.Empty<LaunchHistoryEntry>());
+                    var directory = Path.GetDirectoryName(path);
+                    if (!string.IsNullOrWhiteSpace(directory)) Directory.CreateDirectory(directory);
+                    temporaryPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                    var serializer = new DataContractJsonSerializer(typeof(List<LaunchHistoryEntry>));
+                    using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                    {
+                        serializer.WriteObject(stream, retained.ToList());
+                        stream.Flush(true);
+                    }
 
-                if (File.Exists(path)) File.Replace(temporaryPath, path, null);
-                else File.Move(temporaryPath, path);
-                temporaryPath = null;
-                return true;
-            }
-            catch (Exception exception)
-            {
-                TechnicalLog.Current.Write("WARN", "history_save_failed", string.Empty, exception);
-                return false;
-            }
-            finally
-            {
-                if (temporaryPath != null)
+                    if (File.Exists(path)) File.Replace(temporaryPath, path, null);
+                    else File.Move(temporaryPath, path);
+                    temporaryPath = null;
+                    return true;
+                }
+                catch (Exception exception)
                 {
-                    try { File.Delete(temporaryPath); }
-                    catch { }
+                    TechnicalLog.Current.Write("WARN", "history_save_failed", string.Empty, exception);
+                    return false;
+                }
+                finally
+                {
+                    if (temporaryPath != null)
+                    {
+                        try { File.Delete(temporaryPath); }
+                        catch { }
+                    }
                 }
             }
         }

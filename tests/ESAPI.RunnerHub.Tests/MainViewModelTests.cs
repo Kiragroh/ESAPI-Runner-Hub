@@ -169,7 +169,7 @@ Enabled=true
             TestHarness.AssertContains(card.ModeLabel, "Eclipse");
 
             viewModel.StartWithoutPatientCommand.Execute(card);
-            TestHarness.AssertEqual(0, viewModel.Processes.Count);
+            TestHarness.AssertEqual(0, viewModel.Activities.Count);
             TestHarness.AssertContains(viewModel.NotificationText, "inside Eclipse");
         }
 
@@ -197,7 +197,8 @@ Enabled=true
 
                 viewModel.StartWithoutPatientCommand.Execute(card);
                 var deadline = DateTime.UtcNow.AddSeconds(5);
-                while (viewModel.Processes.Single().Status == "Running" && DateTime.UtcNow < deadline)
+                while ((viewModel.Activities.Single().State == EsapiRunnerHub.History.LaunchHistoryState.Starting ||
+                        viewModel.Activities.Single().State == EsapiRunnerHub.History.LaunchHistoryState.Running) && DateTime.UtcNow < deadline)
                 {
                     Thread.Sleep(20);
                 }

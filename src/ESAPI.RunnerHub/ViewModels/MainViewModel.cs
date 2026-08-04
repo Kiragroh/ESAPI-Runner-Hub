@@ -67,7 +67,6 @@ namespace EsapiRunnerHub.ViewModels
                 new ArtifactFilterOption(ApplicationArtifactFilter.Binary, "Binary (.dll)")
             });
             Suggestions = new ObservableCollection<PatientRecord>();
-            Processes = new ObservableCollection<ProcessRowViewModel>();
             Activities = new ObservableCollection<ActivityRowViewModel>();
             Courses = new ObservableCollection<CourseDescriptor>();
             Plans = new ObservableCollection<PlanDescriptor>();
@@ -98,7 +97,6 @@ namespace EsapiRunnerHub.ViewModels
         public ObservableCollection<string> Categories { get; private set; }
         public ObservableCollection<ArtifactFilterOption> ArtifactFilters { get; private set; }
         public ObservableCollection<PatientRecord> Suggestions { get; private set; }
-        public ObservableCollection<ProcessRowViewModel> Processes { get; private set; }
         public ObservableCollection<ActivityRowViewModel> Activities { get; private set; }
         public ObservableCollection<CourseDescriptor> Courses { get; private set; }
         public ObservableCollection<PlanDescriptor> Plans { get; private set; }
@@ -511,7 +509,6 @@ namespace EsapiRunnerHub.ViewModels
                 entry.State = LaunchHistoryState.Running;
                 row.AttachProcess(process);
                 row.Refresh();
-                Processes.Insert(0, new ProcessRowViewModel(card.Name, process));
                 PersistHistory();
                 TechnicalLog.Current.Write("INFO", mode == LaunchMode.Context ? "context_child_started" : "child_started", card.Id, null);
                 notificationText = mode == LaunchMode.Context

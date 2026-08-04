@@ -109,7 +109,6 @@
     <Compile Include="ViewModels\ApplicationCardViewModel.cs" />
     <Compile Include="ViewModels\ActivityRowViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
-    <Compile Include="ViewModels\ProcessRowViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

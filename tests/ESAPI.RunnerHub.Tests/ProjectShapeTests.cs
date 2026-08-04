@@ -23,6 +23,19 @@ namespace EsapiRunnerHub.Tests
                 var config = File.ReadAllText(path);
                 TestHarness.AssertContains(config, "<loadFromRemoteSources enabled=\"true\" />");
             });
+
+            TestHarness.Test("main window shows restartable persistent activity", () =>
+            {
+                var path = TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml");
+                var xaml = File.ReadAllText(path);
+                TestHarness.AssertContains(xaml, "ItemsSource=\"{Binding Activities}\"");
+                TestHarness.AssertContains(xaml, "RunAgainCommand");
+                TestHarness.AssertContains(xaml, "ApplicationName");
+                TestHarness.AssertContains(xaml, "ArtifactLabel");
+                TestHarness.AssertContains(xaml, "ContextSummary");
+                TestHarness.AssertContains(xaml, "Started");
+                TestHarness.AssertContains(xaml, "Status");
+            });
         }
     }
 }
