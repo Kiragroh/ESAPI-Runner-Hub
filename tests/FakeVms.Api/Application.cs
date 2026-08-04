@@ -13,9 +13,12 @@ namespace VMS.TPS.Common.Model.API
                 new PatientSummary { Id = "SYN-1001", FirstName = "Ada", LastName = "Example" },
                 new PatientSummary { Id = "SYN-1002", FirstName = "Linus", LastName = "Sample" }
             };
+            CurrentUser = new User { Id = "synthetic-user", Name = "Synthetic User" };
         }
 
         public IList<PatientSummary> PatientSummaries { get; private set; }
+
+        public User CurrentUser { get; private set; }
 
         public static Application CreateApplication()
         {
@@ -25,6 +28,36 @@ namespace VMS.TPS.Common.Model.API
             }
 
             return new Application();
+        }
+
+        public Patient OpenPatientById(string id)
+        {
+            if (!string.Equals(id, "SYN-1001", StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            var patient = new Patient { Id = id };
+            var image = new Image { Id = "IMG1" };
+            var planStructureSet = new StructureSet { Id = "SS1", Image = image };
+            var standaloneStructureSet = new StructureSet { Id = "SS-ONLY", Image = new Image { Id = "IMG2" } };
+            patient.StructureSets.Add(planStructureSet);
+            patient.StructureSets.Add(standaloneStructureSet);
+            var course = new Course { Id = "C1", Patient = patient };
+            var plan = new ExternalPlanSetup { Id = "P1", Course = course, StructureSet = planStructureSet };
+            course.PlanSetups.Add(plan);
+            course.PlanSums.Add(new PlanSum { Id = "SUM1", Course = course, StructureSet = planStructureSet });
+            patient.Courses.Add(course);
+            return patient;
+        }
+
+        public void ClosePatient()
+        {
+            var marker = Environment.GetEnvironmentVariable("FAKE_VMS_CLOSE_MARKER");
+            if (!string.IsNullOrWhiteSpace(marker))
+            {
+                File.WriteAllText(marker, "closed");
+            }
         }
 
         public void Dispose()
@@ -42,5 +75,67 @@ namespace VMS.TPS.Common.Model.API
         public string Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+    }
+
+    public sealed class User
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public sealed class Patient
+    {
+        public Patient()
+        {
+            Courses = new List<Course>();
+            StructureSets = new List<StructureSet>();
+        }
+
+        public string Id { get; set; }
+        public IList<Course> Courses { get; private set; }
+        public IList<StructureSet> StructureSets { get; private set; }
+    }
+
+    public sealed class Course
+    {
+        public Course()
+        {
+            PlanSetups = new List<PlanSetup>();
+            PlanSums = new List<PlanSum>();
+        }
+
+        public string Id { get; set; }
+        public Patient Patient { get; set; }
+        public IList<PlanSetup> PlanSetups { get; private set; }
+        public IList<PlanSum> PlanSums { get; private set; }
+    }
+
+    public class PlanSetup
+    {
+        public string Id { get; set; }
+        public Course Course { get; set; }
+        public StructureSet StructureSet { get; set; }
+    }
+
+    public sealed class ExternalPlanSetup : PlanSetup
+    {
+    }
+
+    public sealed class PlanSum
+    {
+        public string Id { get; set; }
+        public Course Course { get; set; }
+        public StructureSet StructureSet { get; set; }
+    }
+
+    public sealed class StructureSet
+    {
+        public string Id { get; set; }
+        public Image Image { get; set; }
+    }
+
+    public sealed class Image
+    {
+        public string Id { get; set; }
     }
 }
