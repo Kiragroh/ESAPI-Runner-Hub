@@ -218,7 +218,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="318" MinHeight="250" Background="White" CornerRadius="10" BorderBrush="#E0DED8" BorderThickness="1" Margin="6" Padding="16">
+                                <Border Width="284" MinHeight="250" Background="White" CornerRadius="10" BorderBrush="#E0DED8" BorderThickness="1" Margin="6" Padding="15">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />

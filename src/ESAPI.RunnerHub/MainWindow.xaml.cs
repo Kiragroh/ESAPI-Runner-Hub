@@ -83,6 +83,7 @@ namespace EsapiRunnerHub
             {
                 viewModel.SetEsapiStatus(false, "Offline demo · synthetic data");
                 viewModel.SelectPatient(initialPatients.First());
+                viewModel.SelectedPlan = viewModel.Plans.FirstOrDefault();
                 AddSyntheticActivity(viewModel);
             }
             else

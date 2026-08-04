@@ -2,6 +2,8 @@
 
 The Runner Hub exposes a deterministic command-oriented interface for configured ESAPI context scripts. It is intended for repeatable troubleshooting and test automation, not as a general remote shell.
 
+The deployment needs only one Citrix Published Application for the Hub. Exact automated tests use the user-scoped shared request below, so the workflow does not depend on client argument forwarding or a separately published application for every script.
+
 ## Mental model
 
 There are two separate transport steps:

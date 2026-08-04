@@ -8,9 +8,17 @@ The launcher package is vendor-free: the repository and release package contain 
 
 > This project is research and workflow infrastructure, not a medical device. Every configured target application keeps its own validation, authorization, write-access, and clinical-use requirements.
 
-## Why a hub?
+## Why a Citrix runner?
 
-ESAPI applications commonly grow as separate runner EXEs with different paths and patient-selection behavior. A shared hub makes the available tools visible, removes repeated launcher navigation, and limits the blast radius of a crashing child process. It does not execute clinical scripts in-process.
+A Citrix Published Application commonly exposes one configured program rather than a complete application-server desktop. Without a shared runner, every standalone ESAPI utility typically needs its own Citrix publication, a separate link in the blue ARIA toolbar, or interactive remote desktop access to the application server. That makes small tools harder to discover, deploy, test, and update.
+
+ESAPI Runner Hub provides one stable published entry point while the configured tools remain independently versioned. A patient and treatment context can be selected once and reused for compatible applications, tools without a patient can start from the same catalogue, and every launch uses an independent child process. A failed child therefore does not close the Hub or prevent the next application from starting.
+
+The user-scoped request interface also makes a specific patient/course/plan test reproducible across Citrix without exposing a general remote shell. The Hub remains an operational launcher: it does not replace Eclipse authorization, script validation, save confirmation, or clinical review.
+
+![Privacy-safe synthetic ESAPI Runner Hub overview](docs/images/esapi-runner-hub-overview.png)
+
+## Architecture
 
 ```mermaid
 flowchart LR

@@ -99,7 +99,7 @@ namespace EsapiRunnerHub.Tests
                 var xaml = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml"));
                 TestHarness.AssertContains(xaml, "x:Name=\"CatalogueFilterBar\"");
                 TestHarness.AssertContains(xaml, "HorizontalScrollBarVisibility=\"Disabled\"");
-                TestHarness.AssertContains(xaml, "Width=\"318\"");
+                TestHarness.AssertContains(xaml, "Width=\"284\"");
                 TestHarness.AssertContains(xaml, "ReplayAvailabilityText");
                 TestHarness.AssertFalse(xaml.Contains("<ColumnDefinition Width=\"154\" />"));
                 TestHarness.AssertFalse(xaml.Contains("<GridView>"));
@@ -124,7 +124,29 @@ namespace EsapiRunnerHub.Tests
                 TestHarness.AssertContains(code, "new MainViewModel(configuration, initialPatients, null");
                 TestHarness.AssertContains(code, "new ActivityRowViewModel");
                 TestHarness.AssertContains(code, "viewModel.SelectPatient");
+                TestHarness.AssertContains(code, "viewModel.SelectedPlan = viewModel.Plans.FirstOrDefault()");
                 TestHarness.AssertContains(code, "LaunchHistoryState.Exited");
+            });
+
+            TestHarness.Test("public documentation explains the Citrix runner advantage", () =>
+            {
+                var readme = File.ReadAllText(TestHarness.PathFromRoot("README.md"));
+                TestHarness.AssertContains(readme, "## Why a Citrix runner?");
+                TestHarness.AssertContains(readme, "Citrix Published Application");
+                TestHarness.AssertContains(readme, "blue ARIA toolbar");
+                TestHarness.AssertContains(readme, "remote desktop");
+                TestHarness.AssertContains(readme, "child process");
+                TestHarness.AssertContains(readme, "docs/images/esapi-runner-hub-overview.png");
+
+                var citrix = File.ReadAllText(TestHarness.PathFromRoot("citrix/README-Citrix.md"));
+                TestHarness.AssertContains(citrix, "Leave the Arguments field empty.");
+                TestHarness.AssertContains(citrix, "one stable published entry point");
+                TestHarness.AssertContains(citrix, "user-scoped shared request");
+                TestHarness.AssertFalse(citrix.Contains("currently configured `\"%**\"` placeholder"));
+
+                var debugging = File.ReadAllText(TestHarness.PathFromRoot("docs/CONTEXT_DEBUGGING.md"));
+                TestHarness.AssertContains(debugging, "one Citrix Published Application");
+                TestHarness.AssertContains(debugging, "does not depend on client argument forwarding");
             });
         }
     }

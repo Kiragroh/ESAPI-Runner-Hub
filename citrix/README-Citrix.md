@@ -14,9 +14,7 @@ Executable:
 
 Arguments:
 
-```text
-"%**"
-```
+Leave the Arguments field empty.
 
 Working directory:
 
@@ -24,7 +22,7 @@ Working directory:
 \\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\ESAPI-MG\ESAPI-Runner-Hub\citrix
 ```
 
-The published executable is not a shell. It resolves only the strictly validated filename from `current.txt` and starts that file directly through the Windows process API. The currently configured `"%**"` placeholder may remain in Studio, but the normal UI start and the recommended automated debug workflow do not depend on a client argument reaching the VDA. Argument values are never written to launcher logs.
+This creates one stable published entry point for the full configured catalogue. The published executable is not a shell: it resolves only the strictly validated filename from `current.txt` and starts that file directly through the Windows process API. The normal UI start and the automated debug workflow do not require client arguments to reach the VDA. Argument values are never written to launcher logs.
 
 After changing application properties, fully log off the existing Citrix session before testing. Citrix application changes can otherwise remain invisible to launches routed into that session.
 
@@ -44,11 +42,7 @@ Arguments:
 /d /c call "\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\ESAPI-MG\ESAPI-Runner-Hub\citrix\Start-ESAPI-Runner-Hub.cmd"
 ```
 
-Do not replace `/c call` with `/call`; `cmd.exe` has no `/call` switch. The parameterized CMD form requires another nested quote layer and remains a diagnostic fallback, not the recommended publication route:
-
-```text
-/d /s /c call ""\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\ESAPI-MG\ESAPI-Runner-Hub\citrix\Start-ESAPI-Runner-Hub.cmd" "%**""
-```
+Do not replace `/c call` with `/call`; `cmd.exe` has no `/call` switch. Do not add a Studio argument-forwarding placeholder for the normal Hub or debugging workflow. Nested CMD quoting and Citrix Workspace forwarding were not reliable in the deployed environment.
 
 For a deterministic patient/course/plan test from a workstation, create a shared request and wait for its result:
 
@@ -56,7 +50,7 @@ For a deterministic patient/course/plan test from a workstation, create a shared
 & '..\tools\Invoke-CitrixContextDebug.ps1' -ApplicationId plugin-color-code -PatientId PATIENT-ID -CourseId C7 -PlanId PLAN-ID
 ```
 
-The helper writes request and result JSON files below the protected directory configured as `Hub.ContextRequestDirectory`. In live operation this is the `requests` child of the same central `LogDirectory`, so readable process logs and request history stay together. These files may contain clinical IDs by local policy. The helper records the Windows SID in the JSON, creates `<SID>.pending`, and opens the ordinary installed Citrix shortcut without parameters. The Runner on the assigned VDA atomically claims only that SID's marker and verifies ownership again before execution. A different user cannot accidentally start or consume it, including through `--run-request`. The pending marker is claimable for at most 30 seconds by default and normally disappears within seconds; request and result JSON remain as readable history. This workflow is independent of client parameter forwarding and VDA-local `latest` history. Request JSON may be UTF-8 with or without a byte-order mark.
+The helper writes a user-scoped shared request and result JSON below the protected directory configured as `Hub.ContextRequestDirectory`. In live operation this is the `requests` child of the same central `LogDirectory`, so readable process logs and request history stay together. These files may contain clinical IDs by local policy. The helper records the Windows SID in the JSON, creates `<SID>.pending`, and opens the ordinary installed Citrix shortcut without parameters. The Runner on the assigned VDA atomically claims only that SID's marker and verifies ownership again before execution. A different user cannot accidentally start or consume it, including through `--run-request`. The pending marker is claimable for at most 30 seconds by default and normally disappears within seconds; request and result JSON remain as readable history. This workflow is independent of client parameter forwarding and VDA-local `latest` history. Request JSON may be UTF-8 with or without a byte-order mark.
 
 The corresponding live settings are intentionally visible and editable in the Hub:
 
