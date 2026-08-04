@@ -9,6 +9,7 @@ using EsapiRunnerHub.Infrastructure;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
 using EsapiRunnerHub.Privacy;
+using EsapiRunnerHub.Context;
 
 namespace EsapiRunnerHub.ViewModels
 {
@@ -23,6 +24,13 @@ namespace EsapiRunnerHub.ViewModels
         private string esapiStatusText;
         private bool isEsapiAvailable;
         private string notificationText;
+        private ContextDirectory contextDirectory = new ContextDirectory();
+        private CourseDescriptor selectedCourse;
+        private PlanDescriptor selectedPlan;
+        private PlanSumDescriptor selectedPlanSum;
+        private StructureSetDescriptor selectedStructureSet;
+        private ImageDescriptor selectedImage;
+        private string contextStatusText;
 
         public MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients)
         {
@@ -37,10 +45,17 @@ namespace EsapiRunnerHub.ViewModels
                 Applications.Select(item => item.Category).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(item => item)));
             Suggestions = new ObservableCollection<PatientRecord>();
             Processes = new ObservableCollection<ProcessRowViewModel>();
+            Courses = new ObservableCollection<CourseDescriptor>();
+            Plans = new ObservableCollection<PlanDescriptor>();
+            PlanSums = new ObservableCollection<PlanSumDescriptor>();
+            StructureSets = new ObservableCollection<StructureSetDescriptor>();
+            Images = new ObservableCollection<ImageDescriptor>();
+            ContextSelection = new ContextSelection();
             SelectPatientCommand = new RelayCommand(parameter => SelectPatient(parameter as PatientRecord));
             ClearPatientCommand = new RelayCommand(parameter => ClearPatient());
             StartWithPatientCommand = new RelayCommand(parameter => Start(parameter as ApplicationCardViewModel, true));
             StartWithoutPatientCommand = new RelayCommand(parameter => Start(parameter as ApplicationCardViewModel, false));
+            StartContextCommand = new RelayCommand(parameter => StartContext(parameter as ApplicationCardViewModel));
             selectedCategory = "All tools";
             SetPatients(patients ?? Enumerable.Empty<PatientRecord>());
             SetEsapiStatus(false, "Loading patient directory…");
@@ -53,10 +68,18 @@ namespace EsapiRunnerHub.ViewModels
         public ObservableCollection<string> Categories { get; private set; }
         public ObservableCollection<PatientRecord> Suggestions { get; private set; }
         public ObservableCollection<ProcessRowViewModel> Processes { get; private set; }
+        public ObservableCollection<CourseDescriptor> Courses { get; private set; }
+        public ObservableCollection<PlanDescriptor> Plans { get; private set; }
+        public ObservableCollection<PlanSumDescriptor> PlanSums { get; private set; }
+        public ObservableCollection<StructureSetDescriptor> StructureSets { get; private set; }
+        public ObservableCollection<ImageDescriptor> Images { get; private set; }
+        public ContextSelection ContextSelection { get; private set; }
         public ICommand SelectPatientCommand { get; private set; }
         public ICommand ClearPatientCommand { get; private set; }
         public ICommand StartWithPatientCommand { get; private set; }
         public ICommand StartWithoutPatientCommand { get; private set; }
+        public ICommand StartContextCommand { get; private set; }
+        public event Action<PatientRecord> PatientSelectionChanged;
 
         public PatientRecord SelectedPatient { get { return selectedPatient; } }
         public bool HasSelectedPatient { get { return selectedPatient != null; } }
@@ -102,6 +125,111 @@ namespace EsapiRunnerHub.ViewModels
         public string EsapiStatusText { get { return esapiStatusText; } }
         public bool IsEsapiAvailable { get { return isEsapiAvailable; } }
         public string NotificationText { get { return notificationText; } }
+        public string ContextStatusText { get { return contextStatusText; } }
+
+        public CourseDescriptor SelectedCourse
+        {
+            get { return selectedCourse; }
+            set
+            {
+                if (SetProperty(ref selectedCourse, value))
+                {
+                    ContextSelection.CourseId = value == null ? null : value.Id;
+                    NotifyContextChanged();
+                }
+            }
+        }
+
+        public PlanDescriptor SelectedPlan
+        {
+            get { return selectedPlan; }
+            set
+            {
+                if (!SetProperty(ref selectedPlan, value)) return;
+                if (value != null)
+                {
+                    ContextSelection.SelectPlan(contextDirectory, value.Id);
+                    selectedPlanSum = null;
+                    selectedCourse = Courses.FirstOrDefault(item => item.Id == ContextSelection.CourseId);
+                    selectedStructureSet = StructureSets.FirstOrDefault(item => item.Id == ContextSelection.StructureSetId);
+                    selectedImage = Images.FirstOrDefault(item => item.Id == ContextSelection.ImageId);
+                    RaisePropertyChanged(nameof(SelectedPlanSum));
+                    RaisePropertyChanged(nameof(SelectedCourse));
+                    RaisePropertyChanged(nameof(SelectedStructureSet));
+                    RaisePropertyChanged(nameof(SelectedImage));
+                }
+                NotifyContextChanged();
+            }
+        }
+
+        public PlanSumDescriptor SelectedPlanSum
+        {
+            get { return selectedPlanSum; }
+            set
+            {
+                if (!SetProperty(ref selectedPlanSum, value)) return;
+                if (value != null)
+                {
+                    ContextSelection.SelectPlanSum(contextDirectory, value.Id);
+                    selectedPlan = null;
+                    selectedCourse = Courses.FirstOrDefault(item => item.Id == ContextSelection.CourseId);
+                    selectedStructureSet = StructureSets.FirstOrDefault(item => item.Id == ContextSelection.StructureSetId);
+                    selectedImage = Images.FirstOrDefault(item => item.Id == ContextSelection.ImageId);
+                    RaisePropertyChanged(nameof(SelectedPlan));
+                    RaisePropertyChanged(nameof(SelectedCourse));
+                    RaisePropertyChanged(nameof(SelectedStructureSet));
+                    RaisePropertyChanged(nameof(SelectedImage));
+                }
+                NotifyContextChanged();
+            }
+        }
+
+        public StructureSetDescriptor SelectedStructureSet
+        {
+            get { return selectedStructureSet; }
+            set
+            {
+                if (!SetProperty(ref selectedStructureSet, value)) return;
+                if (value != null)
+                {
+                    ContextSelection.SelectStructureSet(contextDirectory, value.Id);
+                    selectedPlan = null;
+                    selectedPlanSum = null;
+                    selectedCourse = null;
+                    selectedImage = Images.FirstOrDefault(item => item.Id == ContextSelection.ImageId);
+                    RaisePropertyChanged(nameof(SelectedPlan));
+                    RaisePropertyChanged(nameof(SelectedPlanSum));
+                    RaisePropertyChanged(nameof(SelectedCourse));
+                    RaisePropertyChanged(nameof(SelectedImage));
+                }
+                NotifyContextChanged();
+            }
+        }
+
+        public ImageDescriptor SelectedImage
+        {
+            get { return selectedImage; }
+            set
+            {
+                if (!SetProperty(ref selectedImage, value)) return;
+                if (value != null)
+                {
+                    ContextSelection.SelectImage(contextDirectory, value.Id);
+                    if (string.IsNullOrWhiteSpace(ContextSelection.StructureSetId))
+                    {
+                        selectedPlan = null;
+                        selectedPlanSum = null;
+                        selectedStructureSet = null;
+                        selectedCourse = null;
+                        RaisePropertyChanged(nameof(SelectedPlan));
+                        RaisePropertyChanged(nameof(SelectedPlanSum));
+                        RaisePropertyChanged(nameof(SelectedStructureSet));
+                        RaisePropertyChanged(nameof(SelectedCourse));
+                    }
+                }
+                NotifyContextChanged();
+            }
+        }
 
         public void SetPatients(IEnumerable<PatientRecord> patients)
         {
@@ -118,6 +246,9 @@ namespace EsapiRunnerHub.ViewModels
             }
 
             selectedPatient = patient;
+            ContextSelection = new ContextSelection { PatientId = patient.Id };
+            ClearContextCollections();
+            contextStatusText = "Loading courses, plans, and structure sets…";
             searchText = string.Empty;
             Suggestions.Clear();
             RaisePropertyChanged(nameof(SelectedPatient));
@@ -128,21 +259,46 @@ namespace EsapiRunnerHub.ViewModels
             foreach (var application in Applications)
             {
                 application.SetPatient(patient);
+                application.SetContext(ContextSelection);
             }
+            RaisePropertyChanged(nameof(ContextSelection));
+            RaisePropertyChanged(nameof(ContextStatusText));
+            var handler = PatientSelectionChanged;
+            if (handler != null) handler(patient);
         }
 
         public void ClearPatient()
         {
             selectedPatient = null;
+            ContextSelection = new ContextSelection();
+            ClearContextCollections();
+            contextStatusText = string.Empty;
             foreach (var application in Applications)
             {
                 application.SetPatient(null);
+                application.SetContext(ContextSelection);
             }
 
             RaisePropertyChanged(nameof(SelectedPatient));
             RaisePropertyChanged(nameof(HasSelectedPatient));
             RaisePropertyChanged(nameof(SelectedPatientDisplay));
             RaisePropertyChanged(nameof(SelectedPatientId));
+            RaisePropertyChanged(nameof(ContextSelection));
+            RaisePropertyChanged(nameof(ContextStatusText));
+        }
+
+        public void SetContextDirectory(ContextDirectory directory)
+        {
+            contextDirectory = directory ?? new ContextDirectory();
+            ClearContextCollections();
+            foreach (var item in contextDirectory.Courses) Courses.Add(item);
+            foreach (var item in contextDirectory.Plans) Plans.Add(item);
+            foreach (var item in contextDirectory.PlanSums) PlanSums.Add(item);
+            foreach (var item in contextDirectory.StructureSets) StructureSets.Add(item);
+            foreach (var item in contextDirectory.Images) Images.Add(item);
+            contextStatusText = Plans.Count + " plans · " + PlanSums.Count + " sums · " + StructureSets.Count + " structure sets · " + Images.Count + " images";
+            RaisePropertyChanged(nameof(ContextStatusText));
+            NotifyContextChanged();
         }
 
         public void SetEsapiStatus(bool available, string message)
@@ -212,6 +368,12 @@ namespace EsapiRunnerHub.ViewModels
                 return;
             }
 
+            if (card.Definition.LaunchKind == LaunchKind.EsapiContextScript)
+            {
+                StartContext(card);
+                return;
+            }
+
             try
             {
                 var request = ArgumentComposer.Compose(card.Definition, selectedPatient, withPatient);
@@ -243,6 +405,64 @@ namespace EsapiRunnerHub.ViewModels
             }
 
             RaisePropertyChanged(nameof(NotificationText));
+        }
+
+        private void StartContext(ApplicationCardViewModel card)
+        {
+            if (card == null) return;
+            try
+            {
+                var selection = CopySelectionFor(card.Definition.ScopeMode);
+                var request = ContextScriptRequestComposer.Compose(card.Definition, selectedPatient, selection,
+                    Configuration.Hub, Configuration.Hub.ResolvedScriptHostExecutable);
+                var process = launcher.Start(request);
+                Processes.Insert(0, new ProcessRowViewModel(card.Name, process));
+                TechnicalLog.Current.Write("INFO", "context_child_started", card.Id, null);
+                notificationText = card.Name + " started with the selected planning context.";
+            }
+            catch (Exception exception)
+            {
+                notificationText = card.Name + " could not be started: " + exception.Message;
+                TechnicalLog.Current.Write("ERROR", "context_child_start_failed", card.Id, exception);
+            }
+            RaisePropertyChanged(nameof(NotificationText));
+        }
+
+        private ContextSelection CopySelectionFor(ScopeMode scopeMode)
+        {
+            var copy = new ContextSelection
+            {
+                PatientId = ContextSelection.PatientId, CourseId = ContextSelection.CourseId,
+                PlanId = ContextSelection.PlanId, PlanSumId = ContextSelection.PlanSumId,
+                StructureSetId = ContextSelection.StructureSetId, ImageId = ContextSelection.ImageId
+            };
+            if (scopeMode == ScopeMode.Multiple)
+            {
+                foreach (var plan in Plans) copy.PlanIdsInScope.Add(plan.Id);
+                foreach (var planSum in PlanSums) copy.PlanSumIdsInScope.Add(planSum.Id);
+            }
+            else if (scopeMode == ScopeMode.Single)
+            {
+                if (!string.IsNullOrWhiteSpace(copy.PlanId)) copy.PlanIdsInScope.Add(copy.PlanId);
+                if (!string.IsNullOrWhiteSpace(copy.PlanSumId)) copy.PlanSumIdsInScope.Add(copy.PlanSumId);
+            }
+            return copy;
+        }
+
+        private void ClearContextCollections()
+        {
+            Courses.Clear(); Plans.Clear(); PlanSums.Clear(); StructureSets.Clear(); Images.Clear();
+            selectedCourse = null; selectedPlan = null; selectedPlanSum = null; selectedStructureSet = null; selectedImage = null;
+            RaisePropertyChanged(nameof(SelectedCourse));
+            RaisePropertyChanged(nameof(SelectedPlan));
+            RaisePropertyChanged(nameof(SelectedPlanSum));
+            RaisePropertyChanged(nameof(SelectedStructureSet));
+            RaisePropertyChanged(nameof(SelectedImage));
+        }
+
+        private void NotifyContextChanged()
+        {
+            foreach (var application in Applications) application.SetContext(ContextSelection);
         }
     }
 }

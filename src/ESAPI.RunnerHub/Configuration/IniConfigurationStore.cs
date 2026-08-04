@@ -87,6 +87,7 @@ namespace EsapiRunnerHub.Configuration
             Append(builder, "SearchDebounceMs", configuration.Hub.SearchDebounceMs.ToString(CultureInfo.InvariantCulture));
             Append(builder, "PathProbeTimeoutMs", configuration.Hub.PathProbeTimeoutMs.ToString(CultureInfo.InvariantCulture));
             Append(builder, "LogDirectory", configuration.Hub.LogDirectory);
+            Append(builder, "ScriptHostExecutable", configuration.Hub.ScriptHostExecutable);
             AppendExtras(builder, configuration.Hub.ExtraValues);
 
             foreach (var application in configuration.Applications.OrderBy(app => app.SortOrder).ThenBy(app => app.Name, StringComparer.OrdinalIgnoreCase))
@@ -174,6 +175,7 @@ namespace EsapiRunnerHub.Configuration
                     case "searchdebouncems": hub.SearchDebounceMs = ParseInt(pair.Key, pair.Value); break;
                     case "pathprobetimeoutms": hub.PathProbeTimeoutMs = ParseInt(pair.Key, pair.Value); break;
                     case "logdirectory": hub.LogDirectory = pair.Value; break;
+                    case "scripthostexecutable": hub.ScriptHostExecutable = pair.Value; break;
                     default: hub.ExtraValues[pair.Key] = pair.Value; break;
                 }
             }

@@ -28,6 +28,7 @@
     <Compile Include="ScriptHostCoreTests.cs" />
     <Compile Include="ScriptInvocationTests.cs" />
     <Compile Include="SourceScriptCompilerTests.cs" />
+    <Compile Include="MainContextViewModelTests.cs" />
     <Compile Include="EsapiAssemblyLocatorTests.cs" />
     <Compile Include="EsapiPatientDirectoryTests.cs" />
     <Compile Include="LaunchingTests.cs" />

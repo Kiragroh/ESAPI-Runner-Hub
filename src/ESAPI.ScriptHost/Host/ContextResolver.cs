@@ -22,6 +22,7 @@ namespace EsapiScriptHost.Host
         public object PlanSum { get; set; }
         public object StructureSet { get; set; }
         public object Image { get; set; }
+        public Assembly ApiAssembly { get; set; }
         public IList<object> PlansInScope { get; private set; }
         public IList<object> PlanSumsInScope { get; private set; }
     }
@@ -30,14 +31,29 @@ namespace EsapiScriptHost.Host
     {
         public ResolvedContext Resolve(object patient, object currentUser, ContextLaunchPayload payload)
         {
-            if (patient == null) throw new InvalidOperationException("The selected patient could not be opened.");
+            return Resolve(patient, currentUser, payload, patient == null ? null : patient.GetType().Assembly);
+        }
+
+        public ResolvedContext Resolve(object patient, object currentUser, ContextLaunchPayload payload, Assembly apiAssembly)
+        {
             if (payload == null) throw new ArgumentNullException(nameof(payload));
+            var resolved = new ResolvedContext { CurrentUser = currentUser, Patient = patient, ApiAssembly = apiAssembly };
+            if (patient == null)
+            {
+                if (HasPlanningContext(payload))
+                    throw new InvalidOperationException("A patient is required for the selected planning context.");
+                return resolved;
+            }
 
             var courses = ReadEnumerable(patient, "Courses").ToList();
             var allPlans = courses.SelectMany(course => ReadEnumerable(course, "PlanSetups")).ToList();
             var allPlanSums = courses.SelectMany(course => ReadEnumerable(course, "PlanSums")).ToList();
             var structureSets = ReadEnumerable(patient, "StructureSets").ToList();
-            var resolved = new ResolvedContext { CurrentUser = currentUser, Patient = patient };
+            var images = structureSets.Select(item => ReadObject(item, "Image"))
+                .Where(item => item != null)
+                .GroupBy(item => ReadString(item, "Id"), StringComparer.Ordinal)
+                .Select(group => group.First())
+                .ToList();
 
             if (!string.IsNullOrWhiteSpace(payload.CourseId))
                 resolved.Course = FindUnique(courses, payload.CourseId, "course");
@@ -69,10 +85,22 @@ namespace EsapiScriptHost.Host
             }
 
             resolved.Image = ReadObject(resolved.StructureSet, "Image");
-            if (!string.IsNullOrWhiteSpace(payload.ImageId) &&
-                !string.Equals(ReadString(resolved.Image, "Id"), payload.ImageId, StringComparison.Ordinal))
-                throw new InvalidOperationException("The selected image does not match the structure set.");
+            if (!string.IsNullOrWhiteSpace(payload.ImageId))
+            {
+                var requestedImage = FindUnique(images, payload.ImageId, "image");
+                if (resolved.Image != null && !string.Equals(ReadString(resolved.Image, "Id"), payload.ImageId, StringComparison.Ordinal))
+                    throw new InvalidOperationException("The selected image does not match the structure set.");
+                if (resolved.Image == null) resolved.Image = requestedImage;
+            }
             return resolved;
+        }
+
+        private static bool HasPlanningContext(ContextLaunchPayload payload)
+        {
+            return !string.IsNullOrWhiteSpace(payload.CourseId) || !string.IsNullOrWhiteSpace(payload.PlanId) ||
+                   !string.IsNullOrWhiteSpace(payload.PlanSumId) || !string.IsNullOrWhiteSpace(payload.StructureSetId) ||
+                   !string.IsNullOrWhiteSpace(payload.ImageId) || (payload.PlanIdsInScope != null && payload.PlanIdsInScope.Count > 0) ||
+                   (payload.PlanSumIdsInScope != null && payload.PlanSumIdsInScope.Count > 0);
         }
 
         private static object FindUnique(IEnumerable<object> values, string id, string kind)

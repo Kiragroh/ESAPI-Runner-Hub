@@ -21,7 +21,7 @@ namespace EsapiScriptHost.Host
 
             using (var session = EsapiSession.Open(payload))
             {
-                var context = new ContextResolver().Resolve(session.Patient, session.CurrentUser, payload);
+                var context = new ContextResolver().Resolve(session.Patient, session.CurrentUser, payload, session.ApiAssembly);
                 var engine = payload.ScriptEngine == ScriptEngine.Auto ? DetectEngine(payload) : payload.ScriptEngine;
                 if (engine == ScriptEngine.EsapiEssentials)
                     new EsapiEssentialsInvoker().Invoke(payload.ScriptPath, payload.EntryType, context, runtimeReferences);

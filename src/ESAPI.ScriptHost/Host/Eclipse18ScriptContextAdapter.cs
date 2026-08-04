@@ -11,8 +11,9 @@ namespace EsapiScriptHost.Host
 
         public object Create(ResolvedContext context)
         {
-            if (context == null || context.Patient == null) throw new InvalidOperationException("A patient is required for Eclipse context scripts.");
-            var apiAssembly = context.Patient.GetType().Assembly;
+            if (context == null) throw new ArgumentNullException(nameof(context));
+            var apiAssembly = context.ApiAssembly ?? (context.Patient == null ? null : context.Patient.GetType().Assembly);
+            if (apiAssembly == null) throw new InvalidOperationException("The Eclipse API assembly is unavailable.");
             if (apiAssembly.GetName().Version != SupportedApiVersion)
                 throw new InvalidOperationException("The classic context adapter supports only Eclipse 18 API 1.0.600.194.");
             var scriptContextType = apiAssembly.GetType("VMS.TPS.Common.Model.API.ScriptContext", true, false);

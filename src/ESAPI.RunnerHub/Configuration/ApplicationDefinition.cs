@@ -36,6 +36,8 @@ namespace EsapiRunnerHub.Configuration
     {
         None,
         Patient,
+        Course,
+        Image,
         StructureSet,
         Plan,
         PlanningItem,

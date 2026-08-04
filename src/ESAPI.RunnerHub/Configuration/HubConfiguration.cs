@@ -12,6 +12,7 @@ namespace EsapiRunnerHub.Configuration
             SearchDebounceMs = 150;
             PathProbeTimeoutMs = 1500;
             LogDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs";
+            ScriptHostExecutable = "ESAPI-Script-Host.exe";
             ExtraValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
@@ -23,7 +24,9 @@ namespace EsapiRunnerHub.Configuration
         public int SearchDebounceMs { get; set; }
         public int PathProbeTimeoutMs { get; set; }
         public string LogDirectory { get; set; }
+        public string ScriptHostExecutable { get; set; }
         public string ResolvedLogDirectory { get; internal set; }
+        public string ResolvedScriptHostExecutable { get; internal set; }
         public IDictionary<string, string> ExtraValues { get; private set; }
     }
 
@@ -51,6 +54,7 @@ namespace EsapiRunnerHub.Configuration
             Hub.ResolvedEsapiApiAssembly = ResolvePath(baseDirectory, Hub.EsapiApiAssembly);
             Hub.ResolvedEsapiTypesAssembly = ResolvePath(baseDirectory, Hub.EsapiTypesAssembly);
             Hub.ResolvedLogDirectory = ResolvePath(baseDirectory, Hub.LogDirectory);
+            Hub.ResolvedScriptHostExecutable = ResolvePath(baseDirectory, Hub.ScriptHostExecutable);
             foreach (var application in Applications)
             {
                 application.ResolvePaths(baseDirectory);

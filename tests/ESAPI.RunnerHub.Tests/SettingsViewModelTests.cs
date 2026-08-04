@@ -14,6 +14,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("settings editor adds edits and deletes applications", AddsEditsAndDeletes);
             TestHarness.Test("settings editor validates and atomically reloads saved INI", SavesAndReloads);
             TestHarness.Test("settings editor exposes executable and Eclipse plug-in kinds", ExposesLaunchKinds);
+            TestHarness.Test("settings editor exposes context host options and path", ExposesContextHostOptions);
         }
 
         private static void AddsEditsAndDeletes()
@@ -71,6 +72,21 @@ namespace EsapiRunnerHub.Tests
             var values = ((IEnumerable)property.GetValue(viewModel, null)).Cast<object>().Select(value => value.ToString()).ToList();
             TestHarness.AssertTrue(values.Contains("Executable"));
             TestHarness.AssertTrue(values.Contains("EclipsePlugin"));
+            TestHarness.AssertTrue(values.Contains("EsapiContextScript"));
+        }
+
+        private static void ExposesContextHostOptions()
+        {
+            var path = Path.Combine(Path.GetTempPath(), "runner-hub-settings-" + Guid.NewGuid().ToString("N"), "settings.ini");
+            var viewModel = new SettingsViewModel(new HubConfiguration(), path);
+
+            viewModel.ScriptHostExecutable = @"C:\Runner\ESAPI-Script-Host.exe";
+
+            TestHarness.AssertEqual(@"C:\Runner\ESAPI-Script-Host.exe", viewModel.WorkingConfiguration.Hub.ScriptHostExecutable);
+            TestHarness.AssertTrue(viewModel.ScriptEngines.Cast<object>().Any(value => value.ToString() == "EsapiEssentials"));
+            TestHarness.AssertTrue(viewModel.ContextRequirements.Cast<object>().Any(value => value.ToString() == "PlanOrStructureSet"));
+            TestHarness.AssertTrue(viewModel.ScopeModes.Cast<object>().Any(value => value.ToString() == "Multiple"));
+            TestHarness.AssertTrue(viewModel.WriteModes.Cast<object>().Any(value => value.ToString() == "ConfirmSave"));
         }
     }
 }

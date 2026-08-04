@@ -24,6 +24,10 @@ namespace EsapiRunnerHub.ViewModels
             PatientModes = Enum.GetValues(typeof(PatientMode)).Cast<PatientMode>().ToList();
             PatientTransports = Enum.GetValues(typeof(PatientTransport)).Cast<PatientTransport>().ToList();
             LaunchKinds = Enum.GetValues(typeof(LaunchKind)).Cast<LaunchKind>().ToList();
+            ScriptEngines = Enum.GetValues(typeof(ScriptEngine)).Cast<ScriptEngine>().ToList();
+            ContextRequirements = Enum.GetValues(typeof(ContextRequirement)).Cast<ContextRequirement>().ToList();
+            ScopeModes = Enum.GetValues(typeof(ScopeMode)).Cast<ScopeMode>().ToList();
+            WriteModes = Enum.GetValues(typeof(WriteMode)).Cast<WriteMode>().ToList();
             SelectedApplication = Applications.FirstOrDefault();
             UpdateValidation();
         }
@@ -32,6 +36,10 @@ namespace EsapiRunnerHub.ViewModels
         public IList<PatientMode> PatientModes { get; private set; }
         public IList<PatientTransport> PatientTransports { get; private set; }
         public IList<LaunchKind> LaunchKinds { get; private set; }
+        public IList<ScriptEngine> ScriptEngines { get; private set; }
+        public IList<ContextRequirement> ContextRequirements { get; private set; }
+        public IList<ScopeMode> ScopeModes { get; private set; }
+        public IList<WriteMode> WriteModes { get; private set; }
         public HubConfiguration WorkingConfiguration { get { return workingConfiguration; } }
 
         public string SettingsPath
@@ -80,6 +88,12 @@ namespace EsapiRunnerHub.ViewModels
         {
             get { return workingConfiguration.Hub.LogDirectory; }
             set { workingConfiguration.Hub.LogDirectory = value; RaisePropertyChanged(); }
+        }
+
+        public string ScriptHostExecutable
+        {
+            get { return workingConfiguration.Hub.ScriptHostExecutable; }
+            set { workingConfiguration.Hub.ScriptHostExecutable = value; RaisePropertyChanged(); UpdateValidation(); }
         }
 
         public ApplicationDefinition SelectedApplication
@@ -151,6 +165,11 @@ namespace EsapiRunnerHub.ViewModels
                 RaisePropertyChanged(nameof(SelectedApplication));
                 UpdateValidation();
             }
+        }
+
+        public void AssignScriptHostExecutable(string path)
+        {
+            ScriptHostExecutable = path;
         }
 
         public void AssignWorkingDirectory(string path)

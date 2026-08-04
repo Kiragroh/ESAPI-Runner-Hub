@@ -71,11 +71,35 @@ namespace EsapiRunnerHub.Context
             PlanSumIdsInScope.Clear();
         }
 
+        public void SelectImage(ContextDirectory directory, string imageId)
+        {
+            var image = FindSingle(directory == null ? null : directory.Images, item => item.Id, imageId, "image");
+            if (!string.IsNullOrWhiteSpace(StructureSetId))
+            {
+                var structureSet = (directory == null ? Enumerable.Empty<StructureSetDescriptor>() : directory.StructureSets)
+                    .FirstOrDefault(item => string.Equals(item.Id, StructureSetId, StringComparison.Ordinal));
+                if (structureSet == null || !string.Equals(structureSet.ImageId, image.Id, StringComparison.Ordinal))
+                {
+                    CourseId = null;
+                    PlanId = null;
+                    PlanSumId = null;
+                    StructureSetId = null;
+                    PlanIdsInScope.Clear();
+                    PlanSumIdsInScope.Clear();
+                }
+            }
+            ImageId = image.Id;
+        }
+
         public string MissingFor(ContextRequirement requirement)
         {
             if (requirement == ContextRequirement.None) return string.Empty;
             if (string.IsNullOrWhiteSpace(PatientId)) return "Patient required";
             if (requirement == ContextRequirement.Patient) return string.Empty;
+            if (requirement == ContextRequirement.Course)
+                return string.IsNullOrWhiteSpace(CourseId) ? "Course required" : string.Empty;
+            if (requirement == ContextRequirement.Image)
+                return string.IsNullOrWhiteSpace(ImageId) ? "Image required" : string.Empty;
             if (requirement == ContextRequirement.StructureSet)
                 return string.IsNullOrWhiteSpace(StructureSetId) ? "Structure set required" : string.Empty;
             if (requirement == ContextRequirement.Plan)

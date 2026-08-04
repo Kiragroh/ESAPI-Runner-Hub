@@ -83,8 +83,8 @@
 
         <Grid Grid.Row="1" Margin="20,18,20,14">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="310" />
-                <ColumnDefinition Width="164" />
+                <ColumnDefinition Width="370" />
+                <ColumnDefinition Width="154" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -120,6 +120,22 @@
                                 <TextBlock Text="SELECTED" FontSize="10" FontWeight="Bold" Foreground="{StaticResource Teal}" />
                                 <TextBlock Text="{Binding SelectedPatientDisplay}" FontSize="15" FontWeight="SemiBold" Margin="0,5,0,10" TextWrapping="Wrap" />
                                 <Button Content="Clear patient" Command="{Binding ClearPatientCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" />
+                                <Border BorderBrush="#CFE1DC" BorderThickness="0,1,0,0" Margin="0,14,0,0" Padding="0,12,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="TREATMENT CONTEXT" FontSize="10" FontWeight="Bold" Foreground="{StaticResource Teal}" />
+                                        <TextBlock Text="{Binding ContextStatusText}" FontSize="11" Foreground="{StaticResource Muted}" Margin="0,3,0,8" />
+                                        <TextBlock Text="Course" FontSize="11" FontWeight="SemiBold" />
+                                        <ComboBox ItemsSource="{Binding Courses}" SelectedItem="{Binding SelectedCourse}" DisplayMemberPath="Display" Margin="0,3,0,7" />
+                                        <TextBlock Text="Plan" FontSize="11" FontWeight="SemiBold" />
+                                        <ComboBox ItemsSource="{Binding Plans}" SelectedItem="{Binding SelectedPlan}" DisplayMemberPath="Display" Margin="0,3,0,7" />
+                                        <TextBlock Text="Plan sum" FontSize="11" FontWeight="SemiBold" />
+                                        <ComboBox ItemsSource="{Binding PlanSums}" SelectedItem="{Binding SelectedPlanSum}" DisplayMemberPath="Display" Margin="0,3,0,7" />
+                                        <TextBlock Text="Structure set (also without plan)" FontSize="11" FontWeight="SemiBold" />
+                                        <ComboBox ItemsSource="{Binding StructureSets}" SelectedItem="{Binding SelectedStructureSet}" DisplayMemberPath="Display" Margin="0,3,0,7" />
+                                        <TextBlock Text="Image (also independently selectable)" FontSize="11" FontWeight="SemiBold" />
+                                        <ComboBox ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" DisplayMemberPath="Display" Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -212,6 +228,11 @@
                                                     Style="{StaticResource SecondaryButton}" />
                                             <TextBlock Text="{Binding ReferenceHint}" Visibility="{Binding ReferenceVisibility}" Foreground="#7A5B18"
                                                        Background="#FFF1C9" Padding="10,7" FontWeight="SemiBold" />
+                                            <StackPanel Visibility="{Binding ContextVisibility}">
+                                                <TextBlock Text="{Binding ContextHint}" Foreground="#9B5B28" FontSize="11" Margin="0,0,0,5" />
+                                                <Button Content="{Binding ContextActionLabel}" Command="{Binding DataContext.StartContextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" IsEnabled="{Binding CanStartContext}" Style="{StaticResource PrimaryButton}" />
+                                            </StackPanel>
                                         </WrapPanel>
                                     </Grid>
                                 </Border>

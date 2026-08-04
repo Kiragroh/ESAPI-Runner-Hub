@@ -34,9 +34,15 @@ namespace EsapiRunnerHub
             if (path != null) viewModel.AssignTypesAssembly(path);
         }
 
+        private void BrowseHost_Click(object sender, RoutedEventArgs e)
+        {
+            var path = BrowseFile("ESAPI Script Host|ESAPI-Script-Host.exe|Executable applications|*.exe");
+            if (path != null) viewModel.AssignScriptHostExecutable(path);
+        }
+
         private void BrowseExecutable_Click(object sender, RoutedEventArgs e)
         {
-            var path = BrowseFile("Supported targets|*.exe;*.esapi.dll;*.cs|Executable applications|*.exe|Eclipse plug-ins|*.esapi.dll;*.cs");
+            var path = BrowseFile("Supported targets|*.exe;*.esapi.dll;*.dll;*.cs|Executable applications|*.exe|ESAPI scripts|*.esapi.dll;*.dll;*.cs");
             if (path != null) viewModel.AssignExecutable(path);
         }
 

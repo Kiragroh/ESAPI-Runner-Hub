@@ -11,6 +11,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("direct context scripts reject external patient transport", RejectsExternalPatientTransport);
             TestHarness.Test("direct context script target extension is validated", ValidatesTargetExtension);
             TestHarness.Test("reference-only Eclipse entries cannot confirm saves", RejectsSaveForReferenceOnlyEntry);
+            TestHarness.Test("script host path is editable and resolved from settings", ResolvesScriptHostPath);
         }
 
         private static void ParsesAndRoundTrips()
@@ -97,6 +98,17 @@ PatientTransport=None
 
             TestHarness.AssertFalse(validation.IsValid);
             TestHarness.AssertTrue(validation.Errors.Any(error => error.Contains("WriteMode")));
+        }
+
+        private static void ResolvesScriptHostPath()
+        {
+            var configuration = IniConfigurationStore.ParseText(@"
+[Hub]
+ScriptHostExecutable=runtime\ESAPI-Script-Host.exe
+", @"C:\portable\settings.ini");
+
+            TestHarness.AssertEqual(@"C:\portable\runtime\ESAPI-Script-Host.exe", configuration.Hub.ResolvedScriptHostExecutable);
+            TestHarness.AssertContains(IniConfigurationStore.Serialize(configuration), "ScriptHostExecutable=runtime\\ESAPI-Script-Host.exe");
         }
     }
 }

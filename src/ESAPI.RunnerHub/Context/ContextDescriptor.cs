@@ -35,6 +35,12 @@ namespace EsapiRunnerHub.Context
         public string Display { get { return string.IsNullOrWhiteSpace(ImageId) ? Id : Id + " · " + ImageId; } }
     }
 
+    public sealed class ImageDescriptor
+    {
+        public string Id { get; set; }
+        public string Display { get { return Id ?? string.Empty; } }
+    }
+
     public sealed class ContextDirectory
     {
         public ContextDirectory()
@@ -43,12 +49,14 @@ namespace EsapiRunnerHub.Context
             Plans = new List<PlanDescriptor>();
             PlanSums = new List<PlanSumDescriptor>();
             StructureSets = new List<StructureSetDescriptor>();
+            Images = new List<ImageDescriptor>();
         }
 
         public IList<CourseDescriptor> Courses { get; private set; }
         public IList<PlanDescriptor> Plans { get; private set; }
         public IList<PlanSumDescriptor> PlanSums { get; private set; }
         public IList<StructureSetDescriptor> StructureSets { get; private set; }
+        public IList<ImageDescriptor> Images { get; private set; }
     }
 
     public sealed class ContextDirectoryLoadResult
@@ -67,6 +75,7 @@ namespace EsapiRunnerHub.Context
         public IList<PlanDescriptor> Plans { get { return Directory.Plans; } }
         public IList<PlanSumDescriptor> PlanSums { get { return Directory.PlanSums; } }
         public IList<StructureSetDescriptor> StructureSets { get { return Directory.StructureSets; } }
+        public IList<ImageDescriptor> Images { get { return Directory.Images; } }
         public string ErrorCode { get; private set; }
         public Exception Exception { get; private set; }
 

@@ -9,6 +9,7 @@ namespace EsapiRunnerHub.Tests
         {
             TestHarness.Test("plan selection derives course structure set and image", DerivesPlanContext);
             TestHarness.Test("standalone structure set satisfies plan-or-structure-set", AcceptsStandaloneStructureSet);
+            TestHarness.Test("course and image can be required independently", AcceptsCourseAndImage);
             TestHarness.Test("missing required context has explicit reason", ReportsMissingContext);
         }
 
@@ -45,15 +46,28 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertEqual("Plan or plan sum required", selection.MissingFor(ContextRequirement.PlanningItem));
         }
 
+        private static void AcceptsCourseAndImage()
+        {
+            var directory = CreateDirectory();
+            var selection = new ContextSelection { PatientId = "SYN-1001", CourseId = "C1" };
+            selection.SelectImage(directory, "IMG2");
+
+            TestHarness.AssertEqual(string.Empty, selection.MissingFor(ContextRequirement.Course));
+            TestHarness.AssertEqual(string.Empty, selection.MissingFor(ContextRequirement.Image));
+        }
+
         private static ContextDirectory CreateDirectory()
         {
             var directory = new ContextDirectory();
+            directory.Courses.Add(new CourseDescriptor { Id = "C1" });
             directory.Plans.Add(new PlanDescriptor
             {
                 Id = "P1", CourseId = "C1", StructureSetId = "SS1", ImageId = "IMG1", Kind = "ExternalPlanSetup"
             });
             directory.StructureSets.Add(new StructureSetDescriptor { Id = "SS1", ImageId = "IMG1" });
             directory.StructureSets.Add(new StructureSetDescriptor { Id = "SS-ONLY", ImageId = "IMG2" });
+            directory.Images.Add(new ImageDescriptor { Id = "IMG1" });
+            directory.Images.Add(new ImageDescriptor { Id = "IMG2" });
             return directory;
         }
     }

@@ -12,6 +12,8 @@ namespace EsapiRunnerHub.Tests
         public static void Register()
         {
             TestHarness.Test("host resolves exact plan structure set and scopes", ResolvesExactContext);
+            TestHarness.Test("host resolves image without a structure set", ResolvesImageOnly);
+            TestHarness.Test("host permits an empty planning context", PermitsEmptyContext);
             TestHarness.Test("host rejects ambiguous plan identifiers", RejectsAmbiguousPlan);
             TestHarness.Test("host session saves at most once", SavesAtMostOnce);
             TestHarness.Test("failed host outcome always discards", FailureAlwaysDiscards);
@@ -56,6 +58,35 @@ namespace EsapiRunnerHub.Tests
                 application.GetType().GetMethod("ClosePatient").Invoke(application, null);
                 ((IDisposable)application).Dispose();
             }
+        }
+
+        private static void ResolvesImageOnly()
+        {
+            var api = LoadFakeApi();
+            var application = CreateApplication(api);
+            var patient = application.GetType().GetMethod("OpenPatientById").Invoke(application, new object[] { "SYN-1001" });
+            try
+            {
+                var context = new ContextResolver().Resolve(patient, ReadProperty(application, "CurrentUser"),
+                    new ContextLaunchPayload { PatientId = "SYN-1001", ImageId = "IMG2" }, api);
+
+                TestHarness.AssertEqual("IMG2", ReadString(context.Image, "Id"));
+                TestHarness.AssertEqual(null, context.StructureSet);
+            }
+            finally
+            {
+                application.GetType().GetMethod("ClosePatient").Invoke(application, null);
+                ((IDisposable)application).Dispose();
+            }
+        }
+
+        private static void PermitsEmptyContext()
+        {
+            var api = LoadFakeApi();
+            var context = new ContextResolver().Resolve(null, null, new ContextLaunchPayload(), api);
+
+            TestHarness.AssertEqual(null, context.Patient);
+            TestHarness.AssertEqual(api, context.ApiAssembly);
         }
 
         private static void SavesAtMostOnce()

@@ -79,6 +79,11 @@
                                 <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseTypes_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
                                 <TextBox Text="{Binding EsapiTypesAssembly, UpdateSourceTrigger=PropertyChanged}" />
                             </DockPanel>
+                            <TextBlock Text="Isolated script host executable" FontWeight="SemiBold" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseHost_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
+                                <TextBox Text="{Binding ScriptHostExecutable, UpdateSourceTrigger=PropertyChanged}" ToolTip="First-party ESAPI-Script-Host.exe shipped beside the Hub." />
+                            </DockPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
                                 <StackPanel><TextBlock Text="Max results" FontWeight="SemiBold" /><TextBox Text="{Binding SearchMaxResults}" /></StackPanel>
@@ -109,6 +114,18 @@
                             <TextBlock Text="Description" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.Description}" AcceptsReturn="True" Height="58" TextWrapping="Wrap" />
                             <TextBlock Text="Launch kind" FontWeight="SemiBold" />
                             <ComboBox ItemsSource="{Binding LaunchKinds}" SelectedItem="{Binding SelectedApplication.LaunchKind}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="Script engine" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding ScriptEngines}" SelectedItem="{Binding SelectedApplication.ScriptEngine}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Required context" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding ContextRequirements}" SelectedItem="{Binding SelectedApplication.ContextRequirement}" /></StackPanel>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="Scope" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding ScopeModes}" SelectedItem="{Binding SelectedApplication.ScopeMode}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Write behavior" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding WriteModes}" SelectedItem="{Binding SelectedApplication.WriteMode}" /></StackPanel>
+                            </Grid>
+                            <TextBlock Text="Entry type (optional)" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.EntryType}" ToolTip="Example: VMS.TPS.Script" />
+                            <TextBlock Text="Additional references" FontWeight="SemiBold" /><TextBox Text="{Binding SelectedApplication.ExtraReferences}" ToolTip="Semicolon-separated DLL paths." />
                             <TextBlock Text="Executable or plug-in file" FontWeight="SemiBold" />
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseExecutable_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />

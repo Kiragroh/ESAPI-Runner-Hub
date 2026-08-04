@@ -12,19 +12,22 @@ namespace EsapiScriptHost.Host
         private readonly ResolveEventHandler resolver;
         private object application;
         private object patient;
+        private Assembly apiAssembly;
         private bool saved;
         private bool disposed;
 
-        private EsapiSession(object application, object patient, ResolveEventHandler resolver)
+        private EsapiSession(object application, object patient, Assembly apiAssembly, ResolveEventHandler resolver)
         {
             this.application = application;
             this.patient = patient;
+            this.apiAssembly = apiAssembly;
             this.resolver = resolver;
         }
 
         public object Application { get { return application; } }
         public object Patient { get { return patient; } }
         public object CurrentUser { get { return ContextResolver.ReadObject(application, "CurrentUser"); } }
+        public Assembly ApiAssembly { get { return apiAssembly; } }
 
         public static EsapiSession Open(ContextLaunchPayload payload)
         {
@@ -56,7 +59,7 @@ namespace EsapiScriptHost.Host
                     patient = Invoke(application, "OpenPatientById", payload.PatientId);
                     if (patient == null) throw new InvalidOperationException("The selected patient could not be opened.");
                 }
-                return new EsapiSession(application, patient, resolver);
+                return new EsapiSession(application, patient, api, resolver);
             }
             catch
             {
@@ -88,6 +91,7 @@ namespace EsapiScriptHost.Host
                 patient = null;
                 DisposeObject(application);
                 application = null;
+                apiAssembly = null;
                 AppDomain.CurrentDomain.AssemblyResolve -= resolver;
             }
         }

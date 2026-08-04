@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using EsapiRunnerHub.Configuration;
+using EsapiRunnerHub.Context;
 using EsapiRunnerHub.Esapi;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
@@ -56,6 +57,22 @@ namespace EsapiRunnerHub
 
             var initialPatients = smoke ? SyntheticPatients() : Enumerable.Empty<PatientRecord>();
             var viewModel = new MainViewModel(configuration, initialPatients);
+            viewModel.PatientSelectionChanged += async patient =>
+            {
+                var patientId = patient.Id;
+                if (smoke)
+                {
+                    viewModel.SetContextDirectory(SyntheticContext());
+                    return;
+                }
+                var contextResult = await LoadContextOnStaAsync(configuration.Hub.ResolvedEsapiApiAssembly,
+                    configuration.Hub.ResolvedEsapiTypesAssembly, patientId);
+                if (!ReferenceEquals(DataContext, viewModel) || viewModel.SelectedPatientId != patientId) return;
+                viewModel.SetContextDirectory(contextResult.Directory);
+                TechnicalLog.Current.Write(contextResult.IsAvailable ? "INFO" : "WARN",
+                    contextResult.IsAvailable ? "esapi_context_loaded" : contextResult.ErrorCode,
+                    string.Empty, contextResult.Exception);
+            };
             DataContext = viewModel;
             TechnicalLog.Configure(configuration.Hub.ResolvedLogDirectory);
 
@@ -124,8 +141,10 @@ namespace EsapiRunnerHub
             {
                 Id = "synthetic-review", Name = "Synthetic Plan Review", Category = "Plan review",
                 Description = "Demonstrates a patient-aware review application without clinical data.",
-                Executable = executable, PatientMode = PatientMode.Required, PatientTransport = PatientTransport.Argument,
-                PatientArgumentTemplate = "--patient-id {PatientId}", Enabled = true, SortOrder = 10
+                Executable = executable, LaunchKind = LaunchKind.EsapiContextScript, ScriptEngine = ScriptEngine.Eclipse,
+                ContextRequirement = ContextRequirement.PlanOrStructureSet, ScopeMode = ScopeMode.Multiple,
+                WriteMode = WriteMode.ReadOnly, PatientMode = PatientMode.Required, PatientTransport = PatientTransport.None,
+                Enabled = true, SortOrder = 10
             });
             configuration.Applications.Add(new ApplicationDefinition
             {
@@ -172,6 +191,39 @@ namespace EsapiRunnerHub
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
             return completion.Task;
+        }
+
+        private static Task<ContextDirectoryLoadResult> LoadContextOnStaAsync(string apiAssembly, string typesAssembly, string patientId)
+        {
+            var completion = new TaskCompletionSource<ContextDirectoryLoadResult>();
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    completion.SetResult(new ReflectionContextDirectoryLoader().Load(apiAssembly, typesAssembly, patientId));
+                }
+                catch (Exception exception)
+                {
+                    completion.SetResult(ContextDirectoryLoadResult.Offline("context_unavailable", exception));
+                }
+            }) { IsBackground = true, Name = "ESAPI planning context loader" };
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            return completion.Task;
+        }
+
+        private static EsapiRunnerHub.Context.ContextDirectory SyntheticContext()
+        {
+            var directory = new EsapiRunnerHub.Context.ContextDirectory();
+            directory.Courses.Add(new EsapiRunnerHub.Context.CourseDescriptor { Id = "COURSE-DEMO" });
+            directory.Plans.Add(new EsapiRunnerHub.Context.PlanDescriptor
+            {
+                Id = "PLAN-DEMO", CourseId = "COURSE-DEMO", StructureSetId = "SS-DEMO", ImageId = "CT-DEMO", Kind = "ExternalPlanSetup"
+            });
+            directory.StructureSets.Add(new EsapiRunnerHub.Context.StructureSetDescriptor { Id = "SS-DEMO", ImageId = "CT-DEMO" });
+            directory.StructureSets.Add(new EsapiRunnerHub.Context.StructureSetDescriptor { Id = "SS-CONTOUR", ImageId = "CT-DEMO" });
+            directory.Images.Add(new EsapiRunnerHub.Context.ImageDescriptor { Id = "CT-DEMO" });
+            return directory;
         }
 
         private static string ResolveSettingsPath(string[] args)

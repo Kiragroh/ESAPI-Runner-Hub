@@ -3,6 +3,7 @@ using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Infrastructure;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
+using EsapiRunnerHub.Context;
 
 namespace EsapiRunnerHub.ViewModels
 {
@@ -11,6 +12,7 @@ namespace EsapiRunnerHub.ViewModels
         private PathReadiness readiness;
         private string statusText;
         private PatientRecord selectedPatient;
+        private ContextSelection contextSelection;
 
         public ApplicationCardViewModel(ApplicationDefinition definition)
         {
@@ -30,6 +32,8 @@ namespace EsapiRunnerHub.ViewModels
             get
             {
                 if (Definition.LaunchKind == LaunchKind.EclipsePlugin) return "Eclipse plug-in";
+                if (Definition.LaunchKind == LaunchKind.EsapiContextScript)
+                    return Definition.WriteMode == WriteMode.ConfirmSave ? "Context script · save confirmation" : "Context script · read-only";
                 if (Definition.PatientMode == PatientMode.Required) return "Patient required";
                 if (Definition.PatientMode == PatientMode.Optional && Definition.PatientTransport != PatientTransport.None) return "Patient optional";
                 return "No patient transfer";
@@ -48,6 +52,37 @@ namespace EsapiRunnerHub.ViewModels
             }
         }
 
+        public bool CanStartContext
+        {
+            get
+            {
+                return Definition.LaunchKind == LaunchKind.EsapiContextScript && IsReady && contextSelection != null &&
+                       string.IsNullOrWhiteSpace(contextSelection.MissingFor(Definition.ContextRequirement));
+            }
+        }
+
+        public string ContextHint
+        {
+            get
+            {
+                if (Definition.LaunchKind != LaunchKind.EsapiContextScript) return string.Empty;
+                return contextSelection == null ? "Patient required" : contextSelection.MissingFor(Definition.ContextRequirement);
+            }
+        }
+
+        public string ContextActionLabel
+        {
+            get
+            {
+                if (contextSelection == null) return "Select context";
+                if (!string.IsNullOrWhiteSpace(contextSelection.PlanId)) return "Start with plan";
+                if (!string.IsNullOrWhiteSpace(contextSelection.PlanSumId)) return "Start with plan sum";
+                if (!string.IsNullOrWhiteSpace(contextSelection.StructureSetId)) return "Start with structure set";
+                if (!string.IsNullOrWhiteSpace(contextSelection.PatientId)) return "Start with patient";
+                return "Start without patient";
+            }
+        }
+
         public Visibility WithPatientVisibility
         {
             get { return Definition.LaunchKind == LaunchKind.EclipsePlugin || Definition.PatientMode == PatientMode.None || Definition.PatientTransport == PatientTransport.None ? Visibility.Collapsed : Visibility.Visible; }
@@ -59,6 +94,7 @@ namespace EsapiRunnerHub.ViewModels
         }
 
         public Visibility ReferenceVisibility { get { return Definition.LaunchKind == LaunchKind.EclipsePlugin ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility ContextVisibility { get { return Definition.LaunchKind == LaunchKind.EsapiContextScript ? Visibility.Visible : Visibility.Collapsed; } }
         public string ReferenceHint { get { return "Available in Eclipse · Tools > Scripts"; } }
 
         public string WithPatientLabel
@@ -84,6 +120,12 @@ namespace EsapiRunnerHub.ViewModels
             RaiseAllState();
         }
 
+        public void SetContext(ContextSelection selection)
+        {
+            contextSelection = selection;
+            RaiseAllState();
+        }
+
         private void RaiseAllState()
         {
             RaisePropertyChanged(nameof(StatusText));
@@ -91,6 +133,9 @@ namespace EsapiRunnerHub.ViewModels
             RaisePropertyChanged(nameof(CanStartWithoutPatient));
             RaisePropertyChanged(nameof(CanStartWithPatient));
             RaisePropertyChanged(nameof(WithPatientLabel));
+            RaisePropertyChanged(nameof(CanStartContext));
+            RaisePropertyChanged(nameof(ContextHint));
+            RaisePropertyChanged(nameof(ContextActionLabel));
         }
     }
 }

@@ -57,13 +57,17 @@ namespace EsapiRunnerHub.Esapi
         private static ContextDirectory CopyDirectory(object patient)
         {
             var directory = new ContextDirectory();
+            var imageIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var structureSet in ReadEnumerable(patient, "StructureSets"))
             {
+                var imageId = ReadNestedString(structureSet, "Image", "Id");
                 directory.StructureSets.Add(new StructureSetDescriptor
                 {
                     Id = ReadString(structureSet, "Id"),
-                    ImageId = ReadNestedString(structureSet, "Image", "Id")
+                    ImageId = imageId
                 });
+                if (!string.IsNullOrWhiteSpace(imageId) && imageIds.Add(imageId))
+                    directory.Images.Add(new ImageDescriptor { Id = imageId });
             }
 
             foreach (var course in ReadEnumerable(patient, "Courses"))
