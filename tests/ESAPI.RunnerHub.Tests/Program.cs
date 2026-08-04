@@ -11,6 +11,7 @@ namespace EsapiRunnerHub.Tests
             ContextSelectionTests.Register();
             ContextLaunchProtocolTests.Register();
             ScriptHostCoreTests.Register();
+            ScriptInvocationTests.Register();
             PatientSearchTests.Register();
             EsapiAssemblyLocatorTests.Register();
             EsapiPatientDirectoryTests.Register();

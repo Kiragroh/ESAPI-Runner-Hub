@@ -4,6 +4,12 @@ using System.IO;
 
 namespace VMS.TPS.Common.Model.API
 {
+    [AttributeUsage(AttributeTargets.Assembly)]
+    public sealed class ESAPIScriptAttribute : Attribute
+    {
+        public bool IsWriteable { get; set; }
+    }
+
     public sealed class Application : IDisposable
     {
         private Application()
@@ -151,4 +157,42 @@ namespace VMS.TPS.Common.Model.API
     {
         public string Id { get; set; }
     }
+
+#pragma warning disable 0649
+    public sealed class ScriptContext
+    {
+        private object m_context;
+        private object m_currentUser;
+        private User m_user;
+        private Course m_course;
+        private Image m_image;
+        private Patient m_patient;
+        private PlanSetup m_planSetup;
+        private List<PlanSetup> m_planSetups;
+        private List<PlanSum> m_planSums;
+        private PlanSum m_planSum;
+        private StructureSet m_structureSet;
+        private string m_appName;
+
+        public ScriptContext(object context, object user, object dvhEstimation, string appName)
+        {
+            m_context = context;
+            m_currentUser = user;
+            m_appName = appName;
+            m_planSetups = new List<PlanSetup>();
+            m_planSums = new List<PlanSum>();
+        }
+
+        public User CurrentUser { get { return m_user; } }
+        public Course Course { get { return m_course; } }
+        public Image Image { get { return m_image; } }
+        public Patient Patient { get { return m_patient; } }
+        public PlanSetup PlanSetup { get { return m_planSetup; } }
+        public IEnumerable<PlanSetup> PlansInScope { get { return m_planSetups; } }
+        public IEnumerable<PlanSum> PlanSumsInScope { get { return m_planSums; } }
+        public PlanSum PlanSum { get { return m_planSum; } }
+        public StructureSet StructureSet { get { return m_structureSet; } }
+        public string ApplicationName { get { return m_appName; } }
+    }
+#pragma warning restore 0649
 }

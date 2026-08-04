@@ -39,8 +39,14 @@
     <Compile Include="Program.cs" />
     <Compile Include="EsapiAuthorizationMarker.cs" />
     <Compile Include="Host\ContextResolver.cs" />
+    <Compile Include="Host\Eclipse18ScriptContextAdapter.cs" />
+    <Compile Include="Host\EclipseScriptInvoker.cs" />
+    <Compile Include="Host\EsapiEssentialsInvoker.cs" />
     <Compile Include="Host\EsapiSession.cs" />
     <Compile Include="Host\SaveDecision.cs" />
+    <Compile Include="Host\ScriptAssemblyScope.cs" />
+    <Compile Include="Host\ScriptHostApplication.cs" />
+    <Compile Include="Host\ScriptMetadataInspector.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ESAPI.RunnerHub\ESAPI.RunnerHub.csproj">

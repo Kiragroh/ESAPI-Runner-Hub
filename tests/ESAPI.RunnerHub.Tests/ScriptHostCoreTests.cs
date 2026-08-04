@@ -24,7 +24,7 @@ namespace EsapiRunnerHub.Tests
             var patient = application.GetType().GetMethod("OpenPatientById").Invoke(application, new object[] { "SYN-1001" });
             try
             {
-                var payload = CreatePayload();
+                var payload = CreatePayloadForInvocation();
                 var context = new ContextResolver().Resolve(patient, ReadProperty(application, "CurrentUser"), payload);
 
                 TestHarness.AssertEqual("P1", ReadString(context.Plan, "Id"));
@@ -48,7 +48,7 @@ namespace EsapiRunnerHub.Tests
             try
             {
                 TestHarness.AssertThrows<InvalidOperationException>(() =>
-                    new ContextResolver().Resolve(patient, ReadProperty(application, "CurrentUser"), CreatePayload()));
+                    new ContextResolver().Resolve(patient, ReadProperty(application, "CurrentUser"), CreatePayloadForInvocation()));
             }
             finally
             {
@@ -64,7 +64,7 @@ namespace EsapiRunnerHub.Tests
             Environment.SetEnvironmentVariable("FAKE_VMS_SAVE_MARKER", marker);
             try
             {
-                using (var session = EsapiSession.Open(CreatePayload()))
+                using (var session = EsapiSession.Open(CreatePayloadForInvocation()))
                 {
                     session.SaveModifications();
                     TestHarness.AssertThrows<InvalidOperationException>(() => session.SaveModifications());
@@ -91,7 +91,7 @@ namespace EsapiRunnerHub.Tests
                 SaveDecision.Decide(true, WriteMode.ReadOnly, SaveChoice.Save));
         }
 
-        private static ContextLaunchPayload CreatePayload()
+        internal static ContextLaunchPayload CreatePayloadForInvocation()
         {
             var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
             return new ContextLaunchPayload
