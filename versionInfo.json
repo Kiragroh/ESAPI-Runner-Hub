@@ -1,9 +1,20 @@
 {
-  "version": "0.1.6",
-  "build": 7,
+  "version": "0.2.0",
+  "build": 8,
   "lastUpdate": "2026-08-04",
-  "lastChange": "Build und Live-Patientensuche verwenden die verwalteten Eclipse-18-Assemblies aus _Assets; die Citrix-Version bleibt unveränderlich und rollbackfähig.",
+  "lastChange": "Direkte ESAPI-Kontextskripte, Plan-/StructureSet-/Image-Auswahl, geschützte Sitzungsverläufe und erneut ausführbare Starts sind im Runner Hub verfügbar.",
   "changelog": [
+    {
+      "build": 8,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.0",
+      "changes": [
+        "Unterstützte .esapi.dll- und .cs-Skripte starten direkt in einem isolierten Eclipse-18-Kontexthost.",
+        "Patient, Course, Plan, Plan Sum, Structure Set und Image können passend zum Skript gewählt und erneut verwendet werden.",
+        "Sitzungsaktivitäten werden lokal mit DPAPI-geschütztem Kontext gespeichert und aus der aktuellen Konfiguration erneut gestartet.",
+        "Karten zeigen Typ, Schreibabsicht, kompakten Pfad und optional die passende STR-Hub-Dokumentation."
+      ]
+    },
     {
       "build": 7,
       "date": "2026-08-04",

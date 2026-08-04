@@ -2,6 +2,26 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.2.0] - 2026-08-04
+
+### Added
+
+- Direct context scripts for supported compiled `.esapi.dll` and single-file `.cs` tools through an isolated Eclipse 18 host.
+- Patient, course, plan, plan-sum, structure-set, and image selection with explicit per-tool context requirements.
+- DPAPI-encrypted launch history with lifecycle status and restart from current application settings.
+- Catalogue filters and card metadata for standalone, single-file, binary, read-only, and write-enabled tools.
+- Compact institutional paths and optional STR Hub README links.
+
+### Safety
+
+- Write-enabled context scripts require a fresh save/discard decision after every start or relaunch.
+- The encrypted launch history contains no clear patient, plan, structure-set, or image identifiers.
+- Child failures, missing targets, corrupt history, and unavailable network paths remain isolated from the Hub.
+
+### Validation
+
+- Synthetic tests cover direct context resolution, source compilation, write gating, protected relaunches, retention, corruption recovery, and release packaging.
+
 ## [0.1.6] - 2026-08-04
 
 ### Changed

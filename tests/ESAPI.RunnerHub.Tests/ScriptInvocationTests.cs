@@ -118,7 +118,10 @@ namespace EsapiRunnerHub.Tests
 
         private static string FixtureScriptPath()
         {
-            return TestHarness.PathFromRoot("tests/ScriptFixtures/bin/x64/Debug/SyntheticScripts.esapi.dll");
+            var adjacent = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SyntheticScripts.esapi.dll");
+            return File.Exists(adjacent)
+                ? adjacent
+                : TestHarness.PathFromRoot("tests/ScriptFixtures/bin/x64/Debug/SyntheticScripts.esapi.dll");
         }
 
         private static string NewMarker(string suffix)

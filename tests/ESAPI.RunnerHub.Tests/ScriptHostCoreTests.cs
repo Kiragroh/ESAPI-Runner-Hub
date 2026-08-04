@@ -124,7 +124,7 @@ namespace EsapiRunnerHub.Tests
 
         internal static ContextLaunchPayload CreatePayloadForInvocation()
         {
-            var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
+            var api = FakeApiPath();
             return new ContextLaunchPayload
             {
                 LaunchToken = Guid.NewGuid().ToString("N"), ApplicationId = "fixture", ScriptPath = api,
@@ -136,7 +136,15 @@ namespace EsapiRunnerHub.Tests
 
         private static Assembly LoadFakeApi()
         {
-            return Assembly.LoadFrom(TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll"));
+            return Assembly.LoadFrom(FakeApiPath());
+        }
+
+        private static string FakeApiPath()
+        {
+            var adjacent = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "VMS.TPS.Common.Model.API.dll");
+            return File.Exists(adjacent)
+                ? adjacent
+                : TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
         }
 
         private static object CreateApplication(Assembly api)
