@@ -5,7 +5,13 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $solution = Join-Path $repoRoot 'ESAPI-Runner-Hub.sln'
 $distRoot = Join-Path $repoRoot 'dist'
-$zipName = 'ESAPI-Runner-Hub-v0.1.2-win-x64.zip'
+$versionInfo = Get-Content -Raw -LiteralPath (Join-Path $repoRoot 'versionInfo.json') | ConvertFrom-Json
+$version = [string]$versionInfo.version
+if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid release version: $version" }
+$versionedDist = Join-Path $repoRoot 'dist\versions'
+$versionedExeName = "ESAPI-Runner-Hub.v$version.exe"
+$versionedExePath = Join-Path $versionedDist $versionedExeName
+$zipName = "ESAPI-Runner-Hub-v$version-win-x64.zip"
 $zipPath = Join-Path $distRoot $zipName
 
 function Resolve-MSBuild {
@@ -37,6 +43,24 @@ function Copy-FileWithRetry {
     }
 }
 
+function Publish-ImmutableBinary {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Destination
+    )
+
+    if (Test-Path -LiteralPath $Destination -PathType Leaf) {
+        $sourceHash = (Get-FileHash -LiteralPath $Source -Algorithm SHA256).Hash
+        $destinationHash = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash
+        if ($sourceHash -ne $destinationHash) {
+            throw "Existing versioned binary has a different SHA-256: $Destination"
+        }
+        return
+    }
+
+    Copy-FileWithRetry -Source $Source -Destination $Destination
+}
+
 $msbuild = Resolve-MSBuild
 & $msbuild $solution /t:Rebuild /p:Configuration=Release /p:Platform=x64 /v:minimal
 if ($LASTEXITCODE -ne 0) { throw "Release build failed with exit code $LASTEXITCODE." }
@@ -53,7 +77,7 @@ $stagingRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("esapi-runner-hub-re
 $packageRoot = Join-Path $stagingRoot 'package'
 $stagedZip = Join-Path $stagingRoot $zipName
 try {
-    New-Item -ItemType Directory -Path (Join-Path $packageRoot 'assets'), (Join-Path $packageRoot 'docs'), $distRoot -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $packageRoot 'assets'), (Join-Path $packageRoot 'docs'), $distRoot, $versionedDist -Force | Out-Null
 
     $copies = @{
         (Join-Path $repoRoot 'src\ESAPI.RunnerHub\bin\x64\Release\ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
@@ -81,7 +105,9 @@ try {
     & (Join-Path $PSScriptRoot 'validate-vendor-free.ps1') -ReleaseDirectory $packageRoot
     & (Join-Path $PSScriptRoot 'create-deterministic-zip.ps1') -SourceDirectory $packageRoot -DestinationZip $stagedZip
 
-    Copy-FileWithRetry -Source (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe') -Destination (Join-Path $distRoot 'ESAPI-Runner-Hub.exe')
+    Publish-ImmutableBinary `
+        -Source (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe') `
+        -Destination $versionedExePath
     Copy-FileWithRetry -Source $stagedZip -Destination $zipPath
 
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -95,4 +121,5 @@ finally {
 }
 
 Write-Host "Release ready: $zipPath"
+Write-Host "Citrix binary: $versionedExePath"
 Write-Host "SHA256: $zipHash"

@@ -10,6 +10,7 @@ namespace EsapiRunnerHub.Tests
         {
             TestHarness.Test("release metadata identifies version 0.1.2 build 3", HasReleaseMetadata);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
+            TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
             TestHarness.Test("public documentation and example settings contain no clinical paths", PublicFilesArePortable);
             TestHarness.Test("repository contains no vendor assemblies", HasNoVendorBinaries);
         }
@@ -31,6 +32,17 @@ namespace EsapiRunnerHub.Tests
             var script = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
             TestHarness.AssertFalse(script.Contains("Remove-Item -LiteralPath $distRoot -Recurse"),
                 "The release build must not recursively delete dist because it owns the live settings.ini.");
+        }
+
+        private static void PublishesImmutableCitrixBinary()
+        {
+            var script = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            TestHarness.AssertContains(script, "'dist\\versions'");
+            TestHarness.AssertContains(script, "ESAPI-Runner-Hub.v$version.exe");
+            TestHarness.AssertContains(script, "Existing versioned binary has a different SHA-256");
+            TestHarness.AssertFalse(
+                script.Contains("-Destination (Join-Path $distRoot 'ESAPI-Runner-Hub.exe')"),
+                "The release build must not overwrite the Citrix-published legacy path.");
         }
 
         private static void PublicFilesArePortable()
