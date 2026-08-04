@@ -23,6 +23,7 @@ namespace EsapiRunnerHub.ViewModels
         private readonly ProtectedContextEnvelope contextProtector;
         private readonly List<LaunchHistoryEntry> historyEntries = new List<LaunchHistoryEntry>();
         private readonly object historyGate = new object();
+        private readonly RelayCommand runAgainCommand;
         private PatientSearchIndex patientIndex;
         private PatientRecord selectedPatient;
         private string searchText;
@@ -79,8 +80,9 @@ namespace EsapiRunnerHub.ViewModels
             StartWithPatientCommand = new RelayCommand(parameter => Start(parameter as ApplicationCardViewModel, true));
             StartWithoutPatientCommand = new RelayCommand(parameter => Start(parameter as ApplicationCardViewModel, false));
             StartContextCommand = new RelayCommand(parameter => StartContext(parameter as ApplicationCardViewModel));
-            RunAgainCommand = new RelayCommand(parameter => RunAgain(parameter as ActivityRowViewModel),
+            runAgainCommand = new RelayCommand(parameter => RunAgain(parameter as ActivityRowViewModel),
                 parameter => parameter is ActivityRowViewModel row && row.CanRunAgain);
+            RunAgainCommand = runAgainCommand;
             OpenReadmeCommand = new RelayCommand(parameter => OpenReadme(parameter as ApplicationCardViewModel),
                 parameter => parameter is ApplicationCardViewModel card && card.HasHubReadme);
             selectedCategory = "All tools";
@@ -486,10 +488,11 @@ namespace EsapiRunnerHub.ViewModels
                 return;
             }
 
-            var row = new ActivityRowViewModel(entry, DescribeContext(mode, protectedSelection));
-            row.SetCanRunAgain(card.IsReady);
+            var row = new ActivityRowViewModel(entry, DescribeContext(mode, protectedSelection), true);
             lock (historyGate) historyEntries.Insert(0, entry);
             Activities.Insert(0, row);
+            UpdateReplayAvailability(row, card);
+            runAgainCommand.RaiseCanExecuteChanged();
             PersistHistory();
 
             try
@@ -509,6 +512,8 @@ namespace EsapiRunnerHub.ViewModels
                 entry.State = LaunchHistoryState.Running;
                 row.AttachProcess(process);
                 row.Refresh();
+                UpdateReplayAvailability(row, card);
+                runAgainCommand.RaiseCanExecuteChanged();
                 PersistHistory();
                 TechnicalLog.Current.Write("INFO", mode == LaunchMode.Context ? "context_child_started" : "child_started", card.Id, null);
                 notificationText = mode == LaunchMode.Context
@@ -526,6 +531,8 @@ namespace EsapiRunnerHub.ViewModels
                         entry.ExitCode = process.ExitCode;
                     }
                     row.Refresh();
+                    UpdateReplayAvailability(row, card);
+                    runAgainCommand.RaiseCanExecuteChanged();
                     PersistHistory();
                     TechnicalLog.Current.Write(process.ExitCode.GetValueOrDefault() == 0 ? "INFO" : "WARN",
                         process.ExitCode.GetValueOrDefault() == 0 ? "child_exit_ok" : "child_exit_nonzero", card.Id, null);
@@ -538,6 +545,8 @@ namespace EsapiRunnerHub.ViewModels
                 entry.State = LaunchHistoryState.FailedToStart;
                 entry.FinishedUtc = DateTime.UtcNow;
                 row.Refresh();
+                UpdateReplayAvailability(row, card);
+                runAgainCommand.RaiseCanExecuteChanged();
                 PersistHistory();
                 notificationText = card.Name + " could not be started: " + exception.Message;
                 TechnicalLog.Current.Write("ERROR", mode == LaunchMode.Context ? "context_child_start_failed" : "child_start_failed", card.Id, exception);
@@ -553,8 +562,9 @@ namespace EsapiRunnerHub.ViewModels
             if (card == null || !card.IsReady)
             {
                 row.Entry.State = LaunchHistoryState.Unavailable;
-                row.SetCanRunAgain(false);
                 row.Refresh();
+                UpdateReplayAvailability(row, card);
+                runAgainCommand.RaiseCanExecuteChanged();
                 PersistHistory();
                 notificationText = row.ApplicationName + " is not available in the current catalogue.";
                 RaisePropertyChanged(nameof(NotificationText));
@@ -574,7 +584,9 @@ namespace EsapiRunnerHub.ViewModels
             }
             catch (Exception exception)
             {
-                row.SetCanRunAgain(false);
+                row.SetProtectedContextAvailable(false);
+                UpdateReplayAvailability(row, card);
+                runAgainCommand.RaiseCanExecuteChanged();
                 notificationText = row.ApplicationName + " cannot be restarted because its protected context is unavailable.";
                 TechnicalLog.Current.Write("WARN", "history_context_unprotect_failed", row.ApplicationId, exception);
                 RaisePropertyChanged(nameof(NotificationText));
@@ -608,11 +620,12 @@ namespace EsapiRunnerHub.ViewModels
                     unavailableChanged = true;
                 }
                 historyEntries.Add(entry);
-                var row = new ActivityRowViewModel(entry, DescribeContext(entry.LaunchMode, selection));
-                row.SetCanRunAgain(card != null && card.IsReady && protectedContextAvailable);
+                var row = new ActivityRowViewModel(entry, DescribeContext(entry.LaunchMode, selection), protectedContextAvailable);
+                UpdateReplayAvailability(row, card);
                 Activities.Add(row);
             }
             if (unavailableChanged) PersistHistory();
+            runAgainCommand.RaiseCanExecuteChanged();
         }
 
         private void RefreshRelaunchAvailability(string applicationId)
@@ -620,9 +633,35 @@ namespace EsapiRunnerHub.ViewModels
             var card = Applications.FirstOrDefault(item => string.Equals(item.Id, applicationId, StringComparison.OrdinalIgnoreCase));
             foreach (var row in Activities.Where(item => string.Equals(item.ApplicationId, applicationId, StringComparison.OrdinalIgnoreCase)))
             {
-                var protectedContextAvailable = row.Entry.LaunchMode == LaunchMode.WithoutPatient || !string.IsNullOrWhiteSpace(row.Entry.ProtectedContext);
-                row.SetCanRunAgain(card != null && card.IsReady && protectedContextAvailable);
+                UpdateReplayAvailability(row, card);
             }
+            runAgainCommand.RaiseCanExecuteChanged();
+        }
+
+        private static void UpdateReplayAvailability(ActivityRowViewModel row, ApplicationCardViewModel card)
+        {
+            if (row == null) return;
+            if (card == null)
+            {
+                row.SetReplayAvailability(false, "Application was removed from the catalogue");
+                return;
+            }
+            if (!card.IsReady)
+            {
+                row.SetReplayAvailability(false, "Application path is unavailable");
+                return;
+            }
+            if (!row.ProtectedContextAvailable)
+            {
+                row.SetReplayAvailability(false, "Protected context is unavailable");
+                return;
+            }
+            if (row.State == LaunchHistoryState.Starting || row.State == LaunchHistoryState.Running)
+            {
+                row.SetReplayAvailability(false, "The application is still running");
+                return;
+            }
+            row.SetReplayAvailability(true, "Ready to run again");
         }
 
         private void PersistHistory()

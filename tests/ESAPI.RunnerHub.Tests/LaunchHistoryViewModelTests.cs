@@ -21,6 +21,9 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("context relaunch retains exact protected planning selection", RelaunchesContext);
             TestHarness.Test("removed application history is unavailable", MarksRemovedApplicationsUnavailable);
             TestHarness.Test("failed start remains retryable when target returns", RetriesFailedStart);
+            TestHarness.Test("replay command refreshes when asynchronous readiness arrives", RefreshesReplayCommand);
+            TestHarness.Test("replay rows explain every unavailable state", ExplainsReplayAvailability);
+            TestHarness.Test("running activity cannot be replayed until terminal", DisablesReplayWhileRunning);
         }
 
         private static void PersistsStandaloneLifecycle()
@@ -151,6 +154,96 @@ Enabled=true
                 WaitForTerminal(viewModel.Activities[0]);
                 TestHarness.AssertEqual(LaunchHistoryState.Exited, viewModel.Activities[0].State);
             });
+        }
+
+        private static void RefreshesReplayCommand()
+        {
+            WithHistory((store, directory) =>
+            {
+                store.Save(new[] { ExitedEntry("ready-later", "fixture", LaunchMode.WithoutPatient, null) });
+                var viewModel = CreateStandaloneViewModel(store, Fixture(), "--mode success");
+                var row = viewModel.Activities.Single();
+                var notifications = 0;
+                viewModel.RunAgainCommand.CanExecuteChanged += (sender, args) => notifications++;
+
+                TestHarness.AssertFalse(viewModel.RunAgainCommand.CanExecute(row));
+                viewModel.UpdateApplicationReadiness("fixture", new PathProbeResult(PathReadiness.Ready, "Ready"));
+
+                TestHarness.AssertTrue(notifications > 0, "RunAgainCommand did not notify WPF after readiness changed.");
+                TestHarness.AssertTrue(viewModel.RunAgainCommand.CanExecute(row));
+            });
+        }
+
+        private static void ExplainsReplayAvailability()
+        {
+            WithHistory((store, directory) =>
+            {
+                store.Save(new[]
+                {
+                    ExitedEntry("available", "fixture", LaunchMode.WithoutPatient, null),
+                    ExitedEntry("protected", "fixture", LaunchMode.WithPatient, "not-a-dpapi-envelope"),
+                    ExitedEntry("removed", "removed", LaunchMode.WithoutPatient, null)
+                });
+                var viewModel = CreateStandaloneViewModel(store, Fixture(), "--mode success");
+                var available = viewModel.Activities.Single(item => item.Entry.HistoryId == "available");
+                var protectedRow = viewModel.Activities.Single(item => item.Entry.HistoryId == "protected");
+                var removed = viewModel.Activities.Single(item => item.Entry.HistoryId == "removed");
+
+                TestHarness.AssertEqual("Application path is unavailable", ReplayText(available));
+                TestHarness.AssertEqual("Application was removed from the catalogue", ReplayText(removed));
+
+                viewModel.UpdateApplicationReadiness("fixture", new PathProbeResult(PathReadiness.Ready, "Ready"));
+
+                TestHarness.AssertEqual("Ready to run again", ReplayText(available));
+                TestHarness.AssertEqual("Protected context is unavailable", ReplayText(protectedRow));
+            });
+        }
+
+        private static void DisablesReplayWhileRunning()
+        {
+            WithHistory((store, directory) =>
+            {
+                var entry = ExitedEntry("running", "fixture", LaunchMode.WithoutPatient, null);
+                entry.State = LaunchHistoryState.Running;
+                store.Save(new[] { entry });
+                var viewModel = CreateStandaloneViewModel(store, Fixture(), "--mode success");
+                var row = viewModel.Activities.Single();
+
+                viewModel.UpdateApplicationReadiness("fixture", new PathProbeResult(PathReadiness.Ready, "Ready"));
+                TestHarness.AssertFalse(viewModel.RunAgainCommand.CanExecute(row));
+                TestHarness.AssertEqual("The application is still running", ReplayText(row));
+
+                row.Entry.State = LaunchHistoryState.Exited;
+                row.Refresh();
+                viewModel.UpdateApplicationReadiness("fixture", new PathProbeResult(PathReadiness.Ready, "Ready"));
+
+                TestHarness.AssertTrue(viewModel.RunAgainCommand.CanExecute(row));
+                TestHarness.AssertEqual("Ready to run again", ReplayText(row));
+            });
+        }
+
+        private static LaunchHistoryEntry ExitedEntry(string historyId, string applicationId, LaunchMode mode, string protectedContext)
+        {
+            return new LaunchHistoryEntry
+            {
+                HistoryId = historyId,
+                ApplicationId = applicationId,
+                ApplicationName = applicationId,
+                ArtifactLabel = "Standalone",
+                AccessLabel = "Read-only",
+                StartedUtc = DateTime.UtcNow,
+                State = LaunchHistoryState.Exited,
+                ExitCode = 0,
+                LaunchMode = mode,
+                ProtectedContext = protectedContext
+            };
+        }
+
+        private static string ReplayText(ActivityRowViewModel row)
+        {
+            var property = typeof(ActivityRowViewModel).GetProperty("ReplayAvailabilityText");
+            TestHarness.AssertTrue(property != null, "ActivityRowViewModel.ReplayAvailabilityText is missing.");
+            return (string)property.GetValue(row, null);
         }
 
         private static MainViewModel CreateStandaloneViewModel(LaunchHistoryStore store, string executable, string arguments,

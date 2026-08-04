@@ -9,12 +9,15 @@ namespace EsapiRunnerHub.ViewModels
     public sealed class ActivityRowViewModel : ObservableObject
     {
         private bool canRunAgain;
+        private bool protectedContextAvailable;
+        private string replayAvailabilityText = "Application path is unavailable";
         private int? processId;
 
-        public ActivityRowViewModel(LaunchHistoryEntry entry, string contextSummary)
+        public ActivityRowViewModel(LaunchHistoryEntry entry, string contextSummary, bool protectedContextAvailable = true)
         {
             Entry = entry ?? throw new ArgumentNullException(nameof(entry));
             ContextSummary = contextSummary ?? string.Empty;
+            this.protectedContextAvailable = protectedContextAvailable;
         }
 
         public LaunchHistoryEntry Entry { get; private set; }
@@ -39,6 +42,8 @@ namespace EsapiRunnerHub.ViewModels
             }
         }
         public bool CanRunAgain { get { return canRunAgain; } }
+        public bool ProtectedContextAvailable { get { return protectedContextAvailable; } }
+        public string ReplayAvailabilityText { get { return replayAvailabilityText; } }
 
         public void AttachProcess(RunningProcessInfo process)
         {
@@ -51,6 +56,22 @@ namespace EsapiRunnerHub.ViewModels
             if (canRunAgain == value) return;
             canRunAgain = value;
             RaiseOnUi(nameof(CanRunAgain));
+        }
+
+        public void SetProtectedContextAvailable(bool value)
+        {
+            if (protectedContextAvailable == value) return;
+            protectedContextAvailable = value;
+            RaiseOnUi(nameof(ProtectedContextAvailable));
+        }
+
+        public void SetReplayAvailability(bool canReplay, string explanation)
+        {
+            SetCanRunAgain(canReplay);
+            var value = explanation ?? string.Empty;
+            if (replayAvailabilityText == value) return;
+            replayAvailabilityText = value;
+            RaiseOnUi(nameof(ReplayAvailabilityText));
         }
 
         public void Refresh()
