@@ -8,7 +8,7 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
-            TestHarness.Test("release metadata identifies version 0.1.2 build 3", HasReleaseMetadata);
+            TestHarness.Test("release metadata identifies version 0.1.3 build 4", HasReleaseMetadata);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
             TestHarness.Test("public documentation and example settings contain no clinical paths", PublicFilesArePortable);
@@ -20,10 +20,13 @@ namespace EsapiRunnerHub.Tests
             var version = File.ReadAllText(TestHarness.PathFromRoot("versionInfo.json"));
             var changelog = File.ReadAllText(TestHarness.PathFromRoot("CHANGELOG.md"));
             var license = File.ReadAllText(TestHarness.PathFromRoot("LICENSE"));
+            var assemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Properties/AssemblyInfo.cs"));
 
-            TestHarness.AssertContains(version, "\"version\": \"0.1.2\"");
-            TestHarness.AssertContains(version, "\"build\": 3");
-            TestHarness.AssertContains(changelog, "0.1.2");
+            TestHarness.AssertContains(version, "\"version\": \"0.1.3\"");
+            TestHarness.AssertContains(version, "\"build\": 4");
+            TestHarness.AssertContains(changelog, "## [0.1.3] - 2026-08-04");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.1.3.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.1.3.0\")");
             TestHarness.AssertContains(license, "MIT License");
         }
 

@@ -2,6 +2,17 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.1.3] - 2026-08-04
+
+### Added
+
+- Stable Citrix batch entry point with an editable version pointer and immutable versioned Hub binaries.
+- Documented Studio command, release switch, rollback, local technical log, and launcher exit codes.
+
+### Fixed
+
+- Release builds no longer overwrite the legacy live executable path or risk replacing `dist/settings.ini`.
+
 ## [0.1.2] - 2026-08-03
 
 ### Fixed

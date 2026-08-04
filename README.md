@@ -55,6 +55,12 @@ The UI-only synthetic demonstration never loads ESAPI:
 ESAPI-Runner-Hub.exe --offline-ui-smoke
 ```
 
+### Stable Citrix launcher
+
+For a published Citrix application, use `cmd.exe` as the stable executable and call `citrix\Start-ESAPI-Runner-Hub.cmd`. The batch file reads `citrix\current.txt`, starts the selected immutable binary from `dist\versions`, and passes the shared `dist\settings.ini` explicitly.
+
+New releases use a new filename such as `ESAPI-Runner-Hub.v0.1.3.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
+
 ## Configuration
 
 Paths may be absolute, relative to the INI file, or use Windows environment variables. Only `.exe` targets are launched; arbitrary shell text, scripts, URLs, and plug-in DLLs are deliberately unsupported.
