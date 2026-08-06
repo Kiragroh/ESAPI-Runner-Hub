@@ -102,7 +102,7 @@ ESAPI-Runner-Hub\
   dist\
     settings.ini
     versions\
-      ESAPI-Runner-Hub.v0.3.1.exe
+      ESAPI-Runner-Hub.v0.3.2.exe
 ```
 
 `dist\settings.ini` is the only live configuration. The launcher passes it with `--settings`; do not copy a second settings file into `dist\versions`.
@@ -116,7 +116,7 @@ $citrix = '\\medizin.uni-leipzig.de\data\Archiv\STR\STR-Physik\11. Scripting\ESA
 $next = Join-Path $citrix 'current.txt.new'
 $current = Join-Path $citrix 'current.txt'
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-[System.IO.File]::WriteAllText($next, "ESAPI-Runner-Hub.v0.3.1.exe`r`n", $utf8NoBom)
+[System.IO.File]::WriteAllText($next, "ESAPI-Runner-Hub.v0.3.2.exe`r`n", $utf8NoBom)
 Move-Item -LiteralPath $next -Destination $current -Force
 ```
 

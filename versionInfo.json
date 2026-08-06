@@ -1,9 +1,19 @@
 {
-  "version": "0.3.1",
-  "build": 20,
+  "version": "0.3.2",
+  "build": 21,
   "lastUpdate": "2026-08-06",
-  "lastChange": "README links copy an IP-reachable Hub address, and direct source and binary DICOM export tools are available from the patient context.",
+  "lastChange": "The catalogue includes the write-enabled Export Plan Sum Dose 1.1 workflow with patient-wide plan-sum selection and confirm-save handling.",
   "changelog": [
+    {
+      "build": 21,
+      "date": "2026-08-06",
+      "title": "ESAPI Runner Hub 0.3.2",
+      "changes": [
+        "Export Plan Sum Dose is available as a direct patient-context binary in the Plan editing category.",
+        "The catalogue marks the tool write-enabled and keeps the final patient save behind the established confirm-save boundary.",
+        "The linked InHouse entry documents plan-sum selection, component review, prescription proposal and the clinical validation boundary."
+      ]
+    },
     {
       "build": 20,
       "date": "2026-08-06",

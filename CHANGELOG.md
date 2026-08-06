@@ -2,6 +2,17 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.2] - 2026-08-06
+
+### Added
+
+- The Plan editing catalogue includes the write-enabled **Export Plan Sum Dose** binary as a direct patient-context tool.
+- The application links to its InHouse README and starts with the established confirm-save boundary.
+
+### Validation
+
+- The example configuration regression verifies patient context, Eclipse binary execution, write-enabled metadata, and confirm-save behavior.
+
 ## [0.3.1] - 2026-08-06
 
 ### Changed

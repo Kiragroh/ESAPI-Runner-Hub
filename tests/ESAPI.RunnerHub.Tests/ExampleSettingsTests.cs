@@ -9,6 +9,20 @@ namespace EsapiRunnerHub.Tests
         {
             TestHarness.Test("example settings cover standalone binary and source launches", CoversAllArtifactKinds);
             TestHarness.Test("example settings include direct UKL export tools", IncludesDirectExportTools);
+            TestHarness.Test("example settings include write-enabled plan sum dose export", IncludesPlanSumDoseExport);
+        }
+
+        private static void IncludesPlanSumDoseExport()
+        {
+            var configuration = IniConfigurationStore.Load(TestHarness.PathFromRoot("settings.example.ini"));
+            var application = configuration.Applications.Single(item => item.Id == "export-plansum-dose-direct");
+
+            TestHarness.AssertEqual(LaunchKind.EsapiContextScript, application.LaunchKind);
+            TestHarness.AssertEqual(ApplicationArtifactKind.Binary, application.ArtifactKind);
+            TestHarness.AssertEqual(ApplicationAccessMode.WriteEnabled, application.AccessMode);
+            TestHarness.AssertEqual(ContextRequirement.Patient, application.ContextRequirement);
+            TestHarness.AssertEqual(WriteMode.ConfirmSave, application.WriteMode);
+            TestHarness.AssertEqual(ScriptEngine.Eclipse, application.ScriptEngine);
         }
 
         private static void IncludesDirectExportTools()
