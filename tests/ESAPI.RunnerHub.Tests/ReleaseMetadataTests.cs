@@ -9,7 +9,7 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
-            TestHarness.Test("release metadata identifies version 0.3.0 build 19", HasReleaseMetadata);
+            TestHarness.Test("release metadata identifies version 0.3.1 build 20", HasReleaseMetadata);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
             TestHarness.Test("release build executes the Citrix launcher contract", ExecutesCitrixLauncherContract);
@@ -33,7 +33,8 @@ namespace EsapiRunnerHub.Tests
             var assemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Properties/AssemblyInfo.cs"));
             var hostAssemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Properties/AssemblyInfo.cs"));
 
-            TestHarness.AssertContains(version, "\"version\": \"0.3.0\"");
+            TestHarness.AssertContains(version, "\"version\": \"0.3.1\"");
+            TestHarness.AssertContains(version, "\"build\": 20");
             TestHarness.AssertContains(version, "\"build\": 19");
             TestHarness.AssertContains(version, "\"build\": 18");
             TestHarness.AssertContains(version, "\"build\": 17");
@@ -41,15 +42,15 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(version, "\"build\": 15");
             TestHarness.AssertContains(version, "\"build\": 14");
             TestHarness.AssertContains(version, "\"build\": 11");
-            TestHarness.AssertContains(changelog, "## [0.3.0] - 2026-08-04");
+            TestHarness.AssertContains(changelog, "## [0.3.1] - 2026-08-06");
             TestHarness.AssertContains(changelog, "encrypted launch history");
             TestHarness.AssertContains(changelog, "Direct context scripts");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.3.0.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.3.0.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.3.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.3.0.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.3.0.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.3.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.3.1.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.3.1.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.3.1\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.3.1.0\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.3.1.0\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.3.1\")");
             var currentCitrixBinary = File.ReadAllText(TestHarness.PathFromRoot("citrix/current.txt")).Trim();
             TestHarness.AssertTrue(currentCitrixBinary.StartsWith("ESAPI-Runner-Hub.v", StringComparison.Ordinal));
             TestHarness.AssertTrue(currentCitrixBinary.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
@@ -146,6 +147,7 @@ namespace EsapiRunnerHub.Tests
                 "A metadata-only VMS reference is required for ESAPI standalone authorization.");
             TestHarness.AssertContains(validator, "VMS\\.TPS");
             TestHarness.AssertContains(validator, "forbiddenExtensions");
+            TestHarness.AssertContains(validator, "ESAPI-Script-Host.exe.config");
         }
 
         private static void UsesEclipse18Assets()
@@ -166,6 +168,9 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(build, "Join-Path $buildOutput 'ESAPI-Script-Host.exe'");
             TestHarness.AssertContains(build, "Join-Path $packageRoot 'ESAPI-Script-Host.exe'");
             TestHarness.AssertContains(build, "Join-Path $distRoot 'ESAPI-Script-Host.exe'");
+            TestHarness.AssertContains(build, "Join-Path $buildOutput 'ESAPI-Script-Host.exe.config'");
+            TestHarness.AssertContains(build, "Join-Path $packageRoot 'ESAPI-Script-Host.exe.config'");
+            TestHarness.AssertContains(build, "Join-Path $distRoot 'ESAPI-Script-Host.exe.config'");
             TestHarness.AssertContains(validator, "'ESAPI-Script-Host.exe'");
             TestHarness.AssertContains(validator, "VMS\\.TPS");
         }

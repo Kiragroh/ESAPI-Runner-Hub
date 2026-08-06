@@ -15,8 +15,10 @@ if ($files.Count -eq 0) {
 }
 
 $forbiddenExtensions = @('.dll', '.pdb', '.config', '.xml', '.user', '.suo')
+$allowedConfigurationFiles = @('ESAPI-Script-Host.exe.config')
 $forbiddenFiles = @($files | Where-Object {
-    $forbiddenExtensions -contains $_.Extension.ToLowerInvariant() -or
+    ($forbiddenExtensions -contains $_.Extension.ToLowerInvariant() -and
+        $allowedConfigurationFiles -notcontains $_.Name) -or
     $_.Name -match '(?i)VMS\.TPS|EsapiEssentials' -or
     $_.Name -eq 'settings.ini'
 })
@@ -35,6 +37,7 @@ if (-not (Test-Path -LiteralPath $launcher -PathType Leaf)) {
 $required = @(
     'ESAPI-Runner-Hub.exe',
     'ESAPI-Script-Host.exe',
+    'ESAPI-Script-Host.exe.config',
     'settings.example.ini',
     'README.md',
     'LICENSE',

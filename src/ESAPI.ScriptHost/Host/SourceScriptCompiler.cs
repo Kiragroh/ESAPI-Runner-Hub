@@ -83,6 +83,7 @@ namespace EsapiScriptHost.Host
                     typeof(System.Windows.DependencyObject).Assembly.Location,
                     typeof(System.Xml.XmlDocument).Assembly.Location,
                     typeof(System.Xaml.XamlReader).Assembly.Location,
+                    typeof(System.Windows.Forms.DialogResult).Assembly.Location,
                     api,
                     types
                 }

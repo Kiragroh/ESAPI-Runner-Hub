@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Input;
@@ -21,6 +20,7 @@ namespace EsapiRunnerHub.ViewModels
         private readonly ChildProcessLauncher launcher = new ChildProcessLauncher();
         private readonly LaunchHistoryStore historyStore;
         private readonly ProtectedContextEnvelope contextProtector;
+        private readonly Action<string> clipboardWriter;
         private readonly List<LaunchHistoryEntry> historyEntries = new List<LaunchHistoryEntry>();
         private readonly object historyGate = new object();
         private readonly RelayCommand runAgainCommand;
@@ -50,10 +50,17 @@ namespace EsapiRunnerHub.ViewModels
 
         public MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients,
             LaunchHistoryStore historyStore, ProtectedContextEnvelope contextProtector)
+            : this(configuration, patients, historyStore, contextProtector, text => System.Windows.Clipboard.SetText(text))
+        {
+        }
+
+        public MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients,
+            LaunchHistoryStore historyStore, ProtectedContextEnvelope contextProtector, Action<string> clipboardWriter)
         {
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.historyStore = historyStore;
             this.contextProtector = contextProtector ?? throw new ArgumentNullException(nameof(contextProtector));
+            this.clipboardWriter = clipboardWriter ?? throw new ArgumentNullException(nameof(clipboardWriter));
             Applications = new ObservableCollection<ApplicationCardViewModel>(
                 configuration.Applications.Where(item => item.Enabled)
                     .OrderBy(item => item.SortOrder)
@@ -88,7 +95,7 @@ namespace EsapiRunnerHub.ViewModels
             TogglePrivacyBlurCommand = new RelayCommand(parameter => TogglePrivacyBlur());
             resetFiltersCommand = new RelayCommand(parameter => ResetFilters(), parameter => HasActiveFilters);
             ResetFiltersCommand = resetFiltersCommand;
-            OpenReadmeCommand = new RelayCommand(parameter => OpenReadme(parameter as ApplicationCardViewModel),
+            CopyReadmeLinkCommand = new RelayCommand(parameter => CopyReadmeLink(parameter as ApplicationCardViewModel),
                 parameter => parameter is ApplicationCardViewModel card && card.HasHubReadme);
             selectedCategory = "All categories";
             selectedArtifactFilter = ArtifactFilters[0];
@@ -119,7 +126,7 @@ namespace EsapiRunnerHub.ViewModels
         public ICommand RunAgainCommand { get; private set; }
         public ICommand TogglePrivacyBlurCommand { get; private set; }
         public ICommand ResetFiltersCommand { get; private set; }
-        public ICommand OpenReadmeCommand { get; private set; }
+        public ICommand CopyReadmeLinkCommand { get; private set; }
         public event Action<PatientRecord> PatientSelectionChanged;
 
         public PatientRecord SelectedPatient { get { return selectedPatient; } }
@@ -482,18 +489,20 @@ namespace EsapiRunnerHub.ViewModels
             return ApplicationArtifactKind.Auto;
         }
 
-        private void OpenReadme(ApplicationCardViewModel card)
+        private void CopyReadmeLink(ApplicationCardViewModel card)
         {
             if (card == null || !card.HasHubReadme) return;
             try
             {
-                Process.Start(new ProcessStartInfo(card.HubReadmeUri.AbsoluteUri) { UseShellExecute = true });
-                TechnicalLog.Current.Write("INFO", "hub_readme_opened", card.Id, null);
+                clipboardWriter(card.HubReadmeUri.AbsoluteUri);
+                notificationText = "STR Hub README link copied.";
+                TechnicalLog.Current.Write("INFO", "hub_readme_link_copied", card.Id, null);
+                RaisePropertyChanged(nameof(NotificationText));
             }
             catch (Exception exception)
             {
-                notificationText = "STR Hub README could not be opened: " + exception.Message;
-                TechnicalLog.Current.Write("WARN", "hub_readme_open_failed", card.Id, exception);
+                notificationText = "STR Hub README link could not be copied: " + exception.Message;
+                TechnicalLog.Current.Write("WARN", "hub_readme_link_copy_failed", card.Id, exception);
                 RaisePropertyChanged(nameof(NotificationText));
             }
         }

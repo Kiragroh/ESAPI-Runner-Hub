@@ -41,7 +41,7 @@ flowchart LR
 - Applications that require, optionally accept, or ignore a patient context.
 - Direct context launch for supported `.esapi.dll` and `.cs` scripts through a separate Eclipse 18 host process, while reference-only cards remain available for scripts that must still start inside Eclipse.
 - Reusable selection of course, plan, plan sum, structure set, or image, including scripts that work without a plan.
-- Catalogue filters for standalone, single-file, and binary tools, plus visible artifact type, read/write intent, compact source path, and optional STR Hub README link.
+- Catalogue filters for standalone, single-file, and binary tools, plus visible artifact type, read/write intent, compact source path, and an optional action that copies the matching STR Hub README URL without starting a browser.
 - A DPAPI-protected local activity history with current status and **Run again**; context identifiers are encrypted for the current Windows account and commands are always recomposed from current settings.
 - Explicit save/discard confirmation after every write-enabled direct context script.
 - Multiple sequential or overlapping child processes; non-zero exits and crashes do not close the Hub.
@@ -55,7 +55,7 @@ flowchart LR
 
 1. Download the Windows x64 release ZIP and extract it to a normal folder.
 2. Copy `settings.example.ini` to `settings.ini` next to `ESAPI-Runner-Hub.exe`.
-3. Open **Settings** in the Hub and select the local ESAPI API/Types assemblies and application EXEs. A valid configured pair is used first; if it is missing or outdated, the Hub automatically tries the highest complete local Varian RTM installation under Program Files.
+3. Open **Settings** in the Hub and select the local ESAPI API/Types assemblies and application EXEs. Set **STR Hub base URL** to an IP address or DNS name reachable from the Citrix session; `localhost` refers to the VDA and is therefore unsuitable for a remote Hub. A valid configured API pair is used first; if it is missing or outdated, the Hub automatically tries the highest complete local Varian RTM installation under Program Files.
 4. Save, then search for a patient or start an application without a patient as permitted by its card.
 
 An alternative settings file can be supplied explicitly:
@@ -124,7 +124,7 @@ For a published Citrix application, use `citrix\ESAPI-Runner-Hub.CitrixLauncher.
 
 The launcher can forward a Runner option supplied directly on the VDA, but productive automation does not assume that Citrix Workspace transports client-side command-line parameters. Exact workstation-driven tests use the shared request plus per-user pending marker described above and open the ordinary published shortcut without arguments. Argument contents are never logged. The legacy `cmd.exe` plus `citrix\Start-ESAPI-Runner-Hub.cmd` route remains available as a no-argument fallback.
 
-New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.0.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
+New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.1.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
 
 ## Configuration
 

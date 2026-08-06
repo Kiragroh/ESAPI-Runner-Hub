@@ -112,6 +112,7 @@ try {
     $copies = @{
         (Join-Path $buildOutput 'ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
         (Join-Path $buildOutput 'ESAPI-Script-Host.exe') = (Join-Path $packageRoot 'ESAPI-Script-Host.exe')
+        (Join-Path $buildOutput 'ESAPI-Script-Host.exe.config') = (Join-Path $packageRoot 'ESAPI-Script-Host.exe.config')
         (Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.CitrixLauncher.exe')
         (Join-Path $repoRoot 'settings.example.ini') = (Join-Path $packageRoot 'settings.example.ini')
         (Join-Path $repoRoot 'README.md') = (Join-Path $packageRoot 'README.md')
@@ -144,6 +145,9 @@ try {
     Copy-FileWithRetry `
         -Source (Join-Path $buildOutput 'ESAPI-Script-Host.exe') `
         -Destination (Join-Path $distRoot 'ESAPI-Script-Host.exe')
+    Copy-FileWithRetry `
+        -Source (Join-Path $buildOutput 'ESAPI-Script-Host.exe.config') `
+        -Destination (Join-Path $distRoot 'ESAPI-Script-Host.exe.config')
     Copy-FileWithRetry `
         -Source (Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe') `
         -Destination (Join-Path $repoRoot 'citrix\ESAPI-Runner-Hub.CitrixLauncher.exe')

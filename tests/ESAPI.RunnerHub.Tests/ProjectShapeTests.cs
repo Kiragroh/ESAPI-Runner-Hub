@@ -24,6 +24,16 @@ namespace EsapiRunnerHub.Tests
                 TestHarness.AssertContains(config, "<loadFromRemoteSources enabled=\"true\" />");
             });
 
+            TestHarness.Test("script host permits configured binaries from UNC paths", () =>
+            {
+                var path = TestHarness.PathFromRoot("src/ESAPI.ScriptHost/App.config");
+                TestHarness.AssertTrue(File.Exists(path), "The Script Host App.config is missing.");
+                var config = File.ReadAllText(path);
+                var project = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/ESAPI.ScriptHost.csproj"));
+                TestHarness.AssertContains(config, "<loadFromRemoteSources enabled=\"true\" />");
+                TestHarness.AssertContains(project, "<None Include=\"App.config\" />");
+            });
+
             TestHarness.Test("main window shows restartable persistent activity", () =>
             {
                 var path = TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml");

@@ -11,6 +11,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("source compiler caches by source and references", CachesByContent);
             TestHarness.Test("source compiler diagnostics omit source content", SanitizesDiagnostics);
             TestHarness.Test("source compiler includes standard XML and XAML references", IncludesStandardScriptReferences);
+            TestHarness.Test("source compiler includes Windows Forms for single-file tools", IncludesWindowsFormsReference);
         }
 
         private static void CachesByContent()
@@ -71,6 +72,28 @@ namespace EsapiRunnerHub.Tests
                     "using System.Xml.Serialization; using System.Windows.Markup; " +
                     "public sealed class References { public IXmlSerializable Xml { get; set; } " +
                     "public IQueryAmbient Ambient { get; set; } }");
+                var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
+
+                var output = new SourceScriptCompiler(Path.Combine(directory, "cache"))
+                    .Compile(source, api, string.Empty, new string[0]);
+
+                TestHarness.AssertTrue(File.Exists(output));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        private static void IncludesWindowsFormsReference()
+        {
+            var directory = NewDirectory();
+            try
+            {
+                var source = Path.Combine(directory, "FormsReference.cs");
+                File.WriteAllText(source,
+                    "using Forms = System.Windows.Forms; " +
+                    "public sealed class FormsReference { public Forms.DialogResult Result { get; set; } }");
                 var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
 
                 var output = new SourceScriptCompiler(Path.Combine(directory, "cache"))

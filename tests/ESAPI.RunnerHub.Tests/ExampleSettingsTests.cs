@@ -8,6 +8,22 @@ namespace EsapiRunnerHub.Tests
         public static void Register()
         {
             TestHarness.Test("example settings cover standalone binary and source launches", CoversAllArtifactKinds);
+            TestHarness.Test("example settings include direct UKL export tools", IncludesDirectExportTools);
+        }
+
+        private static void IncludesDirectExportTools()
+        {
+            var configuration = IniConfigurationStore.Load(TestHarness.PathFromRoot("settings.example.ini"));
+            var source = configuration.Applications.Single(item => item.Id == "dicom-collection-ukl-direct");
+            var binary = configuration.Applications.Single(item => item.Id == "plans-quicker-direct");
+
+            TestHarness.AssertEqual(LaunchKind.EsapiContextScript, source.LaunchKind);
+            TestHarness.AssertEqual(ApplicationArtifactKind.SingleFile, source.ArtifactKind);
+            TestHarness.AssertEqual(ContextRequirement.Patient, source.ContextRequirement);
+            TestHarness.AssertEqual(LaunchKind.EsapiContextScript, binary.LaunchKind);
+            TestHarness.AssertEqual(ApplicationArtifactKind.Binary, binary.ArtifactKind);
+            TestHarness.AssertEqual(ContextRequirement.Patient, binary.ContextRequirement);
+            TestHarness.AssertEqual(ScriptEngine.Eclipse, binary.ScriptEngine);
         }
 
         private static void CoversAllArtifactKinds()

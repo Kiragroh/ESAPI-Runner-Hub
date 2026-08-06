@@ -2,6 +2,22 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.1] - 2026-08-06
+
+### Changed
+
+- Application documentation actions copy the configured STR Hub URL to the clipboard instead of starting a browser or another Citrix session.
+- The productive settings use an IP-reachable Hub base URL rather than `localhost`.
+- Direct patient-context catalogue entries cover the single-file `GetDicomCollectionUKL.cs` exporter and compiled `ExportPlansQuicker.esapi.dll` exporter.
+
+### Fixed
+
+- The isolated source compiler includes `System.Windows.Forms`, allowing mixed WPF and Forms single-file ESAPI tools to compile.
+
+### Validation
+
+- Regression coverage verifies exact clipboard URLs, both new export-tool defaults, and Windows Forms source compilation.
+
 ## [0.3.0] - 2026-08-04
 
 ### Changed

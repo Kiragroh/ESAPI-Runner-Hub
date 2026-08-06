@@ -1,8 +1,8 @@
-# Release verification: v0.3.0
+# Release verification: v0.3.1
 
-Date: 2026-08-04
+Date: 2026-08-06
 
-This record covers the v0.3.0 source, vendor-free release artifacts, synthetic UI inspection, and Citrix activation. It does not claim clinical validation of configured child applications.
+This record covers the v0.3.1 source, vendor-free release artifacts, direct export-tool configuration, and Citrix activation. It does not claim clinical validation of configured child applications.
 
 ## Automated gates
 
@@ -13,29 +13,32 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps
 ```
 
 - x64 .NET Framework 4.8 release build against Eclipse 18 metadata references
-- 139 automated tests passed, 0 failed
+- 142 automated tests passed, 0 failed
 - CMD launcher tests passed, 0 failed
 - shell-free EXE launcher tests passed, 0 failed
 - vendor-free package validation passed
 - deterministic ZIP generation passed
-- isolated Script Host and context-debugging guide included
+- isolated Script Host, its UNC-loading configuration, and the context-debugging guide included
 
 ## Artifacts
 
-- Citrix binary: `dist\versions\ESAPI-Runner-Hub.v0.3.0.exe`
-- Citrix binary file version: `0.3.0.0`
-- Citrix binary SHA-256: `0cba382f090610af324c4159182d0b15fd164ec04f41dd4f7c323f601b36ed16`
-- Release ZIP: `dist\ESAPI-Runner-Hub-v0.3.0-win-x64.zip`
-- Release ZIP SHA-256: `515d5d7b6e70dc6ba143201d1d82284b0023f6e5484b890a9db7204cf150bc53`
-- Active pointer: `citrix\current.txt` -> `ESAPI-Runner-Hub.v0.3.0.exe`
+- Citrix binary: `dist\versions\ESAPI-Runner-Hub.v0.3.1.exe`
+- Citrix binary file version: `0.3.1.0`
+- Citrix binary SHA-256: `b0efe0335418e2a11a3e4ee824381dbbc9ba51e6253a69b5d0fc78d4bbc743fc`
+- Release ZIP: `dist\ESAPI-Runner-Hub-v0.3.1-win-x64.zip`
+- Release ZIP SHA-256: `1bcc7d2c2e5518aa80ccf76d5f43f279910f660e7e4d6b337e0cc257ac9f8bf2`
+- Active pointer: `citrix\current.txt` -> `ESAPI-Runner-Hub.v0.3.1.exe`
 
-## Synthetic UI inspection
+## Export-tool verification
 
-The final offline smoke build was inspected at 1586 x 893 pixels. It displayed four cards in one row, no horizontal catalogue scrollbar, a replayable completed activity, a selected synthetic plan, and the centered filter bar. Privacy mode was then enabled and visibly obscured patient/context/path fields while replacing patient-specific launch labels with generic text. The resulting public screenshot is `docs/images/esapi-runner-hub-overview.png`.
+- `GetDicomCollectionUKL.cs` compiled successfully through the released source compiler against the Eclipse 18 references; the cached assembly size was 34,304 bytes.
+- `ExportPlansQuicker.esapi.dll` exists at the configured UNC target, is 134,656 bytes, and has SHA-256 `f3f04bfd876c2e8244b5b9c0499a24dec572acb568ef78fe4f24462a1b868194`.
+- Both catalogue entries require a patient and retain plan selection inside the target exporter.
+- The Script Host release includes `loadFromRemoteSources` so the configured alternate UNC binary can be loaded by .NET Framework.
 
 ## Live configuration integrity
 
-The ignored `dist/settings.ini` remains the sole live configuration. Before and after the English catalogue-copy update, all lines except `Name`, `Category`, and `Description` were byte-equivalent after normalization: 452 lines, SHA-256 `2027f0cf9531597585903c7a021c52af735b5346d01256e93e38c1bf0b51b021`. Paths, arguments, access modes, context rules, ESAPI assemblies, and logging locations were not changed.
+The ignored `dist/settings.ini` remains the sole live configuration. Its STR Hub base URL now uses `http://10.100.86.9:5173/`; the README action copies the resulting per-tool URL to the clipboard and does not start a browser. Two enabled read-only patient-context entries were added for the requested source and binary exporters. Existing application paths and arguments were otherwise left unchanged.
 
 ## Clinical boundary
 

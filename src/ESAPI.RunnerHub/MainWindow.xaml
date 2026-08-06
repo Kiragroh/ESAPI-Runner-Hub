@@ -253,7 +253,7 @@
                                         <Grid Grid.Row="4" Margin="0,0,0,8">
                                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                             <TextBlock Text="{Binding ModeLabel}" FontSize="9.5" Foreground="{StaticResource Muted}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,5,0" />
-                                            <Button Grid.Column="1" Content="STR Hub README" Command="{Binding DataContext.OpenReadmeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            <Button Grid.Column="1" Content="Copy README link" Command="{Binding DataContext.CopyReadmeLinkCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding}" Visibility="{Binding HasHubReadme, Converter={StaticResource BoolToVisibility}}"
                                                     Style="{StaticResource SecondaryButton}" Padding="8,5" FontSize="9.5" />
                                         </Grid>

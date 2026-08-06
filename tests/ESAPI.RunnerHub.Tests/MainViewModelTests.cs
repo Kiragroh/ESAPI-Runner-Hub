@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using EsapiRunnerHub.Catalog;
 using EsapiRunnerHub.Configuration;
+using EsapiRunnerHub.History;
 using EsapiRunnerHub.Launching;
 using EsapiRunnerHub.Patients;
 using EsapiRunnerHub.Privacy;
@@ -20,7 +21,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("optional and required cards follow patient context", AppliesPatientModes);
             TestHarness.Test("catalogue filters by category and text", FiltersCatalogue);
             TestHarness.Test("catalogue combines artifact category and text filters", CombinesCatalogueFilters);
-            TestHarness.Test("STR Hub README command is available only for linked cards", ExposesReadmeCommand);
+            TestHarness.Test("STR Hub README command copies the reachable link", CopiesReadmeLink);
             TestHarness.Test("offline ESAPI state stays explicit", ShowsOfflineState);
             TestHarness.Test("Eclipse plug-in cards are visible but never launched externally", KeepsPluginInsideEclipse);
             TestHarness.Test("successful child launches and exits are logged technically", LogsChildLifecycle);
@@ -109,10 +110,10 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertEqual("source-discovery", viewModel.VisibleApplications[0].Id);
         }
 
-        private static void ExposesReadmeCommand()
+        private static void CopiesReadmeLink()
         {
             var configuration = new HubConfiguration();
-            configuration.Hub.StrHubBaseUrl = "https://str-hub.example/";
+            configuration.Hub.StrHubBaseUrl = "http://10.100.86.9:5173/";
             configuration.Applications.Add(new ApplicationDefinition
             {
                 Id = "linked",
@@ -128,12 +129,17 @@ namespace EsapiRunnerHub.Tests
                 Executable = "unlinked.exe",
                 Enabled = true
             });
-            var viewModel = new MainViewModel(configuration, new List<PatientRecord>());
+            string clipboardText = null;
+            var viewModel = new MainViewModel(configuration, new List<PatientRecord>(), null,
+                new ProtectedContextEnvelope(), text => clipboardText = text);
             var linked = viewModel.Applications.Single(item => item.Id == "linked");
             var unlinked = viewModel.Applications.Single(item => item.Id == "unlinked");
 
-            TestHarness.AssertTrue(viewModel.OpenReadmeCommand.CanExecute(linked));
-            TestHarness.AssertFalse(viewModel.OpenReadmeCommand.CanExecute(unlinked));
+            TestHarness.AssertTrue(viewModel.CopyReadmeLinkCommand.CanExecute(linked));
+            TestHarness.AssertFalse(viewModel.CopyReadmeLinkCommand.CanExecute(unlinked));
+            viewModel.CopyReadmeLinkCommand.Execute(linked);
+            TestHarness.AssertEqual("http://10.100.86.9:5173/#/inhouse/62", clipboardText);
+            TestHarness.AssertContains(viewModel.NotificationText, "copied");
         }
 
         private static void ShowsOfflineState()

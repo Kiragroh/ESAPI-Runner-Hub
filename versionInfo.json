@@ -1,9 +1,20 @@
 {
-  "version": "0.3.0",
-  "build": 19,
-  "lastUpdate": "2026-08-04",
-  "lastChange": "Compact privacy-safe catalogue, reliable replay actions, English product copy, and a documented single-entry Citrix workflow.",
+  "version": "0.3.1",
+  "build": 20,
+  "lastUpdate": "2026-08-06",
+  "lastChange": "README links copy an IP-reachable Hub address, and direct source and binary DICOM export tools are available from the patient context.",
   "changelog": [
+    {
+      "build": 20,
+      "date": "2026-08-06",
+      "title": "ESAPI Runner Hub 0.3.1",
+      "changes": [
+        "STR Hub README actions copy the configured reachable URL to the clipboard instead of opening a browser or another Citrix session.",
+        "The live catalogue uses the productive Hub IP and adds patient-context launches for GetDicomCollectionUKL.cs and ExportPlansQuicker.esapi.dll.",
+        "Single-file compilation includes Windows Forms so mixed WPF and Forms ESAPI scripts can run through the isolated Eclipse 18 host.",
+        "Regression coverage verifies clipboard behavior, both export-tool defaults, and Windows Forms source compilation."
+      ]
+    },
     {
       "build": 19,
       "date": "2026-08-04",
