@@ -24,13 +24,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps
 
 - Citrix binary: `dist\versions\ESAPI-Runner-Hub.v0.3.3.exe`
 - Citrix binary file version: `0.3.3.0`
-- Citrix binary SHA-256: `d56449cb22e48670a3ddcdd9b0d599c198b231ed7a900c7929180cbd439493be`
+- Citrix binary SHA-256: `b87407631fd13fc61615e225a5f18ba43746499e22abefd77f3b4a7e9d8e1cf9`
 - Read-only host file version: `0.3.3.0`
-- Read-only host SHA-256: `53ec8f491f3de06a57867a66e54e60242a8743b3eaa500920218450e721f6153`
+- Read-only host SHA-256: `15238c1aab0748bda241051d1edbd7f3cd31a492e1fa91ee0b27d245bdbd5c13`
 - Write host file version: `0.3.3.0`
-- Write host SHA-256: `d5f24e2723d4eba3ee2a282d127ad921aeb04f63290e6a9100b21791937eccb0`
+- Write host SHA-256: `1cd14951828ff5c73ae38e91c98d80f5241945add47aa8dfd9f5fb6b3bb12234`
 - Release ZIP: `dist\ESAPI-Runner-Hub-v0.3.3-win-x64.zip`
-- Release ZIP SHA-256: `cc26cb0810b639d87182ce9499005dd35837d0d6498bda9f183686d852931530`
+- Release ZIP SHA-256: `3fb03e3f160d771dd969c879d16e306222f508b781c4ee9d33003e1bdd7bd748`
 - Active pointer: `citrix\current.txt` -> `ESAPI-Runner-Hub.v0.3.3.exe`
 
 ## Dual-host verification
