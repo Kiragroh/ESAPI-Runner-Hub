@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using VMS.TPS.Common.Model.API;
 
 namespace EsapiScriptHost.Host
 {
@@ -9,14 +10,16 @@ namespace EsapiScriptHost.Host
     {
         private static readonly Version SupportedApiVersion = new Version(1, 0, 600, 194);
 
-        public object Create(ResolvedContext context)
+        public ScriptContext Create(ResolvedContext context)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
             var apiAssembly = context.ApiAssembly ?? (context.Patient == null ? null : context.Patient.GetType().Assembly);
             if (apiAssembly == null) throw new InvalidOperationException("The Eclipse API assembly is unavailable.");
             if (apiAssembly.GetName().Version != SupportedApiVersion)
                 throw new InvalidOperationException("The classic context adapter supports only Eclipse 18 API 1.0.600.194.");
-            var scriptContextType = apiAssembly.GetType("VMS.TPS.Common.Model.API.ScriptContext", true, false);
+            var scriptContextType = typeof(ScriptContext);
+            if (!string.Equals(scriptContextType.Assembly.FullName, apiAssembly.FullName, StringComparison.Ordinal))
+                throw new InvalidOperationException("The loaded Eclipse API assembly does not match the host compile-time reference.");
             var constructor = scriptContextType.GetConstructor(new[] { typeof(object), typeof(object), typeof(object), typeof(string) });
             if (constructor == null) throw new InvalidOperationException("The Eclipse 18 ScriptContext constructor is unavailable.");
             var scriptContext = constructor.Invoke(new object[] { null, context.CurrentUser, null, "ESAPI Runner Hub" });
@@ -29,7 +32,7 @@ namespace EsapiScriptHost.Host
             SetListField(scriptContext, "m_planSums", context.PlanSumsInScope);
             SetField(scriptContext, "m_planSum", context.PlanSum);
             SetField(scriptContext, "m_structureSet", context.StructureSet);
-            return scriptContext;
+            return (ScriptContext)scriptContext;
         }
 
         private static void SetField(object target, string fieldName, object value)

@@ -53,6 +53,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FakeVms.Api\FakeVms.Api.csproj">
+      <Project>{F202755D-496E-40E0-9B27-DAB49BB782A1}</Project>
+      <Name>FakeVms.Api</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\ESAPI.RunnerHub\ESAPI.RunnerHub.csproj">
       <Project>{154FE10C-5EE3-4162-BDA0-354412E26B77}</Project>
       <Name>ESAPI.RunnerHub</Name>

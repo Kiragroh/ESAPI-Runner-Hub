@@ -11,6 +11,7 @@ namespace EsapiRunnerHub.Tests
         {
             TestHarness.Test("EsapiEssentials script receives selected context", InvokesEssentials);
             TestHarness.Test("classic Eclipse script receives verified Eclipse 18 context", InvokesEclipse);
+            TestHarness.Test("classic Eclipse write script crosses no reflection API boundary", InvokesTypedWriteApi);
             TestHarness.Test("write metadata must agree with configured write mode", ValidatesWriteMetadata);
             TestHarness.Test("successful writable host run saves exactly once", SuccessfulRunSavesOnce);
             TestHarness.Test("execute-and-discard writable host run never asks or saves", ExecuteAndDiscardNeverAsksOrSaves);
@@ -44,6 +45,28 @@ namespace EsapiRunnerHub.Tests
                 ScriptMetadataInspector.ValidateWriteMode(script, WriteMode.ReadOnly));
             ScriptMetadataInspector.ValidateWriteMode(script, WriteMode.ConfirmSave);
             ScriptMetadataInspector.ValidateWriteMode(script, WriteMode.ExecuteAndDiscard);
+        }
+
+        private static void InvokesTypedWriteApi()
+        {
+            var marker = NewMarker("typed-write-api");
+            Environment.SetEnvironmentVariable("SCRIPT_FIXTURE_MARKER", marker);
+            try
+            {
+                var payload = ScriptHostCoreTests.CreatePayloadForInvocation();
+                payload.ScriptPath = FixtureScriptPath();
+                payload.EntryType = "VMS.TPS.WriteEclipseScript";
+                payload.ScriptEngine = ScriptEngine.Eclipse;
+                payload.WriteMode = WriteMode.ExecuteAndDiscard;
+
+                new ScriptHostApplication(ScriptHostKind.WriteEnabled).Run(payload, () => SaveChoice.Discard);
+
+                TestHarness.AssertEqual("write|NEW-PLAN|SS1", File.ReadAllText(marker));
+            }
+            finally
+            {
+                ClearMarker("SCRIPT_FIXTURE_MARKER", marker);
+            }
         }
 
         private static void SuccessfulRunSavesOnce()
@@ -83,7 +106,7 @@ namespace EsapiRunnerHub.Tests
                 payload.ScriptEngine = ScriptEngine.Eclipse;
                 payload.WriteMode = WriteMode.ConfirmSave;
 
-                var failure = TestHarness.AssertThrows<System.Reflection.TargetInvocationException>(() =>
+                var failure = TestHarness.AssertThrows<InvalidOperationException>(() =>
                     new ScriptHostApplication(ScriptHostKind.WriteEnabled).Run(payload, () => SaveChoice.Save));
 
                 TestHarness.AssertFalse(File.Exists(saveMarker));

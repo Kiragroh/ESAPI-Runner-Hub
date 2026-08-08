@@ -10,7 +10,7 @@
   <ItemGroup><Reference Include="System" /><Reference Include="System.Core" /><Reference Include="PresentationFramework" /><Reference Include="WindowsBase" /></ItemGroup>
   <ItemGroup><Compile Include="Scripts.cs" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FakeVms.Api\FakeVms.Api.csproj"><Project>{F202755D-496E-40E0-9B27-DAB49BB782A1}</Project><Name>FakeVms.Api</Name></ProjectReference>
+    <ProjectReference Include="..\FakeVms.Api\FakeVms.Api.csproj"><Project>{F202755D-496E-40E0-9B27-DAB49BB782A1}</Project><Name>FakeVms.Api</Name><Private>False</Private></ProjectReference>
     <ProjectReference Include="..\FakeEsapiEssentials\FakeEsapiEssentials.csproj"><Project>{5EA87AC2-6183-4EB9-A916-DB4505E31346}</Project><Name>FakeEsapiEssentials</Name></ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

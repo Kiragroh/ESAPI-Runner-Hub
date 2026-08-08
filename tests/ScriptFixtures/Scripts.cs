@@ -38,6 +38,16 @@ namespace VMS.TPS
         }
     }
 
+    public sealed class WriteEclipseScript
+    {
+        public void Execute(ScriptContext context)
+        {
+            var plan = context.Course.AddExternalPlanSetup(context.StructureSet);
+            File.WriteAllText(Environment.GetEnvironmentVariable("SCRIPT_FIXTURE_MARKER"),
+                string.Join("|", "write", plan.Id, plan.StructureSet.Id));
+        }
+    }
+
     public sealed class WpfApplicationAwareEclipseScript
     {
         public void Execute(ScriptContext context)

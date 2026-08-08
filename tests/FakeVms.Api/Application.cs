@@ -1,9 +1,34 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace VMS.TPS.Common.Model.API
 {
+    public sealed class UnauthorizedScriptingAPIAccessException : InvalidOperationException
+    {
+        public UnauthorizedScriptingAPIAccessException(string memberName)
+            : base("Synthetic ESAPI rejected reflection access to " + memberName + ".")
+        {
+        }
+    }
+
+    internal static class ApiAccessGuard
+    {
+        public static void RequireCompileTimeCallSite(string memberName)
+        {
+            var reflectionFrame = new StackTrace().GetFrames()
+                .Select(frame => frame.GetMethod())
+                .Where(method => method != null && method.DeclaringType != null)
+                .Any(method =>
+                    (method.DeclaringType.Namespace ?? string.Empty).StartsWith("System.Reflection", StringComparison.Ordinal) ||
+                    method.DeclaringType == typeof(RuntimeMethodHandle) ||
+                    string.Equals(method.DeclaringType.FullName, "System.RuntimeType", StringComparison.Ordinal));
+            if (reflectionFrame) throw new UnauthorizedScriptingAPIAccessException(memberName);
+        }
+    }
+
     [AttributeUsage(AttributeTargets.Assembly)]
     public sealed class ESAPIScriptAttribute : Attribute
     {
@@ -84,6 +109,7 @@ namespace VMS.TPS.Common.Model.API
 
         public void SaveModifications()
         {
+            ApiAccessGuard.RequireCompileTimeCallSite("SaveModifications");
             var marker = Environment.GetEnvironmentVariable("FAKE_VMS_SAVE_MARKER");
             if (!string.IsNullOrWhiteSpace(marker))
             {
@@ -139,6 +165,19 @@ namespace VMS.TPS.Common.Model.API
         public Patient Patient { get; set; }
         public IList<PlanSetup> PlanSetups { get; private set; }
         public IList<PlanSum> PlanSums { get; private set; }
+
+        public ExternalPlanSetup AddExternalPlanSetup(StructureSet structureSet)
+        {
+            ApiAccessGuard.RequireCompileTimeCallSite("AddExternalPlanSetup");
+            var plan = new ExternalPlanSetup
+            {
+                Id = "NEW-PLAN",
+                Course = this,
+                StructureSet = structureSet
+            };
+            PlanSetups.Add(plan);
+            return plan;
+        }
     }
 
     public class PlanSetup

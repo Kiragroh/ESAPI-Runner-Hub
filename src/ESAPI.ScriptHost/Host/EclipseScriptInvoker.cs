@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using VMS.TPS.Common.Model.API;
 
 namespace EsapiScriptHost.Host
 {
@@ -21,12 +22,33 @@ namespace EsapiScriptHost.Host
                     .Where(method => method.GetParameters()[0].ParameterType == scriptContext.GetType())
                     .OrderBy(method => method.GetParameters().Length)
                     .ToList();
-                if (methods.Count == 0) throw new MissingMethodException(entryType.FullName, "Execute");
+                if (methods.Count == 0)
+                {
+                    var candidates = entryType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                        .Where(method => method.Name == "Execute")
+                        .Select(method => string.Join(", ", method.GetParameters().Select(parameter =>
+                            parameter.ParameterType.AssemblyQualifiedName + " @ " + parameter.ParameterType.Assembly.Location +
+                            " # " + parameter.ParameterType.Module.ModuleVersionId)))
+                        .ToArray();
+                    throw new MissingMethodException(entryType.FullName,
+                        "Execute (host context " + scriptContext.GetType().AssemblyQualifiedName + " @ " +
+                        scriptContext.GetType().Assembly.Location + " # " + scriptContext.GetType().Module.ModuleVersionId +
+                        "; candidates " + string.Join(" | ", candidates) + ")");
+                }
                 var instance = Activator.CreateInstance(entryType);
                 var selected = methods[0];
-                if (selected.GetParameters().Length == 1) selected.Invoke(instance, new[] { scriptContext });
-                else if (typeof(Window).IsAssignableFrom(selected.GetParameters()[1].ParameterType))
-                    selected.Invoke(instance, new object[] { scriptContext, new Window() });
+                if (selected.GetParameters().Length == 1)
+                {
+                    var execute = (Action<ScriptContext>)Delegate.CreateDelegate(
+                        typeof(Action<ScriptContext>), instance, selected, true);
+                    execute(scriptContext);
+                }
+                else if (selected.GetParameters()[1].ParameterType == typeof(Window))
+                {
+                    var execute = (Action<ScriptContext, Window>)Delegate.CreateDelegate(
+                        typeof(Action<ScriptContext, Window>), instance, selected, true);
+                    execute(scriptContext, new Window());
+                }
                 else throw new InvalidOperationException("The Eclipse Execute overload has an unsupported second parameter.");
             }
         }

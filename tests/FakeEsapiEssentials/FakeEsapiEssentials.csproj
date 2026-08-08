@@ -10,7 +10,7 @@
   <ItemGroup><Reference Include="System" /><Reference Include="System.Core" /><Reference Include="PresentationFramework" /></ItemGroup>
   <ItemGroup><Compile Include="PluginTypes.cs" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FakeVms.Api\FakeVms.Api.csproj"><Project>{F202755D-496E-40E0-9B27-DAB49BB782A1}</Project><Name>FakeVms.Api</Name></ProjectReference>
+    <ProjectReference Include="..\FakeVms.Api\FakeVms.Api.csproj"><Project>{F202755D-496E-40E0-9B27-DAB49BB782A1}</Project><Name>FakeVms.Api</Name><Private>False</Private></ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

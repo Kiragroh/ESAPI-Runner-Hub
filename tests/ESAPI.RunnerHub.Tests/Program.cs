@@ -5,6 +5,13 @@ namespace EsapiRunnerHub.Tests
         [System.STAThread]
         private static int Main()
         {
+            System.AppDomain.CurrentDomain.AssemblyResolve += (sender, arguments) =>
+            {
+                if (!string.Equals(new System.Reflection.AssemblyName(arguments.Name).Name,
+                    "VMS.TPS.Common.Model.API", System.StringComparison.OrdinalIgnoreCase)) return null;
+                return System.Reflection.Assembly.LoadFrom(TestHarness.PathFromRoot(
+                    "tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll"));
+            };
             ProjectShapeTests.Register();
             DualScriptHostTests.Register();
             ConfigurationTests.Register();
