@@ -1,9 +1,20 @@
 {
-  "version": "0.3.3",
-  "build": 22,
+  "version": "0.3.4",
+  "build": 23,
+  "scriptHostVersion": "0.3.3",
   "lastUpdate": "2026-08-08",
-  "lastChange": "Read-only and write-enabled direct ESAPI scripts now run through separate mode-locked host executables with an explicit discard-only write mode.",
+  "lastChange": "Child exits are marshalled to the Hub UI thread, interrupted history is recovered, and patients can be selected from history without replaying an application.",
   "changelog": [
+    {
+      "build": 23,
+      "date": "2026-08-08",
+      "title": "ESAPI Runner Hub 0.3.4",
+      "changes": [
+        "Child process exits complete on the captured WPF UI context, so a normal or failed child no longer closes the Hub.",
+        "Stale Starting and Running history from an interrupted Hub session is recovered as Interrupted and becomes replayable when its protected context remains available.",
+        "Recent activity provides a separate Select patient action that restores the current patient context without starting the recorded application."
+      ]
+    },
     {
       "build": 22,
       "date": "2026-08-08",
