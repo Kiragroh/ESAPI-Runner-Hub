@@ -65,6 +65,14 @@ namespace EsapiRunnerHub.Patients
                 .ToList();
         }
 
+        public PatientRecord FindById(string id)
+        {
+            var normalized = Normalize(id);
+            return patients.Where(item => item.Id == normalized)
+                .Select(item => item.Patient)
+                .FirstOrDefault();
+        }
+
         private static int GetRank(IndexedPatient item, string query, string[] tokens)
         {
             if (item.Id == query)

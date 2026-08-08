@@ -2,6 +2,24 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.4] - 2026-08-08
+
+### Fixed
+
+- Child process exits are marshalled to the captured WPF UI context, preventing the exit callback from closing the Hub.
+- Terminal state, exit code, replay availability, and protected history are now persisted in one ordered UI-thread transition.
+- History left as `Starting` or `Running` by an interrupted Hub session is recovered as `Interrupted` and can be replayed when its application and protected context remain available.
+
+### Added
+
+- Recent activity has a separate **Select patient** action that restores the current patient selection without launching the recorded application.
+- Unavailable patient actions explain whether the run had no patient, its protected context is unreadable, or the patient is absent from the current ESAPI directory.
+
+### Validation
+
+- Regression coverage exercises background child exits, interrupted history recovery, exact patient lookup, no-launch patient restoration, unavailable-state explanations, and the compact two-action history layout.
+- Hub-only releases declare separate script-host and Citrix-launcher versions and preserve existing version-matched helper binaries instead of changing their approval identities.
+
 ## [0.3.3] - 2026-08-08
 
 ### Added

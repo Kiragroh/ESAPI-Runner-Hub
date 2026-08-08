@@ -305,7 +305,7 @@
                     <TextBlock Grid.Column="2" Text="Context" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
                     <TextBlock Grid.Column="3" Text="Started" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
                     <TextBlock Grid.Column="4" Text="Status" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
-                    <TextBlock Grid.Column="5" Text="Action" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" Margin="8,0" />
+                    <TextBlock Grid.Column="5" Text="Actions" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" Margin="8,0" />
                 </Grid>
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding Activities}">
@@ -322,9 +322,14 @@
                                         <TextBlock Grid.Column="2" Text="{Binding ContextSummary}" ToolTip="{Binding ContextSummary}" Style="{StaticResource SensitiveText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,8,0" />
                                         <TextBlock Grid.Column="3" Text="{Binding Started}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                         <TextBlock Grid.Column="4" Text="{Binding Status}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                        <Button Grid.Column="5" Content="Run again" ToolTip="{Binding ReplayAvailabilityText}"
-                                                Command="{Binding DataContext.RunAgainCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                CommandParameter="{Binding}" Style="{StaticResource SecondaryButton}" Padding="9,5" FontSize="10.5" />
+                                        <StackPanel Grid.Column="5" Orientation="Horizontal">
+                                            <Button Content="Select patient" ToolTip="{Binding PatientSelectionAvailabilityText}"
+                                                    Command="{Binding DataContext.SelectHistoryPatientCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" Style="{StaticResource SecondaryButton}" Padding="8,5" FontSize="10.5" />
+                                            <Button Content="Run again" ToolTip="{Binding ReplayAvailabilityText}" Margin="6,0,0,0"
+                                                    Command="{Binding DataContext.RunAgainCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" Style="{StaticResource SecondaryButton}" Padding="8,5" FontSize="10.5" />
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

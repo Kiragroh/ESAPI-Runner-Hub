@@ -40,6 +40,10 @@ namespace EsapiRunnerHub.Tests
                 var xaml = File.ReadAllText(path);
                 TestHarness.AssertContains(xaml, "ItemsSource=\"{Binding Activities}\"");
                 TestHarness.AssertContains(xaml, "RunAgainCommand");
+                TestHarness.AssertContains(xaml, "SelectHistoryPatientCommand");
+                TestHarness.AssertContains(xaml, "PatientSelectionAvailabilityText");
+                TestHarness.AssertContains(xaml, "Content=\"Select patient\"");
+                TestHarness.AssertContains(xaml, "HorizontalScrollBarVisibility=\"Disabled\"");
                 TestHarness.AssertContains(xaml, "ApplicationName");
                 TestHarness.AssertContains(xaml, "ArtifactLabel");
                 TestHarness.AssertContains(xaml, "ContextSummary");

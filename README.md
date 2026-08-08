@@ -43,8 +43,10 @@ flowchart LR
 - Direct context launch for supported `.esapi.dll` and `.cs` scripts through separate mode-locked Eclipse 18 read-only and write-enabled host processes, while reference-only cards remain available for scripts that must still start inside Eclipse.
 - Reusable selection of course, plan, plan sum, structure set, or image, including scripts that work without a plan.
 - Catalogue filters for standalone, single-file, and binary tools, plus visible artifact type, read/write intent, compact source path, and an optional action that copies the matching STR Hub README URL without starting a browser.
-- A DPAPI-protected local activity history with current status and **Run again**; context identifiers are encrypted for the current Windows account and commands are always recomposed from current settings.
+- A DPAPI-protected local activity history with **Select patient** and **Run again** as separate actions; context identifiers are encrypted for the current Windows account and commands are always recomposed from current settings.
+- Automatic recovery of stale `Starting` or `Running` rows as `Interrupted`, so a prior Hub interruption does not permanently disable replay.
 - Automatic host selection from `WriteMode`: `ReadOnly` uses the unprivileged host; `ConfirmSave` and `ExecuteAndDiscard` use the separately approved write host.
+- Hub-only releases keep separate `scriptHostVersion` and `citrixLauncherVersion` contracts and reuse existing version-matched helper binaries, so unchanged approved hosts and the stable Citrix entry point are not rebuilt merely because the Hub UI changes.
 - Explicit save/discard confirmation for `ConfirmSave`; `ExecuteAndDiscard` runs with write authorization but closes without saving and without a save question.
 - A configured write-enabled plan-sum workflow can receive only the patient context, perform its own transparent plan-sum/component review, and return to the same save/discard boundary.
 - Multiple sequential or overlapping child processes; non-zero exits and crashes do not close the Hub.
@@ -127,7 +129,7 @@ For a published Citrix application, use `citrix\ESAPI-Runner-Hub.CitrixLauncher.
 
 The launcher can forward a Runner option supplied directly on the VDA, but productive automation does not assume that Citrix Workspace transports client-side command-line parameters. Exact workstation-driven tests use the shared request plus per-user pending marker described above and open the ordinary published shortcut without arguments. Argument contents are never logged. The legacy `cmd.exe` plus `citrix\Start-ESAPI-Runner-Hub.cmd` route remains available as a no-argument fallback.
 
-New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.3.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
+New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.4.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
 
 ## Configuration
 
@@ -167,7 +169,7 @@ No live ESAPI object is retained in the Hub. A direct child opens the selected i
 
 ## Privacy and resilience
 
-Patient names, search text, commands, environments, and child output are not persisted. Recent launch identifiers needed for **Run again** are serialized minimally and encrypted with Windows DPAPI in `CurrentUser` scope; the default local file retains at most 100 records for 30 days. Logs contain UTC time, event category, configured application ID, and exception type only. A slow optional UNC path disables only its own application card.
+Patient names, search text, commands, environments, and child output are not persisted. Recent launch identifiers needed for **Select patient** and **Run again** are serialized minimally and encrypted with Windows DPAPI in `CurrentUser` scope; the default local file retains at most 100 records for 30 days. Selecting a history patient decrypts the ID only on demand, resolves it against the current in-memory ESAPI directory, and never launches an application. Logs contain UTC time, event category, configured application ID, and exception type only. A slow optional UNC path disables only its own application card.
 
 Crash isolation protects the Hub from child failures; it does not guarantee that every pair of ESAPI applications may safely access Eclipse concurrently. Follow the validation and concurrency requirements of each target application.
 

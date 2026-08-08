@@ -16,7 +16,8 @@ namespace EsapiRunnerHub.History
         Running,
         Exited,
         FailedToStart,
-        Unavailable
+        Unavailable,
+        Interrupted
     }
 
     [DataContract]

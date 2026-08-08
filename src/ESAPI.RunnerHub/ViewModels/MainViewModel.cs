@@ -21,9 +21,11 @@ namespace EsapiRunnerHub.ViewModels
         private readonly LaunchHistoryStore historyStore;
         private readonly ProtectedContextEnvelope contextProtector;
         private readonly Action<string> clipboardWriter;
+        private readonly SynchronizationContext uiSynchronizationContext;
         private readonly List<LaunchHistoryEntry> historyEntries = new List<LaunchHistoryEntry>();
         private readonly object historyGate = new object();
         private readonly RelayCommand runAgainCommand;
+        private readonly RelayCommand selectHistoryPatientCommand;
         private readonly RelayCommand resetFiltersCommand;
         private PatientSearchIndex patientIndex;
         private PatientRecord selectedPatient;
@@ -61,6 +63,7 @@ namespace EsapiRunnerHub.ViewModels
             this.historyStore = historyStore;
             this.contextProtector = contextProtector ?? throw new ArgumentNullException(nameof(contextProtector));
             this.clipboardWriter = clipboardWriter ?? throw new ArgumentNullException(nameof(clipboardWriter));
+            uiSynchronizationContext = SynchronizationContext.Current;
             Applications = new ObservableCollection<ApplicationCardViewModel>(
                 configuration.Applications.Where(item => item.Enabled)
                     .OrderBy(item => item.SortOrder)
@@ -92,6 +95,9 @@ namespace EsapiRunnerHub.ViewModels
             runAgainCommand = new RelayCommand(parameter => RunAgain(parameter as ActivityRowViewModel),
                 parameter => parameter is ActivityRowViewModel row && row.CanRunAgain);
             RunAgainCommand = runAgainCommand;
+            selectHistoryPatientCommand = new RelayCommand(parameter => SelectHistoryPatient(parameter as ActivityRowViewModel),
+                parameter => parameter is ActivityRowViewModel row && row.CanSelectPatient);
+            SelectHistoryPatientCommand = selectHistoryPatientCommand;
             TogglePrivacyBlurCommand = new RelayCommand(parameter => TogglePrivacyBlur());
             resetFiltersCommand = new RelayCommand(parameter => ResetFilters(), parameter => HasActiveFilters);
             ResetFiltersCommand = resetFiltersCommand;
@@ -124,6 +130,7 @@ namespace EsapiRunnerHub.ViewModels
         public ICommand StartWithoutPatientCommand { get; private set; }
         public ICommand StartContextCommand { get; private set; }
         public ICommand RunAgainCommand { get; private set; }
+        public ICommand SelectHistoryPatientCommand { get; private set; }
         public ICommand TogglePrivacyBlurCommand { get; private set; }
         public ICommand ResetFiltersCommand { get; private set; }
         public ICommand CopyReadmeLinkCommand { get; private set; }
@@ -311,6 +318,7 @@ namespace EsapiRunnerHub.ViewModels
             patientIndex = new PatientSearchIndex(patients);
             ClearPatient();
             UpdateSuggestions();
+            RefreshHistoryPatientAvailability();
         }
 
         public void SelectPatient(PatientRecord patient)
@@ -593,7 +601,7 @@ namespace EsapiRunnerHub.ViewModels
                     TechnicalLog.Current.Write(process.ExitCode.GetValueOrDefault() == 0 ? "INFO" : "WARN",
                         process.ExitCode.GetValueOrDefault() == 0 ? "child_exit_ok" : "child_exit_nonzero", card.Id, null);
                 };
-                process.Exited += (sender, args) => handleExit();
+                process.Exited += (sender, args) => RunOnUi(handleExit);
                 if (!process.IsRunning) handleExit();
             }
             catch (Exception exception)
@@ -652,10 +660,16 @@ namespace EsapiRunnerHub.ViewModels
         private void LoadHistory()
         {
             if (historyStore == null) return;
-            var unavailableChanged = false;
+            var historyChanged = false;
             foreach (var entry in historyStore.Load())
             {
                 var card = Applications.FirstOrDefault(item => string.Equals(item.Id, entry.ApplicationId, StringComparison.OrdinalIgnoreCase));
+                if (entry.State == LaunchHistoryState.Starting || entry.State == LaunchHistoryState.Running)
+                {
+                    entry.State = LaunchHistoryState.Interrupted;
+                    entry.FinishedUtc = entry.FinishedUtc ?? DateTime.UtcNow;
+                    historyChanged = true;
+                }
                 ContextSelection selection = null;
                 var protectedContextAvailable = entry.LaunchMode == LaunchMode.WithoutPatient;
                 if (!protectedContextAvailable)
@@ -673,15 +687,77 @@ namespace EsapiRunnerHub.ViewModels
                 if (card == null)
                 {
                     entry.State = LaunchHistoryState.Unavailable;
-                    unavailableChanged = true;
+                    historyChanged = true;
                 }
                 historyEntries.Add(entry);
                 var row = new ActivityRowViewModel(entry, DescribeContext(entry.LaunchMode, selection), protectedContextAvailable);
                 UpdateReplayAvailability(row, card);
+                UpdatePatientSelectionAvailability(row);
                 Activities.Add(row);
             }
-            if (unavailableChanged) PersistHistory();
+            if (historyChanged) PersistHistory();
             runAgainCommand.RaiseCanExecuteChanged();
+            selectHistoryPatientCommand.RaiseCanExecuteChanged();
+        }
+
+        private void SelectHistoryPatient(ActivityRowViewModel row)
+        {
+            if (row == null) return;
+            PatientRecord patient;
+            string reason;
+            if (!TryResolveHistoryPatient(row, out patient, out reason))
+            {
+                row.SetPatientSelectionAvailability(false, reason);
+                selectHistoryPatientCommand.RaiseCanExecuteChanged();
+                notificationText = reason + ".";
+                RaisePropertyChanged(nameof(NotificationText));
+                return;
+            }
+
+            SelectPatient(patient);
+            notificationText = "Patient selected from recent activity. No application was started.";
+            RaisePropertyChanged(nameof(NotificationText));
+        }
+
+        private void RefreshHistoryPatientAvailability()
+        {
+            if (Activities == null) return;
+            foreach (var row in Activities) UpdatePatientSelectionAvailability(row);
+            if (selectHistoryPatientCommand != null) selectHistoryPatientCommand.RaiseCanExecuteChanged();
+        }
+
+        private void UpdatePatientSelectionAvailability(ActivityRowViewModel row)
+        {
+            PatientRecord patient;
+            string reason;
+            row.SetPatientSelectionAvailability(TryResolveHistoryPatient(row, out patient, out reason), reason);
+        }
+
+        private bool TryResolveHistoryPatient(ActivityRowViewModel row, out PatientRecord patient, out string reason)
+        {
+            patient = null;
+            if (row == null || row.Entry.LaunchMode == LaunchMode.WithoutPatient)
+            {
+                reason = "No patient stored for this run";
+                return false;
+            }
+
+            ContextSelection selection;
+            try
+            {
+                selection = contextProtector.Unprotect(row.Entry.ProtectedContext);
+            }
+            catch
+            {
+                reason = "Protected context is unavailable";
+                return false;
+            }
+
+            patient = patientIndex == null ? null : patientIndex.FindById(selection == null ? null : selection.PatientId);
+            reason = patient == null
+                ? "Patient is unavailable in the current directory"
+                : "Select patient without running the application";
+            return patient != null;
         }
 
         private void RefreshRelaunchAvailability(string applicationId)
@@ -726,6 +802,16 @@ namespace EsapiRunnerHub.ViewModels
             List<LaunchHistoryEntry> snapshot;
             lock (historyGate) snapshot = historyEntries.ToList();
             historyStore.Save(snapshot);
+        }
+
+        private void RunOnUi(Action action)
+        {
+            if (uiSynchronizationContext == null || ReferenceEquals(SynchronizationContext.Current, uiSynchronizationContext))
+            {
+                action();
+                return;
+            }
+            uiSynchronizationContext.Post(ignored => action(), null);
         }
 
         private static string DescribeContext(LaunchMode mode, ContextSelection selection)

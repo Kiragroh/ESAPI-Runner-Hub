@@ -8,6 +8,12 @@ $distRoot = Join-Path $repoRoot 'dist'
 $versionInfo = Get-Content -Raw -LiteralPath (Join-Path $repoRoot 'versionInfo.json') | ConvertFrom-Json
 $version = [string]$versionInfo.version
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid release version: $version" }
+$scriptHostVersion = [string]$versionInfo.scriptHostVersion
+if ($scriptHostVersion -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid script host version: $scriptHostVersion" }
+$expectedScriptHostFileVersion = $scriptHostVersion + '.0'
+$citrixLauncherVersion = [string]$versionInfo.citrixLauncherVersion
+if ($citrixLauncherVersion -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid Citrix launcher version: $citrixLauncherVersion" }
+$expectedCitrixLauncherFileVersion = $citrixLauncherVersion + '.0'
 $versionedDist = Join-Path $repoRoot 'dist\versions'
 $versionedExeName = "ESAPI-Runner-Hub.v$version.exe"
 $versionedExePath = Join-Path $versionedDist $versionedExeName
@@ -90,6 +96,27 @@ function Publish-ImmutableBinary {
     Copy-FileWithRetry -Source $Source -Destination $Destination
 }
 
+function Resolve-StableComponentBinary {
+    param(
+        [Parameter(Mandatory = $true)][string]$BuiltPath,
+        [Parameter(Mandatory = $true)][string]$LivePath,
+        [Parameter(Mandatory = $true)][string]$ExpectedFileVersion
+    )
+
+    if (Test-Path -LiteralPath $LivePath -PathType Leaf) {
+        $liveVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($LivePath).FileVersion
+        if ([string]::Equals($liveVersion, $ExpectedFileVersion, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $LivePath
+        }
+    }
+
+    $builtVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($BuiltPath).FileVersion
+    if (-not [string]::Equals($builtVersion, $ExpectedFileVersion, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Stable component version mismatch: expected $ExpectedFileVersion, found $builtVersion at $BuiltPath"
+    }
+    return $BuiltPath
+}
+
 $expectedDist = [System.IO.Path]::GetFullPath((Join-Path $repoRoot 'dist'))
 if ([System.IO.Path]::GetFullPath($distRoot) -ne $expectedDist -or -not $distRoot.StartsWith($repoRoot + [System.IO.Path]::DirectorySeparatorChar)) {
     throw 'Resolved dist path is outside the repository.'
@@ -116,13 +143,26 @@ try {
     & $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $exeLauncherTests -LauncherPath $exeLauncher -FixturePath $fixture
     if ($LASTEXITCODE -ne 0) { throw "Citrix EXE launcher tests failed with exit code $LASTEXITCODE." }
 
+    $stableReadHost = Resolve-StableComponentBinary `
+        -BuiltPath (Join-Path $buildOutput 'ESAPI-Script-Host.exe') `
+        -LivePath (Join-Path $distRoot 'ESAPI-Script-Host.exe') `
+        -ExpectedFileVersion $expectedScriptHostFileVersion
+    $stableWriteHost = Resolve-StableComponentBinary `
+        -BuiltPath (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe') `
+        -LivePath (Join-Path $distRoot 'ESAPI-Write-Script-Host.exe') `
+        -ExpectedFileVersion $expectedScriptHostFileVersion
+    $stableCitrixLauncher = Resolve-StableComponentBinary `
+        -BuiltPath $exeLauncher `
+        -LivePath (Join-Path $repoRoot 'citrix\ESAPI-Runner-Hub.CitrixLauncher.exe') `
+        -ExpectedFileVersion $expectedCitrixLauncherFileVersion
+
     $copies = @{
         (Join-Path $buildOutput 'ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
-        (Join-Path $buildOutput 'ESAPI-Script-Host.exe') = (Join-Path $packageRoot 'ESAPI-Script-Host.exe')
+        $stableReadHost = (Join-Path $packageRoot 'ESAPI-Script-Host.exe')
         (Join-Path $buildOutput 'ESAPI-Script-Host.exe.config') = (Join-Path $packageRoot 'ESAPI-Script-Host.exe.config')
-        (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe') = (Join-Path $packageRoot 'ESAPI-Write-Script-Host.exe')
+        $stableWriteHost = (Join-Path $packageRoot 'ESAPI-Write-Script-Host.exe')
         (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe.config') = (Join-Path $packageRoot 'ESAPI-Write-Script-Host.exe.config')
-        (Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.CitrixLauncher.exe')
+        $stableCitrixLauncher = (Join-Path $packageRoot 'ESAPI-Runner-Hub.CitrixLauncher.exe')
         (Join-Path $repoRoot 'settings.example.ini') = (Join-Path $packageRoot 'settings.example.ini')
         (Join-Path $repoRoot 'README.md') = (Join-Path $packageRoot 'README.md')
         (Join-Path $repoRoot 'LICENSE') = (Join-Path $packageRoot 'LICENSE')
@@ -152,19 +192,19 @@ try {
         -Source (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe') `
         -Destination $versionedExePath
     Copy-FileWithRetry `
-        -Source (Join-Path $buildOutput 'ESAPI-Script-Host.exe') `
+        -Source $stableReadHost `
         -Destination (Join-Path $distRoot 'ESAPI-Script-Host.exe')
     Copy-FileWithRetry `
         -Source (Join-Path $buildOutput 'ESAPI-Script-Host.exe.config') `
         -Destination (Join-Path $distRoot 'ESAPI-Script-Host.exe.config')
     Copy-FileWithRetry `
-        -Source (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe') `
+        -Source $stableWriteHost `
         -Destination (Join-Path $distRoot 'ESAPI-Write-Script-Host.exe')
     Copy-FileWithRetry `
         -Source (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe.config') `
         -Destination (Join-Path $distRoot 'ESAPI-Write-Script-Host.exe.config')
     Copy-FileWithRetry `
-        -Source (Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe') `
+        -Source $stableCitrixLauncher `
         -Destination (Join-Path $repoRoot 'citrix\ESAPI-Runner-Hub.CitrixLauncher.exe')
     Copy-FileWithRetry -Source $stagedZip -Destination $zipPath
 
