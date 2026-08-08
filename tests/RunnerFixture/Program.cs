@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace RunnerFixture
 {
@@ -29,6 +30,13 @@ namespace RunnerFixture
             if (string.Equals(mode, "crash", StringComparison.OrdinalIgnoreCase))
             {
                 Environment.FailFast("Synthetic fixture crash.");
+            }
+
+            if (string.Equals(mode, "delay", StringComparison.OrdinalIgnoreCase))
+            {
+                int milliseconds;
+                if (!int.TryParse(ValueAfter(args, "--milliseconds"), out milliseconds)) milliseconds = 200;
+                Thread.Sleep(Math.Max(1, milliseconds));
             }
 
             if (string.Equals(mode, "capture", StringComparison.OrdinalIgnoreCase))

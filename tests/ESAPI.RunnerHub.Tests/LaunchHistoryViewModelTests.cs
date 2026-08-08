@@ -17,6 +17,7 @@ namespace EsapiRunnerHub.Tests
         public static void Register()
         {
             TestHarness.Test("standalone lifecycle is persisted and restartable", PersistsStandaloneLifecycle);
+            TestHarness.Test("child exit returns to captured UI context", ChildExitReturnsToCapturedUiContext);
             TestHarness.Test("patient relaunch uses protected patient and current definition", RelaunchesPatient);
             TestHarness.Test("context relaunch retains exact protected planning selection", RelaunchesContext);
             TestHarness.Test("removed application history is unavailable", MarksRemovedApplicationsUnavailable);
@@ -39,6 +40,37 @@ namespace EsapiRunnerHub.Tests
                 TestHarness.AssertEqual(0, viewModel.Activities[0].ExitCode.GetValueOrDefault());
                 TestHarness.AssertEqual(LaunchHistoryState.Exited, store.Load().Single().State);
                 TestHarness.AssertTrue(viewModel.Activities[0].CanRunAgain);
+            });
+        }
+
+        private static void ChildExitReturnsToCapturedUiContext()
+        {
+            WithHistory((store, directory) =>
+            {
+                var previous = SynchronizationContext.Current;
+                var uiContext = new QueueingSynchronizationContext();
+                MainViewModel viewModel;
+                try
+                {
+                    SynchronizationContext.SetSynchronizationContext(uiContext);
+                    viewModel = CreateStandaloneViewModel(store, Fixture(), "--mode delay --milliseconds 250");
+                }
+                finally
+                {
+                    SynchronizationContext.SetSynchronizationContext(previous);
+                }
+
+                var card = Ready(viewModel);
+                viewModel.StartWithoutPatientCommand.Execute(card);
+                var row = viewModel.Activities[0];
+                WaitForCondition(() => uiContext.PendingCount > 0, "Child exit was not posted to the captured UI context.");
+
+                TestHarness.AssertEqual(LaunchHistoryState.Running, row.State);
+                uiContext.Drain();
+
+                TestHarness.AssertEqual(LaunchHistoryState.Exited, row.State);
+                TestHarness.AssertTrue(viewModel.RunAgainCommand.CanExecute(row));
+                TestHarness.AssertEqual(LaunchHistoryState.Exited, store.Load().Single().State);
             });
         }
 
@@ -284,6 +316,42 @@ Enabled=true
             var deadline = DateTime.UtcNow.AddSeconds(5);
             while (!File.Exists(path) && DateTime.UtcNow < deadline) Thread.Sleep(20);
             TestHarness.AssertTrue(File.Exists(path), "Timed out waiting for fixture capture.");
+        }
+
+        private static void WaitForCondition(Func<bool> condition, string failureMessage)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(5);
+            while (!condition() && DateTime.UtcNow < deadline) Thread.Sleep(20);
+            TestHarness.AssertTrue(condition(), failureMessage);
+        }
+
+        private sealed class QueueingSynchronizationContext : SynchronizationContext
+        {
+            private readonly Queue<SendOrPostCallback> callbacks = new Queue<SendOrPostCallback>();
+
+            public int PendingCount
+            {
+                get { lock (callbacks) return callbacks.Count; }
+            }
+
+            public override void Post(SendOrPostCallback callback, object state)
+            {
+                lock (callbacks) callbacks.Enqueue(ignored => callback(state));
+            }
+
+            public void Drain()
+            {
+                while (true)
+                {
+                    SendOrPostCallback callback;
+                    lock (callbacks)
+                    {
+                        if (callbacks.Count == 0) return;
+                        callback = callbacks.Dequeue();
+                    }
+                    callback(null);
+                }
+            }
         }
 
         private static void WithHistory(Action<LaunchHistoryStore, string> action)

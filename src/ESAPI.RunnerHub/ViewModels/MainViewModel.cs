@@ -21,6 +21,7 @@ namespace EsapiRunnerHub.ViewModels
         private readonly LaunchHistoryStore historyStore;
         private readonly ProtectedContextEnvelope contextProtector;
         private readonly Action<string> clipboardWriter;
+        private readonly SynchronizationContext uiSynchronizationContext;
         private readonly List<LaunchHistoryEntry> historyEntries = new List<LaunchHistoryEntry>();
         private readonly object historyGate = new object();
         private readonly RelayCommand runAgainCommand;
@@ -61,6 +62,7 @@ namespace EsapiRunnerHub.ViewModels
             this.historyStore = historyStore;
             this.contextProtector = contextProtector ?? throw new ArgumentNullException(nameof(contextProtector));
             this.clipboardWriter = clipboardWriter ?? throw new ArgumentNullException(nameof(clipboardWriter));
+            uiSynchronizationContext = SynchronizationContext.Current;
             Applications = new ObservableCollection<ApplicationCardViewModel>(
                 configuration.Applications.Where(item => item.Enabled)
                     .OrderBy(item => item.SortOrder)
@@ -593,7 +595,7 @@ namespace EsapiRunnerHub.ViewModels
                     TechnicalLog.Current.Write(process.ExitCode.GetValueOrDefault() == 0 ? "INFO" : "WARN",
                         process.ExitCode.GetValueOrDefault() == 0 ? "child_exit_ok" : "child_exit_nonzero", card.Id, null);
                 };
-                process.Exited += (sender, args) => handleExit();
+                process.Exited += (sender, args) => RunOnUi(handleExit);
                 if (!process.IsRunning) handleExit();
             }
             catch (Exception exception)
@@ -726,6 +728,16 @@ namespace EsapiRunnerHub.ViewModels
             List<LaunchHistoryEntry> snapshot;
             lock (historyGate) snapshot = historyEntries.ToList();
             historyStore.Save(snapshot);
+        }
+
+        private void RunOnUi(Action action)
+        {
+            if (uiSynchronizationContext == null || ReferenceEquals(SynchronizationContext.Current, uiSynchronizationContext))
+            {
+                action();
+                return;
+            }
+            uiSynchronizationContext.Post(ignored => action(), null);
         }
 
         private static string DescribeContext(LaunchMode mode, ContextSelection selection)
