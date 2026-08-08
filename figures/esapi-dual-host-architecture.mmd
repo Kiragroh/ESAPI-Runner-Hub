@@ -1,0 +1,29 @@
+flowchart LR
+    SETTINGS["settings.ini<br/>application contract and WriteMode"] --> HUB["ESAPI Runner Hub<br/>patient and planning-context selection"]
+
+    HUB -->|"Standalone or external transport"| CHILD["Independent application process"]
+    HUB -->|"WriteMode = ReadOnly"| READ_HOST["ESAPI-Script-Host.exe<br/>read-only host identity"]
+    HUB -->|"WriteMode = ConfirmSave<br/>or ExecuteAndDiscard"| WRITE_HOST["ESAPI-Write-Script-Host.exe<br/>separate write-enabled approval identity"]
+
+    READ_HOST --> READ_CONTEXT["Read-only Eclipse 18 session<br/>one patient on one STA thread"]
+    READ_CONTEXT --> READ_SCRIPT["Read-only context script<br/>.esapi.dll or cached .cs"]
+
+    WRITE_HOST --> WRITE_CONTEXT["Write-capable Eclipse 18 session<br/>one patient on one STA thread"]
+    WRITE_CONTEXT --> WRITE_SCRIPT["Reviewed write-context script<br/>IsWriteable = true"]
+    WRITE_SCRIPT --> MODE{"Configured completion mode"}
+    MODE -->|"ConfirmSave"| CONFIRM["Explicit save or discard decision"]
+    MODE -->|"ExecuteAndDiscard"| DISCARD["Always close without saving"]
+
+    classDef config fill:#ECFDF5,stroke:#059669,color:#064E3B,stroke-width:2px;
+    classDef hub fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:2px;
+    classDef neutral fill:#F3F4F6,stroke:#6B7280,color:#1F2937,stroke-width:1.5px;
+    classDef read fill:#E0F2FE,stroke:#0284C7,color:#0C4A6E,stroke-width:2px;
+    classDef write fill:#FFEDD5,stroke:#EA580C,color:#7C2D12,stroke-width:2px;
+    classDef decision fill:#F3E8FF,stroke:#7C3AED,color:#4C1D95,stroke-width:2px;
+
+    class SETTINGS config;
+    class HUB hub;
+    class CHILD neutral;
+    class READ_HOST,READ_CONTEXT,READ_SCRIPT read;
+    class WRITE_HOST,WRITE_CONTEXT,WRITE_SCRIPT,CONFIRM,DISCARD write;
+    class MODE decision;
