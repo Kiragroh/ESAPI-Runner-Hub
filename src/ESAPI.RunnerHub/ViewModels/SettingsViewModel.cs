@@ -100,6 +100,12 @@ namespace EsapiRunnerHub.ViewModels
             set { workingConfiguration.Hub.ScriptHostExecutable = value; RaisePropertyChanged(); UpdateValidation(); }
         }
 
+        public string WriteScriptHostExecutable
+        {
+            get { return workingConfiguration.Hub.WriteScriptHostExecutable; }
+            set { workingConfiguration.Hub.WriteScriptHostExecutable = value; RaisePropertyChanged(); UpdateValidation(); }
+        }
+
         public string StrHubBaseUrl
         {
             get { return workingConfiguration.Hub.StrHubBaseUrl; }
@@ -204,6 +210,11 @@ namespace EsapiRunnerHub.ViewModels
         public void AssignScriptHostExecutable(string path)
         {
             ScriptHostExecutable = path;
+        }
+
+        public void AssignWriteScriptHostExecutable(string path)
+        {
+            WriteScriptHostExecutable = path;
         }
 
         public void AssignWorkingDirectory(string path)

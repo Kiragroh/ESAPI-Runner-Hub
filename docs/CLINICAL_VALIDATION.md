@@ -18,7 +18,12 @@ Automated tests and public screenshots use only synthetic data. Before local cli
 - Verify a required-patient card cannot start without an exact selection.
 - Start several applications for the same patient, then switch patient and repeat.
 - Start a validated direct binary and direct single-file source with the required patient/planning context.
-- For a write-enabled test script, verify the host presents save/discard confirmation on every start and every relaunch; verify failure never saves.
+- Confirm `ReadOnly` launches use `ESAPI-Script-Host.exe` and that this executable has no write-enabled ESAPI approval.
+- Register the exact released `ESAPI-Write-Script-Host.exe` as a standalone write-enabled script, complete institutional evaluation/validation/approval, and record its SHA-256. Any rebuilt binary is a new approval candidate.
+- With a reviewed synthetic write test script, verify `ConfirmSave` uses the write host and presents a fresh save/discard question after normal completion; verify discard, cancel, failure, and abnormal exit never save.
+- Verify `ExecuteAndDiscard` uses the write host, shows the initial write warning, never asks to save, and leaves no persistent patient change.
+- Verify the read host refuses both write modes and the write host refuses a read-only payload before a patient is opened.
+- Confirm every child write script retains its own version, approval evidence, and validation record. Do not treat host approval as approval of dynamically loaded child code.
 
 ## Isolation and paths
 
@@ -34,3 +39,5 @@ Automated tests and public screenshots use only synthetic data. Before local cli
 - Confirm **Run again** reconstructs the current configuration, resolves the saved context afresh, and safely disables entries whose application or context no longer exists.
 
 Record the Eclipse version, ESAPI assembly versions, Hub commit/tag, target application versions, workstation class, test date, tester, and result in the local validation system. Do not commit clinical identifiers or screenshots to the public repository.
+
+Until the released write host has been approved, an authorization failure when a child reaches `BeginModifications()` is the expected clinical-system result. It does not invalidate read-host operation or the synthetic release gates.

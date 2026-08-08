@@ -1,9 +1,19 @@
 {
-  "version": "0.3.2",
-  "build": 21,
-  "lastUpdate": "2026-08-06",
-  "lastChange": "The catalogue includes the write-enabled Export Plan Sum Dose 1.1 workflow with patient-wide plan-sum selection and confirm-save handling.",
+  "version": "0.3.3",
+  "build": 22,
+  "lastUpdate": "2026-08-08",
+  "lastChange": "Read-only and write-enabled direct ESAPI scripts now run through separate mode-locked host executables with an explicit discard-only write mode.",
   "changelog": [
+    {
+      "build": 22,
+      "date": "2026-08-08",
+      "title": "ESAPI Runner Hub 0.3.3",
+      "changes": [
+        "ReadOnly requests use ESAPI-Script-Host.exe, while ConfirmSave and ExecuteAndDiscard requests use the separately approvable ESAPI-Write-Script-Host.exe.",
+        "Each host rejects mismatched modes before an ESAPI session is opened, and only the write host carries the ESAPI write-enabled assembly marker.",
+        "Both host paths are editable in settings.ini and the Settings window; the existing Citrix application entry remains unchanged."
+      ]
+    },
     {
       "build": 21,
       "date": "2026-08-06",

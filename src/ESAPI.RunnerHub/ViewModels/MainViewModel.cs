@@ -557,7 +557,7 @@ namespace EsapiRunnerHub.ViewModels
                 if (mode == LaunchMode.Context)
                 {
                     request = ContextScriptRequestComposer.Compose(card.Definition, patient, selection,
-                        Configuration.Hub, Configuration.Hub.ResolvedScriptHostExecutable);
+                        Configuration.Hub);
                 }
                 else
                 {

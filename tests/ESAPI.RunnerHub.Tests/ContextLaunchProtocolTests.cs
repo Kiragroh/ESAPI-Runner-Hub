@@ -39,7 +39,7 @@ namespace EsapiRunnerHub.Tests
             };
             selection.PlanIdsInScope.Add("P1");
 
-            var request = ContextScriptRequestComposer.Compose(application, patient, selection, configuration.Hub, host);
+            var request = ContextScriptRequestComposer.Compose(application, patient, selection, configuration.Hub);
 
             TestHarness.AssertEqual(string.Empty, request.Arguments);
             TestHarness.AssertFalse(request.LogSummary.Contains(patient.Id));
@@ -75,7 +75,7 @@ namespace EsapiRunnerHub.Tests
             var settings = new HubSettings();
 
             var exception = TestHarness.AssertThrows<InvalidOperationException>(() =>
-                ContextScriptRequestComposer.Compose(application, patient, selection, settings, @"C:\ESAPI-Script-Host.exe"));
+                ContextScriptRequestComposer.Compose(application, patient, selection, settings));
 
             TestHarness.AssertContains(exception.Message, "Plan required");
         }
@@ -101,7 +101,7 @@ namespace EsapiRunnerHub.Tests
             var selection = new ContextSelection { PatientId = patient.Id, CourseId = "C1", PlanId = "P1" };
 
             var request = ContextScriptRequestComposer.Compose(configuration.Applications[0], patient, selection,
-                configuration.Hub, Path.Combine(directory, "ESAPI-Script-Host.exe"));
+                configuration.Hub);
 
             var payload = ContextLaunchPayload.Decode(request.EnvironmentVariables[ContextLaunchPayload.EnvironmentKey]);
             TestHarness.AssertEqual("plugin", payload.ApplicationId);

@@ -1,31 +1,27 @@
 # Final verification checklist
 
-Verified for public release v0.3.2 and the synchronized internal Citrix deployment on 2026-08-06.
+Verified for public release v0.3.3 and the synchronized internal Citrix deployment contract on 2026-08-08.
 
-- [x] Responsive catalogue uses one centered search/category/format filter bar
-- [x] Four 284-DIP application cards fit on a 1586-pixel-wide synthetic smoke window
-- [x] Horizontal catalogue scrolling is disabled
-- [x] Recent activity uses proportional columns and exposes replay availability reasons
-- [x] `Run again` is enabled for a terminal activity with an available application and protected context
-- [x] Privacy mode obscures patient identifiers, treatment context, paths, tooltips, and activity context
-- [x] Synthetic screenshot contains no clinical data
-- [x] Visible Hub, Script Host, Citrix launcher, example settings, and live catalogue copy is English
-- [x] One Citrix Published Application supports the UI and user-scoped exact-context requests
-- [x] Direct context scripts remain isolated in the adjacent Eclipse 18 Script Host
-- [x] STR Hub README actions copy an IP-reachable URL without launching a browser
-- [x] Direct `GetDicomCollectionUKL.cs` source compilation succeeds with Windows Forms support
-- [x] Direct `ExportPlansQuicker.esapi.dll` is configured as a read-only patient-context binary
-- [x] Script Host configuration permits explicitly configured UNC assemblies
-- [x] Write-enabled scripts retain their explicit save boundary
-- [x] `Export Plan Sum Dose` is configured as a write-enabled patient-context binary with its own plan-sum selection and InHouse link
-- [x] Child failures remain isolated from the Hub process
-- [x] Existing live application paths and launch arguments were preserved while the plan-sum dose entry was added
-- [x] Public release package contains no vendor assemblies
-- [x] 143 automated tests pass
+- [x] Existing Hub UI, patient/context selection, privacy mode, activity replay, and catalogue filtering remain intact
+- [x] One stable Citrix Published Application remains the only Runner entry point
+- [x] Read-only direct scripts route only to `ESAPI-Script-Host.exe`
+- [x] `ConfirmSave` and `ExecuteAndDiscard` route only to `ESAPI-Write-Script-Host.exe`
+- [x] Host capability is validated before an ESAPI session or patient is opened
+- [x] Only the write host carries `ESAPIScript(IsWriteable=true)`
+- [x] Child assembly write metadata must match the configured mode
+- [x] `ConfirmSave` saves at most once and only after explicit confirmation
+- [x] `ExecuteAndDiscard` never asks to save and never calls `SaveModifications()`
+- [x] Failure, crash, discard, and abnormal exit never save
+- [x] Context series remain restricted to `WriteMode=ReadOnly`
+- [x] Both host paths are editable in `settings.ini` and the English Settings GUI
+- [x] Missing write-host configuration is an error only when an enabled direct write entry exists
+- [x] Public release package contains both hosts and no vendor assemblies
+- [x] 152 automated tests pass
 - [x] CMD launcher contract passes with 0 failures
 - [x] EXE launcher contract passes with 0 failures
-- [x] Deterministic v0.3.2 ZIP and immutable Citrix binary were created
-- [x] `citrix/current.txt` selects `ESAPI-Runner-Hub.v0.3.2.exe`
-- [ ] Live clinical Eclipse script matrix completed
+- [x] Deterministic v0.3.3 ZIP and immutable Citrix binary were created
+- [x] `citrix/current.txt` selects `ESAPI-Runner-Hub.v0.3.3.exe`
+- [ ] Exact write-host binary registered, evaluated, validated, and approved in Eclipse Script Administration
+- [ ] Live write-script matrix completed with approved synthetic test data
 
-The unchecked item is intentionally a clinical workstation gate. Automated and synthetic evidence does not replace validation of each configured clinical application. The protocol is defined in [CLINICAL_VALIDATION.md](CLINICAL_VALIDATION.md).
+The unchecked items are intentionally clinical workstation gates. Until the released write host is approved, an authorization failure at `BeginModifications()` is expected. Automated and synthetic evidence does not replace local approval or validation of each configured clinical application. The protocol is defined in [CLINICAL_VALIDATION.md](CLINICAL_VALIDATION.md).

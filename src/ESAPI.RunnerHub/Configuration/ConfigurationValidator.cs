@@ -48,6 +48,14 @@ namespace EsapiRunnerHub.Configuration
                 errors.Add("Hub.ContextRequestDirectory is required.");
             }
 
+            if (configuration.Applications.Any(application => application.Enabled &&
+                    (application.LaunchKind == LaunchKind.EsapiContextScript || application.LaunchKind == LaunchKind.EclipsePlugin) &&
+                    application.WriteMode != WriteMode.ReadOnly) &&
+                string.IsNullOrWhiteSpace(configuration.Hub.WriteScriptHostExecutable))
+            {
+                errors.Add("Hub.WriteScriptHostExecutable is required when an enabled direct write application is configured.");
+            }
+
             foreach (var duplicate in configuration.Applications
                 .GroupBy(application => application.Id ?? string.Empty, StringComparer.OrdinalIgnoreCase)
                 .Where(group => group.Count() > 1))
@@ -124,14 +132,14 @@ namespace EsapiRunnerHub.Configuration
                 if (application.LaunchKind != LaunchKind.EsapiContextScript && application.LaunchKind != LaunchKind.EclipsePlugin &&
                     application.WriteMode != WriteMode.ReadOnly)
                 {
-                    errors.Add(prefix + "WriteMode=ConfirmSave is supported only for EsapiContextScript entries.");
+                    errors.Add(prefix + "WriteMode values other than ReadOnly are supported only for direct ESAPI context entries.");
                 }
 
                 if (application.LaunchKind == LaunchKind.EclipsePlugin &&
                     application.ContextRequirement == ContextRequirement.None &&
                     application.WriteMode != WriteMode.ReadOnly)
                 {
-                    errors.Add(prefix + "WriteMode=ConfirmSave requires a configured private context launch.");
+                    errors.Add(prefix + "WriteMode values other than ReadOnly require a configured private context launch.");
                 }
 
                 if (application.ContextRequirement == ContextRequirement.None &&

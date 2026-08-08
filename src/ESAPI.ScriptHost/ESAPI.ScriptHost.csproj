@@ -55,6 +55,7 @@
     <Compile Include="Host\EsapiEssentialsInvoker.cs" />
     <Compile Include="Host\EsapiSession.cs" />
     <Compile Include="Host\SaveDecision.cs" />
+    <Compile Include="Host\ScriptHostCapability.cs" />
     <Compile Include="Host\ScriptAssemblyScope.cs" />
     <Compile Include="Host\ScriptHostApplication.cs" />
     <Compile Include="Host\ScriptMetadataInspector.cs" />

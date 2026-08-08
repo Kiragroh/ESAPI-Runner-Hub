@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnerFixture", "tests\Runn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESAPI.ScriptHost", "src\ESAPI.ScriptHost\ESAPI.ScriptHost.csproj", "{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESAPI.WriteScriptHost", "src\ESAPI.WriteScriptHost\ESAPI.WriteScriptHost.csproj", "{8A9512A1-7AD4-4D72-BB9B-4C0AC0357EF8}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeEsapiEssentials", "tests\FakeEsapiEssentials\FakeEsapiEssentials.csproj", "{5EA87AC2-6183-4EB9-A916-DB4505E31346}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptFixtures", "tests\ScriptFixtures\ScriptFixtures.csproj", "{6A9228D4-5F34-456F-9EDF-9B311E588A97}"
@@ -44,6 +46,10 @@ Global
 		{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}.Debug|x64.Build.0 = Debug|x64
 		{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}.Release|x64.ActiveCfg = Release|x64
 		{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}.Release|x64.Build.0 = Release|x64
+		{8A9512A1-7AD4-4D72-BB9B-4C0AC0357EF8}.Debug|x64.ActiveCfg = Debug|x64
+		{8A9512A1-7AD4-4D72-BB9B-4C0AC0357EF8}.Debug|x64.Build.0 = Debug|x64
+		{8A9512A1-7AD4-4D72-BB9B-4C0AC0357EF8}.Release|x64.ActiveCfg = Release|x64
+		{8A9512A1-7AD4-4D72-BB9B-4C0AC0357EF8}.Release|x64.Build.0 = Release|x64
 		{5EA87AC2-6183-4EB9-A916-DB4505E31346}.Debug|x64.ActiveCfg = Debug|x64
 		{5EA87AC2-6183-4EB9-A916-DB4505E31346}.Debug|x64.Build.0 = Debug|x64
 		{5EA87AC2-6183-4EB9-A916-DB4505E31346}.Release|x64.ActiveCfg = Release|x64

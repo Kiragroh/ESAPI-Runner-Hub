@@ -17,11 +17,15 @@ namespace EsapiScriptHost
                 var encoded = Environment.GetEnvironmentVariable(ContextLaunchPayload.EnvironmentKey);
                 Environment.SetEnvironmentVariable(ContextLaunchPayload.EnvironmentKey, null);
                 payload = ContextLaunchPayload.Decode(encoded);
-                if (payload.WriteMode == WriteMode.ConfirmSave)
+                ScriptHostCapability.Validate(ScriptHostCapability.Current, payload.WriteMode);
+                if (payload.WriteMode != WriteMode.ReadOnly)
                 {
+                    var behavior = payload.WriteMode == WriteMode.ConfirmSave
+                        ? "After successful completion, you will be asked separately whether to save the changes."
+                        : "Any in-memory changes will be discarded automatically after the script finishes.";
                     var start = MessageBox.Show(
-                        "This script may modify the open patient. After successful completion, you will be asked separately whether to save the changes.",
-                        "ESAPI Script Host", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+                        "This script may modify the open patient. " + behavior,
+                        HostTitle, MessageBoxButton.OKCancel, MessageBoxImage.Warning);
                     if (start != MessageBoxResult.OK) return 2;
                 }
 
@@ -39,7 +43,7 @@ namespace EsapiScriptHost
                     "The script ended without saving.\n\nFailure phase: " + stage +
                     "\nFailure code: " + reasonCode + "\nFailure type: " + root.GetType().Name +
                     "\n\nTechnical details were recorded.",
-                    "ESAPI Script Host", MessageBoxButton.OK, MessageBoxImage.Error);
+                    HostTitle, MessageBoxButton.OK, MessageBoxImage.Error);
                 return 10;
             }
         }
@@ -48,9 +52,19 @@ namespace EsapiScriptHost
         {
             var result = MessageBox.Show(
                 "The script completed normally. Save the changes permanently?\n\nNo or Cancel discards the changes.",
-                "ESAPI Script Host", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning,
+                HostTitle, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning,
                 MessageBoxResult.No);
             return result == MessageBoxResult.Yes ? SaveChoice.Save : SaveChoice.Discard;
+        }
+
+        private static string HostTitle
+        {
+            get
+            {
+                return ScriptHostCapability.Current == ScriptHostKind.WriteEnabled
+                    ? "ESAPI Write Script Host"
+                    : "ESAPI Script Host";
+            }
         }
     }
 }

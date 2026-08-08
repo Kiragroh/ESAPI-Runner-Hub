@@ -9,11 +9,23 @@ namespace EsapiScriptHost.Host
     public sealed class ScriptHostApplication
     {
         public const string StageDataKey = "ESAPI.RunnerHub.SafeFailureStage";
+        private readonly ScriptHostKind hostKind;
+
+        public ScriptHostApplication()
+            : this(ScriptHostCapability.Current)
+        {
+        }
+
+        public ScriptHostApplication(ScriptHostKind hostKind)
+        {
+            this.hostKind = hostKind;
+        }
 
         public void Run(ContextLaunchPayload payload, Func<SaveChoice> saveChoice)
         {
             if (payload == null) throw new ArgumentNullException(nameof(payload));
             if (saveChoice == null) throw new ArgumentNullException(nameof(saveChoice));
+            ScriptHostCapability.Validate(hostKind, payload.WriteMode);
             var stage = "Initialize WPF";
             try
             {

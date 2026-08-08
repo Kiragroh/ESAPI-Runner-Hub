@@ -24,10 +24,10 @@ namespace EsapiScriptHost.Host
         public static void ValidateWriteMode(string scriptPath, WriteMode writeMode, IEnumerable<string> references = null)
         {
             var writeable = IsWriteable(scriptPath, references);
-            if (writeable && writeMode != WriteMode.ConfirmSave)
-                throw new InvalidOperationException("The script is write-enabled but save confirmation is not configured.");
-            if (!writeable && writeMode == WriteMode.ConfirmSave)
-                throw new InvalidOperationException("Save confirmation requires explicit write-enabled script metadata.");
+            if (writeable && writeMode == WriteMode.ReadOnly)
+                throw new InvalidOperationException("The script is write-enabled but a write mode is not configured.");
+            if (!writeable && writeMode != WriteMode.ReadOnly)
+                throw new InvalidOperationException("A write mode requires explicit write-enabled script metadata.");
         }
     }
 }

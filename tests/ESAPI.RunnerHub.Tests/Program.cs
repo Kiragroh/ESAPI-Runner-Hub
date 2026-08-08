@@ -6,6 +6,7 @@ namespace EsapiRunnerHub.Tests
         private static int Main()
         {
             ProjectShapeTests.Register();
+            DualScriptHostTests.Register();
             ConfigurationTests.Register();
             ContextConfigurationTests.Register();
             CatalogConfigurationTests.Register();

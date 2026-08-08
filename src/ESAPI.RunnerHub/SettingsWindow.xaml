@@ -79,10 +79,15 @@
                                 <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseTypes_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
                                 <TextBox Text="{Binding EsapiTypesAssembly, UpdateSourceTrigger=PropertyChanged}" />
                             </DockPanel>
-                            <TextBlock Text="Isolated script host executable" FontWeight="SemiBold" />
+                            <TextBlock Text="Read-only script host executable" FontWeight="SemiBold" />
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseHost_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
-                                <TextBox Text="{Binding ScriptHostExecutable, UpdateSourceTrigger=PropertyChanged}" ToolTip="First-party ESAPI-Script-Host.exe shipped beside the Hub." />
+                                <TextBox Text="{Binding ScriptHostExecutable, UpdateSourceTrigger=PropertyChanged}" ToolTip="Read-only ESAPI-Script-Host.exe shipped beside the Hub." />
+                            </DockPanel>
+                            <TextBlock Text="Write-enabled script host executable" FontWeight="SemiBold" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseWriteHost_Click" Style="{StaticResource SoftAction}" Margin="8,4,0,10" />
+                                <TextBox Text="{Binding WriteScriptHostExecutable, UpdateSourceTrigger=PropertyChanged}" ToolTip="Separately approved ESAPI-Write-Script-Host.exe for explicit write modes." />
                             </DockPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>

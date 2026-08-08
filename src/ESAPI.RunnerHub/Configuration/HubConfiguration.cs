@@ -13,6 +13,7 @@ namespace EsapiRunnerHub.Configuration
             PathProbeTimeoutMs = 1500;
             LogDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs";
             ScriptHostExecutable = "ESAPI-Script-Host.exe";
+            WriteScriptHostExecutable = "ESAPI-Write-Script-Host.exe";
             HistoryFile = @"%LOCALAPPDATA%\ESAPI Runner Hub\launch-history.json";
             ContextRequestDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs\requests";
             HistoryRetentionDays = 30;
@@ -29,6 +30,7 @@ namespace EsapiRunnerHub.Configuration
         public int PathProbeTimeoutMs { get; set; }
         public string LogDirectory { get; set; }
         public string ScriptHostExecutable { get; set; }
+        public string WriteScriptHostExecutable { get; set; }
         public string StrHubBaseUrl { get; set; }
         public string HistoryFile { get; set; }
         public string ContextRequestDirectory { get; set; }
@@ -36,6 +38,7 @@ namespace EsapiRunnerHub.Configuration
         public int HistoryMaxEntries { get; set; }
         public string ResolvedLogDirectory { get; internal set; }
         public string ResolvedScriptHostExecutable { get; internal set; }
+        public string ResolvedWriteScriptHostExecutable { get; internal set; }
         public string ResolvedHistoryFile { get; internal set; }
         public string ResolvedContextRequestDirectory { get; internal set; }
         public IDictionary<string, string> ExtraValues { get; private set; }
@@ -66,6 +69,7 @@ namespace EsapiRunnerHub.Configuration
             Hub.ResolvedEsapiTypesAssembly = ResolvePath(baseDirectory, Hub.EsapiTypesAssembly);
             Hub.ResolvedLogDirectory = ResolvePath(baseDirectory, Hub.LogDirectory);
             Hub.ResolvedScriptHostExecutable = ResolvePath(baseDirectory, Hub.ScriptHostExecutable);
+            Hub.ResolvedWriteScriptHostExecutable = ResolvePath(baseDirectory, Hub.WriteScriptHostExecutable);
             Hub.ResolvedHistoryFile = ResolvePath(baseDirectory, Hub.HistoryFile);
             Hub.ResolvedContextRequestDirectory = ResolvePath(baseDirectory, Hub.ContextRequestDirectory);
             foreach (var application in Applications)

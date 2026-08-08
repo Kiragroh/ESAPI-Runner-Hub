@@ -41,6 +41,8 @@ namespace EsapiRunnerHub.Tests
             definition.LaunchKind = LaunchKind.EsapiContextScript;
             definition.WriteMode = WriteMode.ConfirmSave;
             TestHarness.AssertEqual(ApplicationAccessMode.WriteEnabled, ApplicationMetadata.AccessFor(definition));
+            definition.WriteMode = WriteMode.ExecuteAndDiscard;
+            TestHarness.AssertEqual(ApplicationAccessMode.WriteEnabled, ApplicationMetadata.AccessFor(definition));
             definition.WriteMode = WriteMode.ReadOnly;
             TestHarness.AssertEqual(ApplicationAccessMode.ReadOnly, ApplicationMetadata.AccessFor(definition));
         }

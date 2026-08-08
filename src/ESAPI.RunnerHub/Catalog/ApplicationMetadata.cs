@@ -24,7 +24,7 @@ namespace EsapiRunnerHub.Catalog
             if (definition == null) throw new ArgumentNullException(nameof(definition));
             if (definition.AccessMode != ApplicationAccessMode.Auto) return definition.AccessMode;
             if (definition.LaunchKind == LaunchKind.EsapiContextScript)
-                return definition.WriteMode == WriteMode.ConfirmSave
+                return definition.WriteMode != WriteMode.ReadOnly
                     ? ApplicationAccessMode.WriteEnabled
                     : ApplicationAccessMode.ReadOnly;
             return ApplicationAccessMode.Unknown;

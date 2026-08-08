@@ -14,8 +14,7 @@ namespace EsapiRunnerHub.Launching
             ApplicationDefinition application,
             PatientRecord patient,
             ContextSelection selection,
-            HubSettings hub,
-            string hostExecutablePath)
+            HubSettings hub)
         {
             if (application == null) throw new ArgumentNullException(nameof(application));
             if (selection == null) throw new ArgumentNullException(nameof(selection));
@@ -53,7 +52,7 @@ namespace EsapiRunnerHub.Launching
                 PlanSumIdsInScope = selection.PlanSumIdsInScope.ToList(),
                 ExtraReferencePaths = ResolveExtraReferences(application).ToList()
             };
-            var hostPath = Path.GetFullPath(hostExecutablePath);
+            var hostPath = Path.GetFullPath(ScriptHostSelector.Select(application.WriteMode, hub));
             var request = new LaunchRequest(application.Id, hostPath, Path.GetDirectoryName(hostPath), string.Empty);
             request.EnvironmentVariables[ContextLaunchPayload.EnvironmentKey] = payload.Encode();
             request.LogSummary = "start app=" + application.Id + " context=yes transport=environment";

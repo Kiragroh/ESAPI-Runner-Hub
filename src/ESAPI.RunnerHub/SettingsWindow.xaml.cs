@@ -36,8 +36,14 @@ namespace EsapiRunnerHub
 
         private void BrowseHost_Click(object sender, RoutedEventArgs e)
         {
-            var path = BrowseFile("ESAPI Script Host|ESAPI-Script-Host.exe|Executable applications|*.exe");
+            var path = BrowseFile("Read-only ESAPI Script Host|ESAPI-Script-Host.exe|Executable applications|*.exe");
             if (path != null) viewModel.AssignScriptHostExecutable(path);
+        }
+
+        private void BrowseWriteHost_Click(object sender, RoutedEventArgs e)
+        {
+            var path = BrowseFile("Write-enabled ESAPI Script Host|ESAPI-Write-Script-Host.exe|Executable applications|*.exe");
+            if (path != null) viewModel.AssignWriteScriptHostExecutable(path);
         }
 
         private void BrowseExecutable_Click(object sender, RoutedEventArgs e)

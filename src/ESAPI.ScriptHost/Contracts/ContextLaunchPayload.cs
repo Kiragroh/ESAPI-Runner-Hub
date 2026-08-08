@@ -16,7 +16,8 @@ namespace EsapiScriptHost.Contracts
     public enum WriteMode
     {
         ReadOnly,
-        ConfirmSave
+        ConfirmSave,
+        ExecuteAndDiscard
     }
 
     [DataContract]

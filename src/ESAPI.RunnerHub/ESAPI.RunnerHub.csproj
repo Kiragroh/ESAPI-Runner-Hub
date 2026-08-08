@@ -92,6 +92,7 @@
     <Compile Include="Launching\ChildProcessLauncher.cs" />
     <Compile Include="Launching\ContextLaunchPayload.cs" />
     <Compile Include="Launching\ContextScriptRequestComposer.cs" />
+    <Compile Include="Launching\ScriptHostSelector.cs" />
     <Compile Include="Launching\ContextCommandLineRunner.cs" />
     <Compile Include="Launching\LaunchRequest.cs" />
     <Compile Include="Launching\PathProbe.cs" />

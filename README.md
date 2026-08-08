@@ -28,9 +28,10 @@ flowchart LR
     HUB --> A["Runner EXE"]
     HUB --> B["Standalone EXE"]
     HUB --> C["Patient-independent EXE"]
-    HUB --> HOST["Isolated ESAPI script host"]
-    HOST --> DLL["Compiled .esapi.dll"]
-    HOST --> CS["Cached single-file .cs"]
+    HUB --> ROHOST["Read-only host"]
+    HUB --> WHOST["Approved write host"]
+    ROHOST --> READ["Read-only .dll or cached .cs"]
+    WHOST --> WRITE["Write-enabled .dll or cached .cs"]
 ```
 
 ## Features
@@ -39,24 +40,25 @@ flowchart LR
 - No retained ESAPI patient, course, plan, or `ScriptContext` object.
 - Optional patient-ID transfer by argument or child-only environment variable.
 - Applications that require, optionally accept, or ignore a patient context.
-- Direct context launch for supported `.esapi.dll` and `.cs` scripts through a separate Eclipse 18 host process, while reference-only cards remain available for scripts that must still start inside Eclipse.
+- Direct context launch for supported `.esapi.dll` and `.cs` scripts through separate mode-locked Eclipse 18 read-only and write-enabled host processes, while reference-only cards remain available for scripts that must still start inside Eclipse.
 - Reusable selection of course, plan, plan sum, structure set, or image, including scripts that work without a plan.
 - Catalogue filters for standalone, single-file, and binary tools, plus visible artifact type, read/write intent, compact source path, and an optional action that copies the matching STR Hub README URL without starting a browser.
 - A DPAPI-protected local activity history with current status and **Run again**; context identifiers are encrypted for the current Windows account and commands are always recomposed from current settings.
-- Explicit save/discard confirmation after every write-enabled direct context script.
+- Automatic host selection from `WriteMode`: `ReadOnly` uses the unprivileged host; `ConfirmSave` and `ExecuteAndDiscard` use the separately approved write host.
+- Explicit save/discard confirmation for `ConfirmSave`; `ExecuteAndDiscard` runs with write authorization but closes without saving and without a save question.
 - A configured write-enabled plan-sum workflow can receive only the patient context, perform its own transparent plan-sum/component review, and return to the same save/discard boundary.
 - Multiple sequential or overlapping child processes; non-zero exits and crashes do not close the Hub.
 - Independent asynchronous path checks with explicit missing/local and unavailable/network states.
 - A graphical settings editor for the same portable `settings.ini` used at runtime.
 - Privacy-safe per-process technical logs without patient names, IDs, search text, expanded arguments, environment values, or child output; Script Host failures add only their execution phase, safe reason code, and exception type. A bounded background queue keeps unavailable network storage off the UI and launch path, while a local Script Host copy remains available if the configured central path fails.
 - Synthetic `--offline-ui-smoke` mode for screenshots and UI checks.
-- x64 .NET Framework 4.8 launcher and isolated script-host binaries with a shared window/taskbar icon.
+- x64 .NET Framework 4.8 launcher and two isolated script-host binaries with a shared window/taskbar icon.
 
 ## Install and run
 
 1. Download the Windows x64 release ZIP and extract it to a normal folder.
 2. Copy `settings.example.ini` to `settings.ini` next to `ESAPI-Runner-Hub.exe`.
-3. Open **Settings** in the Hub and select the local ESAPI API/Types assemblies and application EXEs. Set **STR Hub base URL** to an IP address or DNS name reachable from the Citrix session; `localhost` refers to the VDA and is therefore unsuitable for a remote Hub. A valid configured API pair is used first; if it is missing or outdated, the Hub automatically tries the highest complete local Varian RTM installation under Program Files.
+3. Open **Settings** in the Hub and select the local ESAPI API/Types assemblies, both script hosts, and application EXEs. Set **STR Hub base URL** to an IP address or DNS name reachable from the Citrix session; `localhost` refers to the VDA and is therefore unsuitable for a remote Hub. A valid configured API pair is used first; if it is missing or outdated, the Hub automatically tries the highest complete local Varian RTM installation under Program Files.
 4. Save, then search for a patient or start an application without a patient as permitted by its card.
 
 An alternative settings file can be supplied explicitly:
@@ -125,11 +127,11 @@ For a published Citrix application, use `citrix\ESAPI-Runner-Hub.CitrixLauncher.
 
 The launcher can forward a Runner option supplied directly on the VDA, but productive automation does not assume that Citrix Workspace transports client-side command-line parameters. Exact workstation-driven tests use the shared request plus per-user pending marker described above and open the ordinary published shortcut without arguments. Argument contents are never logged. The legacy `cmd.exe` plus `citrix\Start-ESAPI-Runner-Hub.cmd` route remains available as a no-argument fallback.
 
-New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.2.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
+New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.3.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
 
 ## Configuration
 
-Paths may be absolute, relative to the INI file, or use Windows environment variables. Executable targets start directly; explicitly configured context scripts are delegated to the adjacent `ESAPI-Script-Host.exe`. Arbitrary shell text and URLs are not launch targets.
+Paths may be absolute, relative to the INI file, or use Windows environment variables. Executable targets start directly. Explicitly configured context scripts are delegated to `ScriptHostExecutable` for `ReadOnly` or `WriteScriptHostExecutable` for either write mode. Arbitrary shell text, URLs, and request-supplied host paths are not launch targets.
 
 Patient modes:
 
@@ -149,9 +151,11 @@ Launch kinds:
 - `EclipsePlugin`: catalogues a `.esapi.dll` or `.cs` plug-in for Eclipse under **Tools > Scripts**. When `PatientMode=Required` plus a context contract is configured, the same card also starts it through the isolated host; otherwise it remains a reference-only card.
 - `EsapiContextScript`: starts a supported `.esapi.dll` or `.cs` script in the isolated host using the selected patient/planning context. `ContextRequirement`, `ScopeMode`, `ScriptEngine`, and `WriteMode` define the contract.
 
-Catalogue metadata can be explicit (`ArtifactKind`, `AccessMode`, and `HubScriptId`) or inferred conservatively. The live `settings.ini` remains editable in the Settings window, including ESAPI assembly paths, script-host path, STR Hub base URL, history path, and retention.
+Catalogue metadata can be explicit (`ArtifactKind`, `AccessMode`, and `HubScriptId`) or inferred conservatively. The live `settings.ini` remains editable in the Settings window, including ESAPI assembly paths, read-only and write-enabled script-host paths, STR Hub base URL, history path, and retention.
 
-Single-file sources are compiled into a per-user local cache keyed by source and reference content. Compiled binaries and sources use the same context resolver. A write-enabled entry must declare `WriteMode=ConfirmSave`; the host never saves automatically and asks again on every launch and relaunch.
+Single-file sources are compiled into a per-user local cache keyed by source and reference content. Compiled binaries and sources use the same context resolver. A write-enabled child must carry `ESAPIScript(IsWriteable=true)` and declare either `WriteMode=ConfirmSave` or `WriteMode=ExecuteAndDiscard`. The read host rejects both write modes; the write host rejects `ReadOnly`. Context series remain read-only.
+
+`ESAPI-Write-Script-Host.exe` is a standalone write-enabled ESAPI executable and must be registered, evaluated, validated, and approved in Eclipse Script Administration before clinical use. Rebuilding that EXE creates a new approval candidate. Catalogue or `settings.ini` changes do not rebuild it. A child write script remains independently versioned and governed; the host is not an approval bypass. `ExecuteAndDiscard` is not a preview mode: it may perform in-memory modifications and therefore still requires the approved write scope. A true preview must not call `BeginModifications()`.
 
 The fully expanded command line and environment value are never displayed or logged. See [settings.example.ini](settings.example.ini) for complete examples.
 

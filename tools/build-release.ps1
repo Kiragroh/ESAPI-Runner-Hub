@@ -19,6 +19,13 @@ $buildOutput = Join-Path $stagingRoot 'build'
 $packageRoot = Join-Path $stagingRoot 'package'
 $stagedZip = Join-Path $stagingRoot $zipName
 $esapiReferenceDirectory = [System.IO.Path]::GetFullPath((Join-Path $repoRoot '..\_Assets'))
+if (-not (Test-Path -LiteralPath (Join-Path $esapiReferenceDirectory 'VMS.TPS.Common.Model.API.dll') -PathType Leaf)) {
+    $ancestor = [System.IO.DirectoryInfo]::new($repoRoot)
+    while ($ancestor -and -not (Test-Path -LiteralPath (Join-Path $ancestor.FullName '_Assets\VMS.TPS.Common.Model.API.dll') -PathType Leaf)) {
+        $ancestor = $ancestor.Parent
+    }
+    if ($ancestor) { $esapiReferenceDirectory = Join-Path $ancestor.FullName '_Assets' }
+}
 $esapiApiReference = Join-Path $esapiReferenceDirectory 'VMS.TPS.Common.Model.API.dll'
 $esapiTypesReference = Join-Path $esapiReferenceDirectory 'VMS.TPS.Common.Model.Types.dll'
 foreach ($reference in $esapiApiReference, $esapiTypesReference) {
@@ -113,6 +120,8 @@ try {
         (Join-Path $buildOutput 'ESAPI-Runner-Hub.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.exe')
         (Join-Path $buildOutput 'ESAPI-Script-Host.exe') = (Join-Path $packageRoot 'ESAPI-Script-Host.exe')
         (Join-Path $buildOutput 'ESAPI-Script-Host.exe.config') = (Join-Path $packageRoot 'ESAPI-Script-Host.exe.config')
+        (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe') = (Join-Path $packageRoot 'ESAPI-Write-Script-Host.exe')
+        (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe.config') = (Join-Path $packageRoot 'ESAPI-Write-Script-Host.exe.config')
         (Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe') = (Join-Path $packageRoot 'ESAPI-Runner-Hub.CitrixLauncher.exe')
         (Join-Path $repoRoot 'settings.example.ini') = (Join-Path $packageRoot 'settings.example.ini')
         (Join-Path $repoRoot 'README.md') = (Join-Path $packageRoot 'README.md')
@@ -148,6 +157,12 @@ try {
     Copy-FileWithRetry `
         -Source (Join-Path $buildOutput 'ESAPI-Script-Host.exe.config') `
         -Destination (Join-Path $distRoot 'ESAPI-Script-Host.exe.config')
+    Copy-FileWithRetry `
+        -Source (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe') `
+        -Destination (Join-Path $distRoot 'ESAPI-Write-Script-Host.exe')
+    Copy-FileWithRetry `
+        -Source (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe.config') `
+        -Destination (Join-Path $distRoot 'ESAPI-Write-Script-Host.exe.config')
     Copy-FileWithRetry `
         -Source (Join-Path $buildOutput 'ESAPI-Runner-Hub.CitrixLauncher.exe') `
         -Destination (Join-Path $repoRoot 'citrix\ESAPI-Runner-Hub.CitrixLauncher.exe')

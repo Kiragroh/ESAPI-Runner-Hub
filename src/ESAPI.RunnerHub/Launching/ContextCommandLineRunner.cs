@@ -146,7 +146,7 @@ namespace EsapiRunnerHub.Launching
                         ? null
                         : new PatientRecord(selection.PatientId, string.Empty, string.Empty, 0);
                     var request = ContextScriptRequestComposer.Compose(application, patient, selection,
-                        configuration.Hub, configuration.Hub.ResolvedScriptHostExecutable);
+                        configuration.Hub);
                     var process = new ChildProcessLauncher().Start(request);
                     process.WaitForExit(Timeout.Infinite);
                     var exitCode = process.ExitCode ?? 1;

@@ -55,13 +55,23 @@ namespace EsapiRunnerHub.ViewModels
             {
                 if (Definition.LaunchKind == LaunchKind.EclipsePlugin)
                     return SupportsContextLaunch
-                        ? (Definition.WriteMode == WriteMode.ConfirmSave ? "Eclipse plug-in · direct context · save confirmation" : "Eclipse plug-in · direct context · read-only")
+                        ? "Eclipse plug-in · direct context · " + WriteModeLabel
                         : "Eclipse plug-in";
                 if (Definition.LaunchKind == LaunchKind.EsapiContextScript)
-                    return Definition.WriteMode == WriteMode.ConfirmSave ? "Context script · save confirmation" : "Context script · read-only";
+                    return "Context script · " + WriteModeLabel;
                 if (Definition.PatientMode == PatientMode.Required) return "Patient required";
                 if (Definition.PatientMode == PatientMode.Optional && Definition.PatientTransport != PatientTransport.None) return "Patient optional";
                 return "No patient transfer";
+            }
+        }
+
+        private string WriteModeLabel
+        {
+            get
+            {
+                if (Definition.WriteMode == WriteMode.ConfirmSave) return "save confirmation";
+                if (Definition.WriteMode == WriteMode.ExecuteAndDiscard) return "execute and discard";
+                return "read-only";
             }
         }
 

@@ -2,6 +2,24 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.3] - 2026-08-08
+
+### Added
+
+- A separate `ESAPI-Write-Script-Host.exe` carries the ESAPI write-enabled assembly marker and provides a stable executable approval identity for reviewed write workflows.
+- `WriteMode=ExecuteAndDiscard` executes inside the write-authorized host but always closes without saving and never presents a save question.
+- `WriteScriptHostExecutable` is editable beside the existing read-only host path in `settings.ini` and the Settings window.
+
+### Safety
+
+- `ReadOnly` routes only to `ESAPI-Script-Host.exe`; `ConfirmSave` and `ExecuteAndDiscard` route only to the write host.
+- Both executables reject a mismatched mode before opening an ESAPI session. Child script write metadata must agree with the selected mode, and context series remain read-only.
+- The write host and each child write script retain their own institutional review, versioning, validation, and approval requirements.
+
+### Validation
+
+- Automated coverage verifies both path contracts, automatic routing, fail-closed host capabilities, write metadata, discard behavior, assembly markers, Settings integration, and release packaging.
+
 ## [0.3.2] - 2026-08-06
 
 ### Added

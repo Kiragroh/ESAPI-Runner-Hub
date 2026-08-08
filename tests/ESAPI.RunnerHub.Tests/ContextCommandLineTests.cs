@@ -202,8 +202,11 @@ namespace EsapiRunnerHub.Tests
                     "{\"Contexts\":[{\"PatientId\":\"SYN-WRITE\",\"CourseId\":\"C1\",\"PlanId\":\"P1\"}]}");
                 try
                 {
-                    var arguments = new[] { "--run-contexts", "write", "--settings", settingsPath };
-                    TestHarness.AssertEqual(2, ContextCommandLineRunner.Run(arguments));
+                    foreach (var applicationId in new[] { "write", "discard" })
+                    {
+                        var arguments = new[] { "--run-contexts", applicationId, "--settings", settingsPath };
+                        TestHarness.AssertEqual(2, ContextCommandLineRunner.Run(arguments));
+                    }
                     TestHarness.AssertFalse(File.Exists(sequencePath));
                 }
                 finally
@@ -239,6 +242,10 @@ namespace EsapiRunnerHub.Tests
                     "[Application.write]\nName=Write\nExecutable=Tool.esapi.dll" +
                     "\nLaunchKind=EsapiContextScript\nScriptEngine=Eclipse\nContextRequirement=Plan" +
                     "\nScopeMode=Single\nWriteMode=ConfirmSave\nPatientMode=Required\nPatientTransport=None\nEnabled=true\n");
+                File.AppendAllText(settingsPath,
+                    "[Application.discard]\nName=Discard\nExecutable=Tool.esapi.dll" +
+                    "\nLaunchKind=EsapiContextScript\nScriptEngine=Eclipse\nContextRequirement=Plan" +
+                    "\nScopeMode=Single\nWriteMode=ExecuteAndDiscard\nPatientMode=Required\nPatientTransport=None\nEnabled=true\n");
                 action(settingsPath, historyPath);
             }
             finally

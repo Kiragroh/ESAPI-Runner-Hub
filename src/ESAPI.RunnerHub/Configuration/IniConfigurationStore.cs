@@ -88,6 +88,7 @@ namespace EsapiRunnerHub.Configuration
             Append(builder, "PathProbeTimeoutMs", configuration.Hub.PathProbeTimeoutMs.ToString(CultureInfo.InvariantCulture));
             Append(builder, "LogDirectory", configuration.Hub.LogDirectory);
             Append(builder, "ScriptHostExecutable", configuration.Hub.ScriptHostExecutable);
+            Append(builder, "WriteScriptHostExecutable", configuration.Hub.WriteScriptHostExecutable);
             Append(builder, "StrHubBaseUrl", configuration.Hub.StrHubBaseUrl);
             Append(builder, "HistoryFile", configuration.Hub.HistoryFile);
             Append(builder, "ContextRequestDirectory", configuration.Hub.ContextRequestDirectory);
@@ -184,6 +185,7 @@ namespace EsapiRunnerHub.Configuration
                     case "pathprobetimeoutms": hub.PathProbeTimeoutMs = ParseInt(pair.Key, pair.Value); break;
                     case "logdirectory": hub.LogDirectory = pair.Value; break;
                     case "scripthostexecutable": hub.ScriptHostExecutable = pair.Value; break;
+                    case "writescripthostexecutable": hub.WriteScriptHostExecutable = pair.Value; break;
                     case "strhubbaseurl": hub.StrHubBaseUrl = pair.Value; break;
                     case "historyfile": hub.HistoryFile = pair.Value; break;
                     case "contextrequestdirectory": hub.ContextRequestDirectory = pair.Value; break;

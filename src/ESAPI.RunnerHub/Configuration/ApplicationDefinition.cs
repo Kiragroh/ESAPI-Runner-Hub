@@ -54,7 +54,8 @@ namespace EsapiRunnerHub.Configuration
     public enum WriteMode
     {
         ReadOnly,
-        ConfirmSave
+        ConfirmSave,
+        ExecuteAndDiscard
     }
 
     public enum ApplicationArtifactKind

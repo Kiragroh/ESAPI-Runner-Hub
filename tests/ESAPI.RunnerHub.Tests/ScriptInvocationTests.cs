@@ -13,6 +13,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("classic Eclipse script receives verified Eclipse 18 context", InvokesEclipse);
             TestHarness.Test("write metadata must agree with configured write mode", ValidatesWriteMetadata);
             TestHarness.Test("successful writable host run saves exactly once", SuccessfulRunSavesOnce);
+            TestHarness.Test("execute-and-discard writable host run never asks or saves", ExecuteAndDiscardNeverAsksOrSaves);
             TestHarness.Test("failed writable host run never saves", FailedRunNeverSaves);
             TestHarness.Test("script host supplies a WPF application for UI plug-ins", SuppliesWpfApplication);
         }
@@ -42,6 +43,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertThrows<InvalidOperationException>(() =>
                 ScriptMetadataInspector.ValidateWriteMode(script, WriteMode.ReadOnly));
             ScriptMetadataInspector.ValidateWriteMode(script, WriteMode.ConfirmSave);
+            ScriptMetadataInspector.ValidateWriteMode(script, WriteMode.ExecuteAndDiscard);
         }
 
         private static void SuccessfulRunSavesOnce()
@@ -58,7 +60,7 @@ namespace EsapiRunnerHub.Tests
                 payload.ScriptEngine = ScriptEngine.Eclipse;
                 payload.WriteMode = WriteMode.ConfirmSave;
 
-                new ScriptHostApplication().Run(payload, () => SaveChoice.Save);
+                new ScriptHostApplication(ScriptHostKind.WriteEnabled).Run(payload, () => SaveChoice.Save);
 
                 TestHarness.AssertEqual(1, File.ReadAllLines(saveMarker).Length);
             }
@@ -82,7 +84,7 @@ namespace EsapiRunnerHub.Tests
                 payload.WriteMode = WriteMode.ConfirmSave;
 
                 var failure = TestHarness.AssertThrows<System.Reflection.TargetInvocationException>(() =>
-                    new ScriptHostApplication().Run(payload, () => SaveChoice.Save));
+                    new ScriptHostApplication(ScriptHostKind.WriteEnabled).Run(payload, () => SaveChoice.Save));
 
                 TestHarness.AssertFalse(File.Exists(saveMarker));
                 TestHarness.AssertEqual("Run script", failure.Data[ScriptHostApplication.StageDataKey] as string);
@@ -90,6 +92,38 @@ namespace EsapiRunnerHub.Tests
             finally
             {
                 ClearMarker("FAKE_VMS_SAVE_MARKER", saveMarker);
+            }
+        }
+
+        private static void ExecuteAndDiscardNeverAsksOrSaves()
+        {
+            var saveMarker = NewMarker("discard-save");
+            var scriptMarker = NewMarker("discard-script");
+            var saveQuestionCount = 0;
+            Environment.SetEnvironmentVariable("FAKE_VMS_SAVE_MARKER", saveMarker);
+            Environment.SetEnvironmentVariable("SCRIPT_FIXTURE_MARKER", scriptMarker);
+            try
+            {
+                var payload = ScriptHostCoreTests.CreatePayloadForInvocation();
+                payload.ScriptPath = FixtureScriptPath();
+                payload.EntryType = "VMS.TPS.EclipseScript";
+                payload.ScriptEngine = ScriptEngine.Eclipse;
+                payload.WriteMode = WriteMode.ExecuteAndDiscard;
+
+                new ScriptHostApplication(ScriptHostKind.WriteEnabled).Run(payload, () =>
+                {
+                    saveQuestionCount++;
+                    return SaveChoice.Save;
+                });
+
+                TestHarness.AssertEqual(0, saveQuestionCount);
+                TestHarness.AssertFalse(File.Exists(saveMarker));
+                TestHarness.AssertTrue(File.Exists(scriptMarker));
+            }
+            finally
+            {
+                ClearMarker("FAKE_VMS_SAVE_MARKER", saveMarker);
+                ClearMarker("SCRIPT_FIXTURE_MARKER", scriptMarker);
             }
         }
 
@@ -105,7 +139,7 @@ namespace EsapiRunnerHub.Tests
                 payload.ScriptEngine = ScriptEngine.Eclipse;
                 payload.WriteMode = WriteMode.ConfirmSave;
 
-                new ScriptHostApplication().Run(payload, () => SaveChoice.Discard);
+                new ScriptHostApplication(ScriptHostKind.WriteEnabled).Run(payload, () => SaveChoice.Discard);
 
                 TestHarness.AssertEqual("wpf-application-ready", File.ReadAllText(marker));
             }
