@@ -9,8 +9,11 @@ namespace EsapiRunnerHub.Tests
             {
                 if (!string.Equals(new System.Reflection.AssemblyName(arguments.Name).Name,
                     "VMS.TPS.Common.Model.API", System.StringComparison.OrdinalIgnoreCase)) return null;
-                return System.Reflection.Assembly.LoadFrom(TestHarness.PathFromRoot(
-                    "tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll"));
+                var adjacent = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory,
+                    "VMS.TPS.Common.Model.API.dll");
+                return System.Reflection.Assembly.LoadFrom(System.IO.File.Exists(adjacent)
+                    ? adjacent
+                    : TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll"));
             };
             ProjectShapeTests.Register();
             DualScriptHostTests.Register();

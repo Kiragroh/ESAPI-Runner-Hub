@@ -2,6 +2,24 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.5] - 2026-08-08
+
+### Fixed
+
+- Classic Eclipse scripts are invoked through typed delegates rather than `MethodInfo.Invoke`, so write operations such as `AddExternalPlanSetup` execute without a reflection frame.
+- ESAPI application creation, patient opening, saving, closing, and disposal now use compile-time ESAPI calls in the host.
+- The host verifies that the loaded Eclipse 18 API matches its compile-time reference before resolving context or running a child script.
+
+### Approval identity
+
+- Only `ESAPI-Write-Script-Host.exe` changes to version 0.3.4 and therefore requires a new Eclipse Script Administration approval.
+- `ESAPI-Script-Host.exe` and the Citrix launcher remain at version 0.3.3 and retain their existing identities.
+
+### Validation
+
+- A synthetic Eclipse 18 regression rejects reflective write calls and verifies typed `AddExternalPlanSetup`, single-save behavior, failure handling, and execute-without-save behavior.
+- Release metadata now versions the read and write hosts independently.
+
 ## [0.3.4] - 2026-08-08
 
 ### Fixed

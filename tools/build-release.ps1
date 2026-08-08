@@ -10,7 +10,10 @@ $version = [string]$versionInfo.version
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid release version: $version" }
 $scriptHostVersion = [string]$versionInfo.scriptHostVersion
 if ($scriptHostVersion -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid script host version: $scriptHostVersion" }
-$expectedScriptHostFileVersion = $scriptHostVersion + '.0'
+$expectedReadScriptHostFileVersion = $scriptHostVersion + '.0'
+$writeScriptHostVersion = [string]$versionInfo.writeScriptHostVersion
+if ($writeScriptHostVersion -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid write script host version: $writeScriptHostVersion" }
+$expectedWriteScriptHostFileVersion = $writeScriptHostVersion + '.0'
 $citrixLauncherVersion = [string]$versionInfo.citrixLauncherVersion
 if ($citrixLauncherVersion -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid Citrix launcher version: $citrixLauncherVersion" }
 $expectedCitrixLauncherFileVersion = $citrixLauncherVersion + '.0'
@@ -22,6 +25,7 @@ $zipPath = Join-Path $distRoot $zipName
 $stagingParent = Join-Path $repoRoot 'obj\release-staging'
 $stagingRoot = Join-Path $stagingParent ([Guid]::NewGuid().ToString('N'))
 $buildOutput = Join-Path $stagingRoot 'build'
+$testBuildOutput = Join-Path $stagingRoot 'test-build'
 $packageRoot = Join-Path $stagingRoot 'package'
 $stagedZip = Join-Path $stagingRoot $zipName
 $esapiReferenceDirectory = [System.IO.Path]::GetFullPath((Join-Path $repoRoot '..\_Assets'))
@@ -122,13 +126,19 @@ if ([System.IO.Path]::GetFullPath($distRoot) -ne $expectedDist -or -not $distRoo
     throw 'Resolved dist path is outside the repository.'
 }
 try {
-    New-Item -ItemType Directory -Path $buildOutput, (Join-Path $packageRoot 'assets'), (Join-Path $packageRoot 'docs'), $distRoot, $versionedDist -Force | Out-Null
+    New-Item -ItemType Directory -Path $buildOutput, $testBuildOutput, (Join-Path $packageRoot 'assets'), (Join-Path $packageRoot 'docs'), $distRoot, $versionedDist -Force | Out-Null
 
     $msbuild = Resolve-MSBuild
     & $msbuild $solution /t:Rebuild /p:Configuration=Release /p:Platform=x64 ("/p:OutputPath={0}" -f $buildOutput) ("/p:EsapiReferenceDirectory={0}" -f $esapiReferenceDirectory) /v:minimal
     if ($LASTEXITCODE -ne 0) { throw "Release build failed with exit code $LASTEXITCODE." }
 
-    $tests = Join-Path $buildOutput 'ESAPI.RunnerHub.Tests.exe'
+    $fakeApiProject = Join-Path $repoRoot 'tests\FakeVms.Api\FakeVms.Api.csproj'
+    & $msbuild $fakeApiProject /t:Build /p:Configuration=Release /p:Platform=x64 ("/p:OutputPath={0}" -f $testBuildOutput) /v:minimal
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic ESAPI build failed with exit code $LASTEXITCODE." }
+    & $msbuild $solution /t:Build /p:Configuration=Release /p:Platform=x64 ("/p:OutputPath={0}" -f $testBuildOutput) ("/p:EsapiReferenceDirectory={0}" -f $testBuildOutput) /v:minimal
+    if ($LASTEXITCODE -ne 0) { throw "Synthetic test build failed with exit code $LASTEXITCODE." }
+
+    $tests = Join-Path $testBuildOutput 'ESAPI.RunnerHub.Tests.exe'
     & $tests
     if ($LASTEXITCODE -ne 0) { throw "Automated tests failed with exit code $LASTEXITCODE." }
 
@@ -146,11 +156,11 @@ try {
     $stableReadHost = Resolve-StableComponentBinary `
         -BuiltPath (Join-Path $buildOutput 'ESAPI-Script-Host.exe') `
         -LivePath (Join-Path $distRoot 'ESAPI-Script-Host.exe') `
-        -ExpectedFileVersion $expectedScriptHostFileVersion
+        -ExpectedFileVersion $expectedReadScriptHostFileVersion
     $stableWriteHost = Resolve-StableComponentBinary `
         -BuiltPath (Join-Path $buildOutput 'ESAPI-Write-Script-Host.exe') `
         -LivePath (Join-Path $distRoot 'ESAPI-Write-Script-Host.exe') `
-        -ExpectedFileVersion $expectedScriptHostFileVersion
+        -ExpectedFileVersion $expectedWriteScriptHostFileVersion
     $stableCitrixLauncher = Resolve-StableComponentBinary `
         -BuiltPath $exeLauncher `
         -LivePath (Join-Path $repoRoot 'citrix\ESAPI-Runner-Hub.CitrixLauncher.exe') `

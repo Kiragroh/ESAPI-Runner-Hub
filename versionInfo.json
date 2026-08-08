@@ -1,11 +1,22 @@
 {
-  "version": "0.3.4",
-  "build": 23,
+  "version": "0.3.5",
+  "build": 24,
   "scriptHostVersion": "0.3.3",
+  "writeScriptHostVersion": "0.3.4",
   "citrixLauncherVersion": "0.3.3",
   "lastUpdate": "2026-08-08",
-  "lastChange": "Child exits are marshalled to the Hub UI thread, interrupted history is recovered, and patients can be selected from history without replaying an application.",
+  "lastChange": "The write host invokes Eclipse 18 scripts and write APIs through compile-time ESAPI calls; the read host and Citrix launcher retain their existing approval identities.",
   "changelog": [
+    {
+      "build": 24,
+      "date": "2026-08-08",
+      "title": "ESAPI Runner Hub 0.3.5",
+      "changes": [
+        "Classic Eclipse scripts are invoked through a typed delegate instead of MethodInfo.Invoke, so child calls such as AddExternalPlanSetup do not cross a reflection frame.",
+        "Application creation, patient opening, saving and closing use compile-time ESAPI calls in both hosts.",
+        "Only ESAPI-Write-Script-Host.exe receives a new 0.3.4 approval identity; the read host and Citrix launcher remain at 0.3.3."
+      ]
+    },
     {
       "build": 23,
       "date": "2026-08-08",
