@@ -15,7 +15,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("release build executes the Citrix launcher contract", ExecutesCitrixLauncherContract);
             TestHarness.Test("release build uses an isolated staging output", UsesIsolatedBuildOutput);
             TestHarness.Test("release build leaves byte-identical locked live files untouched", SkipsIdenticalLiveFiles);
-            TestHarness.Test("Hub-only releases preserve the approved script host line", PreservesApprovedScriptHosts);
+            TestHarness.Test("Hub-only releases preserve stable helper binaries", PreservesStableComponents);
             TestHarness.Test("public documentation and example settings contain no clinical paths", PublicFilesArePortable);
             TestHarness.Test("repository contains no vendor assemblies", HasNoVendorBinaries);
             TestHarness.Test("entry assembly declares the ESAPI runtime authorization reference", DeclaresEsapiAuthorizationReference);
@@ -37,6 +37,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(version, "\"version\": \"0.3.4\"");
             TestHarness.AssertContains(version, "\"build\": 23");
             TestHarness.AssertContains(version, "\"scriptHostVersion\": \"0.3.3\"");
+            TestHarness.AssertContains(version, "\"citrixLauncherVersion\": \"0.3.3\"");
             TestHarness.AssertContains(version, "\"build\": 22");
             TestHarness.AssertContains(version, "\"build\": 21");
             TestHarness.AssertContains(version, "\"build\": 20");
@@ -116,14 +117,26 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(helper, "destinationHash");
         }
 
-        private static void PreservesApprovedScriptHosts()
+        private static void PreservesStableComponents()
         {
             var script = File.ReadAllText(TestHarness.PathFromRoot("tools/build-release.ps1"));
+            var readHostAssembly = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Properties/AssemblyInfo.cs"));
+            var writeHostAssembly = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.WriteScriptHost/Properties/AssemblyInfo.cs"));
+            var launcherAssembly = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.CitrixLauncher/Properties/AssemblyInfo.cs"));
+
             TestHarness.AssertContains(script, "scriptHostVersion");
-            TestHarness.AssertContains(script, "Resolve-StableHostBinary");
+            TestHarness.AssertContains(script, "citrixLauncherVersion");
+            TestHarness.AssertContains(script, "Resolve-StableComponentBinary");
             TestHarness.AssertContains(script, "$stableReadHost");
             TestHarness.AssertContains(script, "$stableWriteHost");
-            TestHarness.AssertContains(script, "Approved host version mismatch");
+            TestHarness.AssertContains(script, "$stableCitrixLauncher");
+            TestHarness.AssertContains(script, "Stable component version mismatch");
+            TestHarness.AssertContains(readHostAssembly, "AssemblyVersion(\"0.3.3.0\")");
+            TestHarness.AssertContains(readHostAssembly, "AssemblyFileVersion(\"0.3.3.0\")");
+            TestHarness.AssertContains(writeHostAssembly, "AssemblyVersion(\"0.3.3.0\")");
+            TestHarness.AssertContains(writeHostAssembly, "AssemblyFileVersion(\"0.3.3.0\")");
+            TestHarness.AssertContains(launcherAssembly, "AssemblyVersion(\"0.3.3.0\")");
+            TestHarness.AssertContains(launcherAssembly, "AssemblyFileVersion(\"0.3.3.0\")");
         }
 
         private static void PublicFilesArePortable()

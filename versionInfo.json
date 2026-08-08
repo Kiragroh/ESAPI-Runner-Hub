@@ -2,6 +2,7 @@
   "version": "0.3.4",
   "build": 23,
   "scriptHostVersion": "0.3.3",
+  "citrixLauncherVersion": "0.3.3",
   "lastUpdate": "2026-08-08",
   "lastChange": "Child exits are marshalled to the Hub UI thread, interrupted history is recovered, and patients can be selected from history without replaying an application.",
   "changelog": [

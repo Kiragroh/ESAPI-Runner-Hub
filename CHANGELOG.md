@@ -18,7 +18,7 @@ All notable changes to ESAPI Runner Hub are documented here.
 ### Validation
 
 - Regression coverage exercises background child exits, interrupted history recovery, exact patient lookup, no-launch patient restoration, unavailable-state explanations, and the compact two-action history layout.
-- Hub-only releases declare a separate script-host version and preserve an existing version-matched host binary instead of changing its approval identity.
+- Hub-only releases declare separate script-host and Citrix-launcher versions and preserve existing version-matched helper binaries instead of changing their approval identities.
 
 ## [0.3.3] - 2026-08-08
 

@@ -46,7 +46,7 @@ flowchart LR
 - A DPAPI-protected local activity history with **Select patient** and **Run again** as separate actions; context identifiers are encrypted for the current Windows account and commands are always recomposed from current settings.
 - Automatic recovery of stale `Starting` or `Running` rows as `Interrupted`, so a prior Hub interruption does not permanently disable replay.
 - Automatic host selection from `WriteMode`: `ReadOnly` uses the unprivileged host; `ConfirmSave` and `ExecuteAndDiscard` use the separately approved write host.
-- Hub-only releases keep a separate `scriptHostVersion` contract and reuse an existing version-matched host binary, so an unchanged approved write host is not rebuilt merely because the Hub UI changes.
+- Hub-only releases keep separate `scriptHostVersion` and `citrixLauncherVersion` contracts and reuse existing version-matched helper binaries, so unchanged approved hosts and the stable Citrix entry point are not rebuilt merely because the Hub UI changes.
 - Explicit save/discard confirmation for `ConfirmSave`; `ExecuteAndDiscard` runs with write authorization but closes without saving and without a save question.
 - A configured write-enabled plan-sum workflow can receive only the patient context, perform its own transparent plan-sum/component review, and return to the same save/discard boundary.
 - Multiple sequential or overlapping child processes; non-zero exits and crashes do not close the Hub.
