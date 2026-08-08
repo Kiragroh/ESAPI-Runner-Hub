@@ -28,8 +28,8 @@ flowchart LR
     HUB --> A["Runner EXE"]
     HUB --> B["Standalone EXE"]
     HUB --> C["Patient-independent EXE"]
-    HUB --> ROHOST["Read-only host"]
-    HUB --> WHOST["Approved write host"]
+    HUB -->|"WriteMode = ReadOnly"| ROHOST["ESAPI-Script-Host.exe<br/>read-only host"]
+    HUB -->|"WriteMode = ConfirmSave or ExecuteAndDiscard"| WHOST["ESAPI-Write-Script-Host.exe<br/>write-enabled; separate approval identity"]
     ROHOST --> READ["Read-only .dll or cached .cs"]
     WHOST --> WRITE["Write-enabled .dll or cached .cs"]
 ```
