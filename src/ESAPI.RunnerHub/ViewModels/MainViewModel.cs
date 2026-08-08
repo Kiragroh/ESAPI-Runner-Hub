@@ -25,6 +25,7 @@ namespace EsapiRunnerHub.ViewModels
         private readonly List<LaunchHistoryEntry> historyEntries = new List<LaunchHistoryEntry>();
         private readonly object historyGate = new object();
         private readonly RelayCommand runAgainCommand;
+        private readonly RelayCommand selectHistoryPatientCommand;
         private readonly RelayCommand resetFiltersCommand;
         private PatientSearchIndex patientIndex;
         private PatientRecord selectedPatient;
@@ -94,6 +95,9 @@ namespace EsapiRunnerHub.ViewModels
             runAgainCommand = new RelayCommand(parameter => RunAgain(parameter as ActivityRowViewModel),
                 parameter => parameter is ActivityRowViewModel row && row.CanRunAgain);
             RunAgainCommand = runAgainCommand;
+            selectHistoryPatientCommand = new RelayCommand(parameter => SelectHistoryPatient(parameter as ActivityRowViewModel),
+                parameter => parameter is ActivityRowViewModel row && row.CanSelectPatient);
+            SelectHistoryPatientCommand = selectHistoryPatientCommand;
             TogglePrivacyBlurCommand = new RelayCommand(parameter => TogglePrivacyBlur());
             resetFiltersCommand = new RelayCommand(parameter => ResetFilters(), parameter => HasActiveFilters);
             ResetFiltersCommand = resetFiltersCommand;
@@ -126,6 +130,7 @@ namespace EsapiRunnerHub.ViewModels
         public ICommand StartWithoutPatientCommand { get; private set; }
         public ICommand StartContextCommand { get; private set; }
         public ICommand RunAgainCommand { get; private set; }
+        public ICommand SelectHistoryPatientCommand { get; private set; }
         public ICommand TogglePrivacyBlurCommand { get; private set; }
         public ICommand ResetFiltersCommand { get; private set; }
         public ICommand CopyReadmeLinkCommand { get; private set; }
@@ -313,6 +318,7 @@ namespace EsapiRunnerHub.ViewModels
             patientIndex = new PatientSearchIndex(patients);
             ClearPatient();
             UpdateSuggestions();
+            RefreshHistoryPatientAvailability();
         }
 
         public void SelectPatient(PatientRecord patient)
@@ -686,10 +692,72 @@ namespace EsapiRunnerHub.ViewModels
                 historyEntries.Add(entry);
                 var row = new ActivityRowViewModel(entry, DescribeContext(entry.LaunchMode, selection), protectedContextAvailable);
                 UpdateReplayAvailability(row, card);
+                UpdatePatientSelectionAvailability(row);
                 Activities.Add(row);
             }
             if (historyChanged) PersistHistory();
             runAgainCommand.RaiseCanExecuteChanged();
+            selectHistoryPatientCommand.RaiseCanExecuteChanged();
+        }
+
+        private void SelectHistoryPatient(ActivityRowViewModel row)
+        {
+            if (row == null) return;
+            PatientRecord patient;
+            string reason;
+            if (!TryResolveHistoryPatient(row, out patient, out reason))
+            {
+                row.SetPatientSelectionAvailability(false, reason);
+                selectHistoryPatientCommand.RaiseCanExecuteChanged();
+                notificationText = reason + ".";
+                RaisePropertyChanged(nameof(NotificationText));
+                return;
+            }
+
+            SelectPatient(patient);
+            notificationText = "Patient selected from recent activity. No application was started.";
+            RaisePropertyChanged(nameof(NotificationText));
+        }
+
+        private void RefreshHistoryPatientAvailability()
+        {
+            if (Activities == null) return;
+            foreach (var row in Activities) UpdatePatientSelectionAvailability(row);
+            if (selectHistoryPatientCommand != null) selectHistoryPatientCommand.RaiseCanExecuteChanged();
+        }
+
+        private void UpdatePatientSelectionAvailability(ActivityRowViewModel row)
+        {
+            PatientRecord patient;
+            string reason;
+            row.SetPatientSelectionAvailability(TryResolveHistoryPatient(row, out patient, out reason), reason);
+        }
+
+        private bool TryResolveHistoryPatient(ActivityRowViewModel row, out PatientRecord patient, out string reason)
+        {
+            patient = null;
+            if (row == null || row.Entry.LaunchMode == LaunchMode.WithoutPatient)
+            {
+                reason = "No patient stored for this run";
+                return false;
+            }
+
+            ContextSelection selection;
+            try
+            {
+                selection = contextProtector.Unprotect(row.Entry.ProtectedContext);
+            }
+            catch
+            {
+                reason = "Protected context is unavailable";
+                return false;
+            }
+
+            patient = patientIndex == null ? null : patientIndex.FindById(selection == null ? null : selection.PatientId);
+            reason = patient == null
+                ? "Patient is unavailable in the current directory"
+                : "Select patient without running the application";
+            return patient != null;
         }
 
         private void RefreshRelaunchAvailability(string applicationId)

@@ -9,8 +9,10 @@ namespace EsapiRunnerHub.ViewModels
     public sealed class ActivityRowViewModel : ObservableObject
     {
         private bool canRunAgain;
+        private bool canSelectPatient;
         private bool protectedContextAvailable;
         private string replayAvailabilityText = "Application path is unavailable";
+        private string patientSelectionAvailabilityText = "No patient stored for this run";
         private int? processId;
 
         public ActivityRowViewModel(LaunchHistoryEntry entry, string contextSummary, bool protectedContextAvailable = true)
@@ -43,8 +45,10 @@ namespace EsapiRunnerHub.ViewModels
             }
         }
         public bool CanRunAgain { get { return canRunAgain; } }
+        public bool CanSelectPatient { get { return canSelectPatient; } }
         public bool ProtectedContextAvailable { get { return protectedContextAvailable; } }
         public string ReplayAvailabilityText { get { return replayAvailabilityText; } }
+        public string PatientSelectionAvailabilityText { get { return patientSelectionAvailabilityText; } }
 
         public void AttachProcess(RunningProcessInfo process)
         {
@@ -73,6 +77,19 @@ namespace EsapiRunnerHub.ViewModels
             if (replayAvailabilityText == value) return;
             replayAvailabilityText = value;
             RaiseOnUi(nameof(ReplayAvailabilityText));
+        }
+
+        public void SetPatientSelectionAvailability(bool canSelect, string explanation)
+        {
+            if (canSelectPatient != canSelect)
+            {
+                canSelectPatient = canSelect;
+                RaiseOnUi(nameof(CanSelectPatient));
+            }
+            var value = explanation ?? string.Empty;
+            if (patientSelectionAvailabilityText == value) return;
+            patientSelectionAvailabilityText = value;
+            RaiseOnUi(nameof(PatientSelectionAvailabilityText));
         }
 
         public void Refresh()

@@ -10,6 +10,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("patient search ranks exact and prefix IDs first", RanksIdsFirst);
             TestHarness.Test("patient search matches normalized name tokens", MatchesNormalizedNames);
             TestHarness.Test("patient search keeps source order and removes duplicate IDs", KeepsStableUniqueResults);
+            TestHarness.Test("patient index resolves an exact ID case insensitively", ResolvesExactId);
         }
 
         private static void RanksIdsFirst()
@@ -43,6 +44,15 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertEqual(2, results.Count);
             TestHarness.AssertEqual("4711", results[0].Id);
             TestHarness.AssertEqual("47110", results[1].Id);
+        }
+
+        private static void ResolvesExactId()
+        {
+            var index = CreateIndex();
+
+            TestHarness.AssertEqual("4711", index.FindById("4711").Id);
+            TestHarness.AssertEqual("4711", index.FindById(" 4711 ").Id);
+            TestHarness.AssertEqual(null, index.FindById("missing"));
         }
 
         private static PatientSearchIndex CreateIndex()

@@ -26,6 +26,8 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("replay rows explain every unavailable state", ExplainsReplayAvailability);
             TestHarness.Test("running activity cannot be replayed until terminal", DisablesReplayWhileRunning);
             TestHarness.Test("stale running history recovers as interrupted", RecoversInterruptedHistory);
+            TestHarness.Test("history patient selection never replays the application", SelectsHistoryPatientWithoutReplay);
+            TestHarness.Test("history patient selection explains unavailable patients", ExplainsUnavailableHistoryPatients);
         }
 
         private static void PersistsStandaloneLifecycle()
@@ -291,6 +293,61 @@ Enabled=true
             });
         }
 
+        private static void SelectsHistoryPatientWithoutReplay()
+        {
+            WithHistory((store, directory) =>
+            {
+                var protector = new ProtectedContextEnvelope();
+                store.Save(new[]
+                {
+                    ExitedEntry("patient", "fixture", LaunchMode.Context,
+                        protector.Protect(new ContextSelection { PatientId = "SYN-4242" }))
+                });
+                var patient = new PatientRecord("SYN-4242", "Ada", "Example", 0);
+                var viewModel = CreateHistoryPatientViewModel(store, protector, new[] { patient });
+                var row = viewModel.Activities.Single();
+                var selectionEvents = 0;
+                viewModel.PatientSelectionChanged += selected => selectionEvents++;
+                var activityCount = viewModel.Activities.Count;
+
+                TestHarness.AssertTrue(row.CanSelectPatient);
+                TestHarness.AssertTrue(viewModel.SelectHistoryPatientCommand.CanExecute(row));
+                viewModel.SelectHistoryPatientCommand.Execute(row);
+
+                TestHarness.AssertEqual("SYN-4242", viewModel.SelectedPatientId);
+                TestHarness.AssertEqual(1, selectionEvents);
+                TestHarness.AssertEqual(activityCount, viewModel.Activities.Count);
+                TestHarness.AssertEqual(LaunchHistoryState.Exited, row.State);
+            });
+        }
+
+        private static void ExplainsUnavailableHistoryPatients()
+        {
+            WithHistory((store, directory) =>
+            {
+                var protector = new ProtectedContextEnvelope();
+                store.Save(new[]
+                {
+                    ExitedEntry("none", "fixture", LaunchMode.WithoutPatient, null),
+                    ExitedEntry("protected", "fixture", LaunchMode.Context, "not-a-dpapi-envelope"),
+                    ExitedEntry("missing", "fixture", LaunchMode.WithPatient,
+                        protector.Protect(new ContextSelection { PatientId = "SYN-MISSING" }))
+                });
+                var viewModel = CreateHistoryPatientViewModel(store, protector,
+                    new[] { new PatientRecord("SYN-4242", "Ada", "Example", 0) });
+
+                var none = viewModel.Activities.Single(item => item.Entry.HistoryId == "none");
+                var protectedRow = viewModel.Activities.Single(item => item.Entry.HistoryId == "protected");
+                var missing = viewModel.Activities.Single(item => item.Entry.HistoryId == "missing");
+                TestHarness.AssertFalse(viewModel.SelectHistoryPatientCommand.CanExecute(none));
+                TestHarness.AssertFalse(viewModel.SelectHistoryPatientCommand.CanExecute(protectedRow));
+                TestHarness.AssertFalse(viewModel.SelectHistoryPatientCommand.CanExecute(missing));
+                TestHarness.AssertEqual("No patient stored for this run", none.PatientSelectionAvailabilityText);
+                TestHarness.AssertEqual("Protected context is unavailable", protectedRow.PatientSelectionAvailabilityText);
+                TestHarness.AssertEqual("Patient is unavailable in the current directory", missing.PatientSelectionAvailabilityText);
+            });
+        }
+
         private static LaunchHistoryEntry ExitedEntry(string historyId, string applicationId, LaunchMode mode, string protectedContext)
         {
             return new LaunchHistoryEntry
@@ -326,6 +383,19 @@ Enabled=true
                 PatientEnvironmentKey = "RUNNER_PATIENT_ID", Enabled = true
             });
             return new MainViewModel(configuration, new List<PatientRecord>(), store, new ProtectedContextEnvelope());
+        }
+
+        private static MainViewModel CreateHistoryPatientViewModel(LaunchHistoryStore store,
+            ProtectedContextEnvelope protector, IEnumerable<PatientRecord> patients)
+        {
+            var configuration = new HubConfiguration();
+            configuration.Applications.Add(new ApplicationDefinition
+            {
+                Id = "fixture", Name = "Fixture", Executable = Fixture(), Arguments = "--mode success",
+                PatientMode = PatientMode.Required, PatientTransport = PatientTransport.Environment,
+                PatientEnvironmentKey = "RUNNER_PATIENT_ID", Enabled = true
+            });
+            return new MainViewModel(configuration, patients, store, protector);
         }
 
         private static ApplicationCardViewModel Ready(MainViewModel viewModel)
