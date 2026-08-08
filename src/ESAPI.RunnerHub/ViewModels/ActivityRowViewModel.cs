@@ -36,6 +36,7 @@ namespace EsapiRunnerHub.ViewModels
             {
                 if (Entry.State == LaunchHistoryState.Exited)
                     return Entry.ExitCode.GetValueOrDefault() == 0 ? "Completed" : "Exited · code " + Entry.ExitCode.GetValueOrDefault();
+                if (Entry.State == LaunchHistoryState.Interrupted) return "Interrupted";
                 if (Entry.State == LaunchHistoryState.FailedToStart) return "Failed to start";
                 if (Entry.State == LaunchHistoryState.Unavailable) return "Unavailable";
                 return Entry.State.ToString();

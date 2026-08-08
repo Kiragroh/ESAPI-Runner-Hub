@@ -654,10 +654,16 @@ namespace EsapiRunnerHub.ViewModels
         private void LoadHistory()
         {
             if (historyStore == null) return;
-            var unavailableChanged = false;
+            var historyChanged = false;
             foreach (var entry in historyStore.Load())
             {
                 var card = Applications.FirstOrDefault(item => string.Equals(item.Id, entry.ApplicationId, StringComparison.OrdinalIgnoreCase));
+                if (entry.State == LaunchHistoryState.Starting || entry.State == LaunchHistoryState.Running)
+                {
+                    entry.State = LaunchHistoryState.Interrupted;
+                    entry.FinishedUtc = entry.FinishedUtc ?? DateTime.UtcNow;
+                    historyChanged = true;
+                }
                 ContextSelection selection = null;
                 var protectedContextAvailable = entry.LaunchMode == LaunchMode.WithoutPatient;
                 if (!protectedContextAvailable)
@@ -675,14 +681,14 @@ namespace EsapiRunnerHub.ViewModels
                 if (card == null)
                 {
                     entry.State = LaunchHistoryState.Unavailable;
-                    unavailableChanged = true;
+                    historyChanged = true;
                 }
                 historyEntries.Add(entry);
                 var row = new ActivityRowViewModel(entry, DescribeContext(entry.LaunchMode, selection), protectedContextAvailable);
                 UpdateReplayAvailability(row, card);
                 Activities.Add(row);
             }
-            if (unavailableChanged) PersistHistory();
+            if (historyChanged) PersistHistory();
             runAgainCommand.RaiseCanExecuteChanged();
         }
 

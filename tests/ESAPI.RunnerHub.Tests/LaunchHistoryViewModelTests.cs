@@ -25,6 +25,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("replay command refreshes when asynchronous readiness arrives", RefreshesReplayCommand);
             TestHarness.Test("replay rows explain every unavailable state", ExplainsReplayAvailability);
             TestHarness.Test("running activity cannot be replayed until terminal", DisablesReplayWhileRunning);
+            TestHarness.Test("stale running history recovers as interrupted", RecoversInterruptedHistory);
         }
 
         private static void PersistsStandaloneLifecycle()
@@ -236,10 +237,11 @@ Enabled=true
             WithHistory((store, directory) =>
             {
                 var entry = ExitedEntry("running", "fixture", LaunchMode.WithoutPatient, null);
-                entry.State = LaunchHistoryState.Running;
                 store.Save(new[] { entry });
                 var viewModel = CreateStandaloneViewModel(store, Fixture(), "--mode success");
                 var row = viewModel.Activities.Single();
+                row.Entry.State = LaunchHistoryState.Running;
+                row.Refresh();
 
                 viewModel.UpdateApplicationReadiness("fixture", new PathProbeResult(PathReadiness.Ready, "Ready"));
                 TestHarness.AssertFalse(viewModel.RunAgainCommand.CanExecute(row));
@@ -251,6 +253,41 @@ Enabled=true
 
                 TestHarness.AssertTrue(viewModel.RunAgainCommand.CanExecute(row));
                 TestHarness.AssertEqual("Ready to run again", ReplayText(row));
+            });
+        }
+
+        private static void RecoversInterruptedHistory()
+        {
+            WithHistory((store, directory) =>
+            {
+                var starting = ExitedEntry("starting", "fixture", LaunchMode.WithoutPatient, null);
+                starting.State = LaunchHistoryState.Starting;
+                starting.ExitCode = null;
+                starting.FinishedUtc = null;
+                var running = ExitedEntry("running", "fixture", LaunchMode.WithoutPatient, null);
+                running.State = LaunchHistoryState.Running;
+                running.ExitCode = null;
+                running.FinishedUtc = null;
+                var exited = ExitedEntry("exited", "fixture", LaunchMode.WithoutPatient, null);
+                store.Save(new[] { starting, running, exited });
+
+                var viewModel = CreateStandaloneViewModel(store, Fixture(), "--mode success");
+                Ready(viewModel);
+
+                foreach (var historyId in new[] { "starting", "running" })
+                {
+                    var row = viewModel.Activities.Single(item => item.Entry.HistoryId == historyId);
+                    TestHarness.AssertEqual(LaunchHistoryState.Interrupted, row.State);
+                    TestHarness.AssertEqual("Interrupted", row.Status);
+                    TestHarness.AssertTrue(viewModel.RunAgainCommand.CanExecute(row));
+                }
+                TestHarness.AssertEqual(LaunchHistoryState.Exited,
+                    viewModel.Activities.Single(item => item.Entry.HistoryId == "exited").State);
+
+                var persisted = store.Load().ToDictionary(item => item.HistoryId);
+                TestHarness.AssertEqual(LaunchHistoryState.Interrupted, persisted["starting"].State);
+                TestHarness.AssertEqual(LaunchHistoryState.Interrupted, persisted["running"].State);
+                TestHarness.AssertEqual(LaunchHistoryState.Exited, persisted["exited"].State);
             });
         }
 
