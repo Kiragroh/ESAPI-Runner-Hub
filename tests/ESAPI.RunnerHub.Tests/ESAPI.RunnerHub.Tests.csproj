@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{E96577DB-8148-4D5B-9E45-7A95CA27A1F3}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>EsapiRunnerHub.Tests</RootNamespace>
+    <AssemblyName>ESAPI.RunnerHub.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="DualScriptHostTests.cs" />
+    <Compile Include="ConfigurationTests.cs" />
+    <Compile Include="ContextConfigurationTests.cs" />
+    <Compile Include="CatalogConfigurationTests.cs" />
+    <Compile Include="ApplicationMetadataTests.cs" />
+    <Compile Include="LaunchHistoryTests.cs" />
+    <Compile Include="LaunchHistoryViewModelTests.cs" />
+    <Compile Include="ExampleSettingsTests.cs" />
+    <Compile Include="ContextDirectoryTests.cs" />
+    <Compile Include="ContextSelectionTests.cs" />
+    <Compile Include="ContextLaunchProtocolTests.cs" />
+    <Compile Include="ContextCommandLineTests.cs" />
+    <Compile Include="ScriptHostCoreTests.cs" />
+    <Compile Include="ScriptInvocationTests.cs" />
+    <Compile Include="SourceScriptCompilerTests.cs" />
+    <Compile Include="MainContextViewModelTests.cs" />
+    <Compile Include="EsapiAssemblyLocatorTests.cs" />
+    <Compile Include="EsapiPatientDirectoryTests.cs" />
+    <Compile Include="LaunchingTests.cs" />
+    <Compile Include="MainViewModelTests.cs" />
+    <Compile Include="SettingsViewModelTests.cs" />
+    <Compile Include="PrivacyDiagnosticsTests.cs" />
+    <Compile Include="ReleaseMetadataTests.cs" />
+    <Compile Include="PatientSearchTests.cs" />
+    <Compile Include="ProjectShapeTests.cs" />
+    <Compile Include="TestHarness.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FakeVms.Api\FakeVms.Api.csproj">
+      <Project>{F202755D-496E-40E0-9B27-DAB49BB782A1}</Project>
+      <Name>FakeVms.Api</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\ESAPI.RunnerHub\ESAPI.RunnerHub.csproj">
+      <Project>{154FE10C-5EE3-4162-BDA0-354412E26B77}</Project>
+      <Name>ESAPI.RunnerHub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\ESAPI.ScriptHost\ESAPI.ScriptHost.csproj">
+      <Project>{9D7E4CC0-4B1B-4A58-A44E-447F45E7AC99}</Project>
+      <Name>ESAPI.ScriptHost</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

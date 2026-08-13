@@ -1,0 +1,269 @@
+{
+  "version": "0.3.6",
+  "build": 25,
+  "scriptHostVersion": "0.3.3",
+  "writeScriptHostVersion": "0.3.4",
+  "citrixLauncherVersion": "0.3.3",
+  "lastUpdate": "2026-08-13",
+  "lastChange": "Public examples and metadata are institution-neutral and require explicit local configuration.",
+  "changelog": [
+    {
+      "build": 25,
+      "date": "2026-08-13",
+      "title": "ESAPI Runner Hub 0.3.6",
+      "changes": [
+        "Removed internal deployment plans, organization-specific paths, hosts, assembly metadata, and catalogue labels from the public repository.",
+        "Replaced live defaults with explicit configuration or synthetic examples.",
+        "Added an independence and no-warranty disclaimer without changing the core launcher or ESAPI execution model."
+      ]
+    },
+    {
+      "build": 24,
+      "date": "2026-08-08",
+      "title": "ESAPI Runner Hub 0.3.5",
+      "changes": [
+        "Classic Eclipse scripts are invoked through a typed delegate instead of MethodInfo.Invoke, so child calls such as AddExternalPlanSetup do not cross a reflection frame.",
+        "Application creation, patient opening, saving and closing use compile-time ESAPI calls in both hosts.",
+        "Only ESAPI-Write-Script-Host.exe receives a new 0.3.4 approval identity; the read host and Citrix launcher remain at 0.3.3."
+      ]
+    },
+    {
+      "build": 23,
+      "date": "2026-08-08",
+      "title": "ESAPI Runner Hub 0.3.4",
+      "changes": [
+        "Child process exits complete on the captured WPF UI context, so a normal or failed child no longer closes the Hub.",
+        "Stale Starting and Running history from an interrupted Hub session is recovered as Interrupted and becomes replayable when its protected context remains available.",
+        "Recent activity provides a separate Select patient action that restores the current patient context without starting the recorded application."
+      ]
+    },
+    {
+      "build": 22,
+      "date": "2026-08-08",
+      "title": "ESAPI Runner Hub 0.3.3",
+      "changes": [
+        "ReadOnly requests use ESAPI-Script-Host.exe, while ConfirmSave and ExecuteAndDiscard requests use the separately approvable ESAPI-Write-Script-Host.exe.",
+        "Each host rejects mismatched modes before an ESAPI session is opened, and only the write host carries the ESAPI write-enabled assembly marker.",
+        "Both host paths are editable in settings.ini and the Settings window; the existing Citrix application entry remains unchanged."
+      ]
+    },
+    {
+      "build": 21,
+      "date": "2026-08-06",
+      "title": "ESAPI Runner Hub 0.3.2",
+      "changes": [
+        "Export Plan Sum Dose is available as a direct patient-context binary in the Plan editing category.",
+        "The catalogue marks the tool write-enabled and keeps the final patient save behind the established confirm-save boundary.",
+        "The linked InHouse entry documents plan-sum selection, component review, prescription proposal and the clinical validation boundary."
+      ]
+    },
+    {
+      "build": 20,
+      "date": "2026-08-06",
+      "title": "ESAPI Runner Hub 0.3.1",
+      "changes": [
+        "STR Hub README actions copy the configured reachable URL to the clipboard instead of opening a browser or another Citrix session.",
+        "The example catalogue demonstrates patient-context launches for single-file and compiled DICOM exporters.",
+        "Single-file compilation includes Windows Forms so mixed WPF and Forms ESAPI scripts can run through the isolated Eclipse 18 host.",
+        "Regression coverage verifies clipboard behavior, both export-tool defaults, and Windows Forms source compilation."
+      ]
+    },
+    {
+      "build": 19,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.3.0",
+      "changes": [
+        "The responsive catalogue places search, category, format, and reset controls in one centered filter bar and fits four application cards on a wide screen without horizontal scrolling.",
+        "Recent activity keeps protected context across sessions and explains exactly why Run again is available or unavailable.",
+        "Privacy mode obscures patient identifiers, treatment context, application paths, and activity context while keeping the workflow visible for documentation screenshots.",
+        "Public documentation now explains the single-entry Citrix deployment and the user-scoped shared-request workflow without relying on client argument forwarding.",
+        "Visible product, host, launcher, and settings copy is English; live paths and launch arguments remain unchanged."
+      ]
+    },
+    {
+      "build": 18,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.9",
+      "changes": [
+        "Pending-Marker und Request-JSON sind an die Windows-SID gebunden; ein anderer Nutzer kann einen Request weder versehentlich noch direkt ausführen.",
+        "Ein fremder Aufruf verbraucht den Request nicht und erzeugt keine Result-Datei; der rechtmäßige Nutzer kann ihn weiter ausführen.",
+        "Pending-Marker sind standardmäßig höchstens 30 Sekunden claimbar, während Request- und Result-JSON als lesbarer Verlauf im requests-Unterordner des Logbereichs erhalten bleiben.",
+        "Der Release-Build lässt byteidentische, bereits laufende Live-Artefakte unangetastet und kann dadurch Dokumentations- und Helper-Updates ohne unnötigen Dateiaustausch veröffentlichen."
+      ]
+    },
+    {
+      "build": 17,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.8",
+      "changes": [
+        "Der Request-Reader erkennt UTF-8-BOM aus Windows PowerShell 5.1 und übernimmt den exakten App- und Planungskontext zuverlässig.",
+        "Ein Regressionstest bildet die tatsächlich vom Citrix-Debug-Helper geschriebene Dateikodierung ab.",
+        "Der zentrale Request-/Result-Workflow bleibt ohne Citrix-Kommandozeilenparameter nutzbar und ist als reproduzierbarer Ablauf für Menschen und Automatisierung dokumentiert."
+      ]
+    },
+    {
+      "build": 16,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.7",
+      "changes": [
+        "Ein benutzerspezifischer Pending-Marker startet den exakten Request auf dem zugewiesenen VDA ohne Citrix-Kommandozeilenparameter.",
+        "Der normale installierte Citrix-Shortcut genügt; qlaunch-, wfcrun32- und Prozent-Platzhalter-Verschachtelungen entfallen für das Debugging.",
+        "Der Helper wartet weiter auf die maschinenlesbare Result-JSON mit VDA, Status und Exitcode."
+      ]
+    },
+    {
+      "build": 15,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.6",
+      "changes": [
+        "Explizite App-, Patienten-, Course-, Plan-, PlanSum-, Structure-Set- und Image-Kontexte können als zentrale Request-JSON gestartet werden.",
+        "Der veröffentlichte Citrix-Launcher akzeptiert eine Request-ID als Diagnoseargument; der Runner schreibt VDA, Status und Exitcode in eine passende Result-JSON.",
+        "Ein PowerShell-Helper erzeugt den Request und wartet maschinenlesbar auf VDA und Exitcode."
+      ]
+    },
+    {
+      "build": 14,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.5",
+      "changes": [
+        "Eine feste Citrix-Launcher-EXE ersetzt für den empfohlenen Betrieb die fehleranfällige cmd.exe-Verschachtelung.",
+        "Der Launcher startet ausschließlich die streng geprüfte Runner-Datei aus current.txt, wartet auf deren Ende und reicht den Exitcode weiter.",
+        "Ein einzelnes gepacktes Citrix-Argument wird für Runner-Kommandos aufgelöst; Argumentwerte und Patientenkontext bleiben aus den technischen Logs heraus."
+      ]
+    },
+    {
+      "build": 13,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.5",
+      "changes": [
+        "Ein beliebiger Patient-, Course-, Plan-, PlanSum-, Structure-Set- oder Image-Kontext kann gezielt ohne Kennungen in der Befehlszeile gestartet werden.",
+        "Mehrere explizite Kontexte können als private JSON-Umgebungsvariable nacheinander auf dasselbe lesende Skript angewendet werden.",
+        "Serien brechen beim ersten Fehler ab, sind auf 100 Einträge begrenzt und für schreibfähige Skripte gesperrt."
+      ]
+    },
+    {
+      "build": 12,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.4",
+      "changes": [
+        "Kurzlebige Kommandozeilenstarts schreiben ihr Abschluss- oder Fehlerereignis sofort in das konfigurierte Log.",
+        "Bei einem langsamen oder fehlenden Netzwerkpfad bleibt ein lokaler Diagnoseeintrag erhalten und die Wartezeit ist begrenzt."
+      ]
+    },
+    {
+      "build": 11,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.3",
+      "changes": [
+        "Plan- und PlanSum-Kontexte werden innerhalb des gewählten Kurses aufgelöst; gleichnamige Pläne in mehreren Kursen bleiben auch im Scope eindeutig.",
+        "Plan- und PlanSum-Auswahllisten zeigen Course, ID und Typ gemeinsam an.",
+        "Kontextstarts können ohne Patientendaten in der Befehlszeile per geschütztem Replay oder Prozessumgebung reproduziert werden; der Host protokolliert sichere Fehlercodes lokal und zentral."
+      ]
+    },
+    {
+      "build": 10,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.2",
+      "changes": [
+        "Konfigurierte Eclipse-Plug-in-Kacheln bieten neben dem Start in Eclipse nun direkt den passenden Patienten-, Plan- oder Structure-Set-Kontext an.",
+        "Lange kompakte Skriptpfade umbrechen innerhalb der Kachel statt abgeschnitten zu werden.",
+        "Der Script Host stellt WPF-Plug-ins eine Application bereit, ergänzt XML/XAML-Compilerreferenzen und nennt bei Fehlern die sichere Ausführungsphase."
+      ]
+    },
+    {
+      "build": 9,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.1",
+      "changes": [
+        "Der ESAPI Script Host enthält seinen minimalen Startvertrag selbst und benötigt keine benachbarte Runner-Assembly mehr.",
+        "Der serialisierte Kontextvertrag zwischen Hub und Host wird durch einen eigenen Kompatibilitätstest abgesichert.",
+        "Der direkte Live-Start von Binary- und Single-File-Kontextskripten funktioniert damit auch neben der unveränderlich versionierten Citrix-Binary."
+      ]
+    },
+    {
+      "build": 8,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.2.0",
+      "changes": [
+        "Unterstützte .esapi.dll- und .cs-Skripte starten direkt in einem isolierten Eclipse-18-Kontexthost.",
+        "Patient, Course, Plan, Plan Sum, Structure Set und Image können passend zum Skript gewählt und erneut verwendet werden.",
+        "Sitzungsaktivitäten werden lokal mit DPAPI-geschütztem Kontext gespeichert und aus der aktuellen Konfiguration erneut gestartet.",
+        "Karten zeigen Typ, Schreibabsicht, kompakten Pfad und optional die passende STR-Hub-Dokumentation."
+      ]
+    },
+    {
+      "build": 7,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.1.6",
+      "changes": [
+        "Compile-time-Autorisierungsreferenz und Live-Loader verwenden Eclipse 18.0.1 aus dem zentralen _Assets-Verzeichnis.",
+        "Der Release-Build bricht bei fehlenden oder nicht zu Eclipse 18 passenden Referenzen vor dem Kompilieren ab.",
+        "Die zuvor getestete Version bleibt als direkt umschaltbarer Citrix-Rollback erhalten."
+      ]
+    },
+    {
+      "build": 6,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.1.5",
+      "changes": [
+        "Der Citrix-Launcher liest sein gemeinsames LogDirectory aus settings.ini und akzeptiert current.txt mit CRLF- oder LF-Zeilenende.",
+        "Die EXE enthält die von ESAPI 16.1 erwartete API-Metadatenreferenz, ohne Varian-DLLs in Repository oder Release zu übernehmen.",
+        "UnauthorizedScriptingAPIAccessException ist durch einen reproduzierbaren Entry-Assembly-Vertrag abgedeckt."
+      ]
+    },
+    {
+      "build": 5,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.1.4",
+      "changes": [
+        "Der Hub wird direkt durch den stabilen CMD-Einstieg gestartet, damit Citrix das Runner-Fenster zuverlässig verfolgt.",
+        "ESAPI-Startfehler protokollieren nur den Exception-Typ; Meldungen, Argumente und Patientendaten bleiben ausgeschlossen.",
+        "Der synthetische Loader-Test deckt verschachtelte Startfehler und ihre sichere Diagnose ab."
+      ]
+    },
+    {
+      "build": 4,
+      "date": "2026-08-04",
+      "title": "ESAPI Runner Hub 0.1.3",
+      "changes": [
+        "Citrix Studio verwendet einen stabilen CMD-Einstieg und eine austauschbare current.txt.",
+        "Runner-Binaries werden versionsbezogen und unveränderlich unter dist/versions bereitgestellt.",
+        "Die bestehende dist/settings.ini bleibt die einzige Live-Konfiguration und wird explizit übergeben.",
+        "Start-, Fehler- und Exit-Ereignisse werden ohne Argumente oder Patientendaten lokal protokolliert."
+      ]
+    },
+    {
+      "build": 3,
+      "date": "2026-08-03",
+      "title": "ESAPI Runner Hub 0.1.2",
+      "changes": [
+        "Explizit konfigurierte API- und Types-Assemblies bleiben die erste Wahl.",
+        "Bei fehlenden oder veralteten Pfaden wird die höchste vollständige lokale Varian-RTM-Installation auf C: erkannt.",
+        "Unvollständige RTM-Verzeichnisse werden übersprungen; ohne gültige Installation bleibt der Katalog weiterhin sicher im Offline-Modus nutzbar."
+      ]
+    },
+    {
+      "build": 2,
+      "date": "2026-08-01",
+      "title": "ESAPI Runner Hub 0.1.1",
+      "changes": [
+        "LaunchKind unterscheidet externe EXEs von Eclipse-Plugins.",
+        "Plugin-Karten bleiben sichtbar, werden aber ausschließlich innerhalb von Eclipse gestartet.",
+        "LaunchKind ist in settings.ini und in der Settings-GUI bearbeitbar.",
+        "Technische Logs erfassen Start sowie erfolgreichen oder fehlerhaften Prozessabschluss ohne Patienten- oder Argumentdaten.",
+        "Zentrale Logs sind pro Hub-Prozess getrennt und werden über eine begrenzte Hintergrundwarteschlange geschrieben, damit Netzwerkfehler weder Oberfläche noch Programmstarts blockieren."
+      ]
+    },
+    {
+      "build": 1,
+      "date": "2026-08-01",
+      "title": "ESAPI Runner Hub 0.1.0",
+      "changes": [
+        "Patientenverzeichnis wird über eine vendorfreie Reflection-Schicht einmalig in einen lokalen Suchindex kopiert und die ESAPI-Anwendung sofort freigegeben.",
+        "Runner- und Standalone-EXEs lassen sich in settings.ini oder der GUI mit optionaler Argument- beziehungsweise Umgebungsübergabe konfigurieren.",
+        "Jede Anwendung startet in einem getrennten Prozess; Fehler und Abstürze eines Kindprozesses schließen den Hub nicht.",
+        "Offline-Simulator, synthetische Test-Assembly, Privacy-Logs, eigenes App-Icon und reproduzierbarer x64-Release-Build ergänzt."
+      ]
+    }
+  ]
+}

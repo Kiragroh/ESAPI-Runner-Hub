@@ -1,0 +1,342 @@
+<Window x:Class="EsapiRunnerHub.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ESAPI Runner Hub" Height="900" Width="1600" MinHeight="680" MinWidth="1080"
+        WindowStartupLocation="CenterScreen" Background="#F4F1EA" FontFamily="Segoe UI"
+        Icon="pack://application:,,,/Assets/ESAPI-Runner-Hub.png">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+        <SolidColorBrush x:Key="Ink" Color="#17243A" />
+        <SolidColorBrush x:Key="Muted" Color="#697386" />
+        <SolidColorBrush x:Key="Teal" Color="#087F76" />
+        <SolidColorBrush x:Key="Navy" Color="#14243C" />
+        <SolidColorBrush x:Key="Cream" Color="#F4F1EA" />
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+        </Style>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource Teal}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="13,8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.88" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.34" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#E7ECEB" />
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+        </Style>
+        <Style x:Key="PatientLaunchButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Content" Value="{Binding WithPatientLabel}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsPrivacyBlurEnabled, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="True">
+                    <Setter Property="Content" Value="Start with patient" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="Input" TargetType="TextBox">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#D7D9D4" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="11,8" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="SensitiveText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsPrivacyBlurEnabled, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="True">
+                    <Setter Property="Effect"><Setter.Value><BlurEffect Radius="6" /></Setter.Value></Setter>
+                    <Setter Property="Opacity" Value="0.28" />
+                    <Setter Property="ToolTip" Value="{x:Null}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="SensitiveControl" TargetType="Control">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsPrivacyBlurEnabled, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="True">
+                    <Setter Property="Effect"><Setter.Value><BlurEffect Radius="6" /></Setter.Value></Setter>
+                    <Setter Property="Opacity" Value="0.28" />
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <Setter Property="ToolTip" Value="{x:Null}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="SensitiveInput" TargetType="TextBox" BasedOn="{StaticResource Input}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsPrivacyBlurEnabled, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="True">
+                    <Setter Property="Effect"><Setter.Value><BlurEffect Radius="6" /></Setter.Value></Setter>
+                    <Setter Property="Opacity" Value="0.28" />
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <Setter Property="ToolTip" Value="{x:Null}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="76" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="210" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="{StaticResource Navy}" Padding="24,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/ESAPI-Runner-Hub.png" Width="44" Height="44" Margin="0,0,14,0" />
+                    <StackPanel>
+                        <TextBlock Text="ESAPI Runner Hub" Foreground="White" FontSize="22" FontWeight="SemiBold" />
+                        <TextBlock Text="One patient context · independent application processes" Foreground="#AFC1D8" FontSize="12" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#203955" CornerRadius="16" Padding="13,7" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="#54C6B8" Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding EsapiStatusText}" Foreground="#E7F1F5" FontSize="12" />
+                        </StackPanel>
+                    </Border>
+                    <Button Content="{Binding PrivacyActionLabel}" Command="{Binding TogglePrivacyBlurCommand}"
+                            Style="{StaticResource SecondaryButton}" Padding="13,8" Margin="0,0,8,0" />
+                    <Button Content="Settings" Click="Settings_Click" Style="{StaticResource SecondaryButton}" Padding="13,8" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="16,12,16,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="334" />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" CornerRadius="10" BorderBrush="#E2E0DA" BorderThickness="1" Padding="17">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Patient context" FontSize="19" FontWeight="SemiBold" />
+                    <TextBlock Grid.Row="1" Text="Search once, then reuse the selected treatment context." Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,3,0,11" />
+                    <TextBox Grid.Row="2" Style="{StaticResource SensitiveInput}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Patient ID or name" />
+                    <Grid Grid.Row="3" Margin="0,9,0,0">
+                        <ListBox ItemsSource="{Binding Suggestions}" BorderThickness="0" Background="Transparent"
+                                 Style="{StaticResource SensitiveControl}" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.SelectPatientCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}" Background="Transparent" BorderThickness="0" Padding="7"
+                                            HorizontalContentAlignment="Stretch" Cursor="Hand">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Display}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="Select patient" FontSize="11" Foreground="{StaticResource Teal}" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Border Background="#EAF4F1" CornerRadius="8" Padding="12" VerticalAlignment="Stretch"
+                                Visibility="{Binding HasSelectedPatient, Converter={StaticResource BoolToVisibility}}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel>
+                                    <TextBlock Text="SELECTED" FontSize="10" FontWeight="Bold" Foreground="{StaticResource Teal}" />
+                                    <TextBlock Text="{Binding SelectedPatientDisplay}" Style="{StaticResource SensitiveText}" FontSize="15" FontWeight="SemiBold" Margin="0,4,0,8" TextWrapping="Wrap" />
+                                    <Button Content="Clear patient" Command="{Binding ClearPatientCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Padding="10,6" />
+                                    <Border BorderBrush="#CFE1DC" BorderThickness="0,1,0,0" Margin="0,11,0,0" Padding="0,10,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="TREATMENT CONTEXT" FontSize="10" FontWeight="Bold" Foreground="{StaticResource Teal}" />
+                                            <TextBlock Text="{Binding ContextStatusText}" Style="{StaticResource SensitiveText}" FontSize="10.5" Foreground="{StaticResource Muted}" Margin="0,3,0,7" />
+                                            <TextBlock Text="Course" FontSize="11" FontWeight="SemiBold" />
+                                            <ComboBox ItemsSource="{Binding Courses}" SelectedItem="{Binding SelectedCourse}" DisplayMemberPath="Display" Style="{StaticResource SensitiveControl}" Margin="0,2,0,5" />
+                                            <TextBlock Text="Plan" FontSize="11" FontWeight="SemiBold" />
+                                            <ComboBox ItemsSource="{Binding Plans}" SelectedItem="{Binding SelectedPlan}" DisplayMemberPath="Display" Style="{StaticResource SensitiveControl}" Margin="0,2,0,5" />
+                                            <TextBlock Text="Plan sum" FontSize="11" FontWeight="SemiBold" />
+                                            <ComboBox ItemsSource="{Binding PlanSums}" SelectedItem="{Binding SelectedPlanSum}" DisplayMemberPath="Display" Style="{StaticResource SensitiveControl}" Margin="0,2,0,5" />
+                                            <TextBlock Text="Structure set (plan optional)" FontSize="11" FontWeight="SemiBold" />
+                                            <ComboBox ItemsSource="{Binding StructureSets}" SelectedItem="{Binding SelectedStructureSet}" DisplayMemberPath="Display" Style="{StaticResource SensitiveControl}" Margin="0,2,0,5" />
+                                            <TextBlock Text="Image (independently selectable)" FontSize="11" FontWeight="SemiBold" />
+                                            <ComboBox ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" DisplayMemberPath="Display" Style="{StaticResource SensitiveControl}" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                    <Border Grid.Row="4" BorderBrush="#E6E3DC" BorderThickness="0,1,0,0" Padding="0,10,0,0">
+                        <TextBlock Text="Patient selection stays in memory. Technical logs omit names, IDs, search text, arguments, and child output."
+                                   Foreground="{StaticResource Muted}" FontSize="10.5" TextWrapping="Wrap" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel Margin="4,0,4,9">
+                    <TextBlock Text="Application catalogue" FontSize="21" FontWeight="SemiBold" />
+                    <TextBlock Text="Every application starts in its own process; a child error does not close the Hub." Foreground="{StaticResource Muted}" />
+                </StackPanel>
+                <Border Grid.Row="1" Background="#E9E6DF" CornerRadius="9" Padding="10" Margin="4,0,4,10">
+                    <WrapPanel x:Name="CatalogueFilterBar" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBox Style="{StaticResource Input}" Text="{Binding ApplicationFilter, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Search applications" Width="235" Margin="4" />
+                        <ComboBox ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" Width="170" Padding="8,5" Margin="4" />
+                        <ComboBox ItemsSource="{Binding ArtifactFilters}" SelectedItem="{Binding SelectedArtifactFilter}" DisplayMemberPath="Label"
+                                  Width="160" Padding="8,5" Margin="4" />
+                        <Button Content="Reset filters" Command="{Binding ResetFiltersCommand}" Style="{StaticResource SecondaryButton}" Padding="11,7" Margin="4" />
+                    </WrapPanel>
+                </Border>
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding VisibleApplications}" HorizontalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel HorizontalAlignment="Center" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="284" MinHeight="250" Background="White" CornerRadius="10" BorderBrush="#E0DED8" BorderThickness="1" Margin="6" Padding="15">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <WrapPanel>
+                                            <TextBlock Text="{Binding Category}" Foreground="{StaticResource Teal}" FontSize="10.5" FontWeight="Bold" Margin="0,0,7,4" VerticalAlignment="Center" />
+                                            <Border Background="#EAF4F1" CornerRadius="10" Padding="7,3" Margin="0,0,5,4"><TextBlock Text="{Binding ArtifactLabel}" FontSize="9.5" Foreground="#176C64" /></Border>
+                                            <Border Background="#F0EEE8" CornerRadius="10" Padding="7,3" Margin="0,0,0,4"><TextBlock Text="{Binding AccessLabel}" FontSize="9.5" Foreground="{StaticResource Muted}" /></Border>
+                                        </WrapPanel>
+                                        <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="17" FontWeight="SemiBold" Margin="0,5,0,3" TextWrapping="Wrap" />
+                                        <StackPanel Grid.Row="2">
+                                            <TextBlock Text="{Binding Description}" Foreground="{StaticResource Muted}" TextWrapping="Wrap" MaxHeight="48" />
+                                            <TextBlock Text="{Binding CompactPath}" ToolTip="{Binding FullPath}" Style="{StaticResource SensitiveText}"
+                                                       Foreground="#4E5D70" FontFamily="Consolas" FontSize="10" TextWrapping="Wrap" Margin="0,7,0,0" MaxHeight="38" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,9,0,9">
+                                            <Ellipse Width="7" Height="7" Margin="0,0,7,0" VerticalAlignment="Center">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Fill" Value="#CB6D51" />
+                                                        <Style.Triggers><DataTrigger Binding="{Binding IsReady}" Value="True"><Setter Property="Fill" Value="#299A78" /></DataTrigger></Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="{StaticResource Muted}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Grid Grid.Row="4" Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding ModeLabel}" FontSize="9.5" Foreground="{StaticResource Muted}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,5,0" />
+                                            <Button Grid.Column="1" Content="Copy README link" Command="{Binding DataContext.CopyReadmeLinkCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" Visibility="{Binding HasHubReadme, Converter={StaticResource BoolToVisibility}}"
+                                                    Style="{StaticResource SecondaryButton}" Padding="8,5" FontSize="9.5" />
+                                        </Grid>
+                                        <WrapPanel Grid.Row="5">
+                                            <Button Command="{Binding DataContext.StartWithPatientCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" IsEnabled="{Binding CanStartWithPatient}" Visibility="{Binding WithPatientVisibility}"
+                                                    Style="{StaticResource PatientLaunchButton}" Margin="0,0,7,0" />
+                                            <Button Content="{Binding WithoutPatientLabel}" Command="{Binding DataContext.StartWithoutPatientCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" IsEnabled="{Binding CanStartWithoutPatient}" Visibility="{Binding WithoutPatientVisibility}"
+                                                    Style="{StaticResource SecondaryButton}" />
+                                            <TextBlock Text="{Binding ReferenceHint}" Visibility="{Binding ReferenceVisibility}" Foreground="#7A5B18" Background="#FFF1C9" Padding="9,6" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <StackPanel Visibility="{Binding ContextVisibility}">
+                                                <TextBlock Text="{Binding ContextHint}" Foreground="#9B5B28" FontSize="10.5" Margin="0,0,0,4" />
+                                                <Button Content="{Binding ContextActionLabel}" Command="{Binding DataContext.StartContextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" IsEnabled="{Binding CanStartContext}" Style="{StaticResource PrimaryButton}" />
+                                            </StackPanel>
+                                        </WrapPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#FFFDF8" BorderBrush="#DDD9D0" BorderThickness="0,1,0,0" Padding="18,11">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Recent activity" FontSize="16" FontWeight="SemiBold" />
+                        <TextBlock Text="  ·  protected for this Windows account, retained for 30 days" Foreground="{StaticResource Muted}" FontSize="10.5" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding NotificationText}" Foreground="{StaticResource Muted}" Margin="18,0,0,0" TextWrapping="Wrap" TextAlignment="Right" />
+                </Grid>
+                <Grid Grid.Row="1" Margin="0,8,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" /><ColumnDefinition Width="0.9*" /><ColumnDefinition Width="3*" />
+                        <ColumnDefinition Width="1.3*" /><ColumnDefinition Width="1.4*" /><ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Application" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
+                    <TextBlock Grid.Column="1" Text="Type" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
+                    <TextBlock Grid.Column="2" Text="Context" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
+                    <TextBlock Grid.Column="3" Text="Started" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
+                    <TextBlock Grid.Column="4" Text="Status" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
+                    <TextBlock Grid.Column="5" Text="Actions" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" Margin="8,0" />
+                </Grid>
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Activities}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="#ECE8DF" BorderThickness="0,1,0,0" Padding="0,5">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*" /><ColumnDefinition Width="0.9*" /><ColumnDefinition Width="3*" />
+                                            <ColumnDefinition Width="1.3*" /><ColumnDefinition Width="1.4*" /><ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding ApplicationName}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="1" Text="{Binding ArtifactLabel}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="2" Text="{Binding ContextSummary}" ToolTip="{Binding ContextSummary}" Style="{StaticResource SensitiveText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Started}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="4" Text="{Binding Status}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <StackPanel Grid.Column="5" Orientation="Horizontal">
+                                            <Button Content="Select patient" ToolTip="{Binding PatientSelectionAvailabilityText}"
+                                                    Command="{Binding DataContext.SelectHistoryPatientCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" Style="{StaticResource SecondaryButton}" Padding="8,5" FontSize="10.5" />
+                                            <Button Content="Run again" ToolTip="{Binding ReplayAvailabilityText}" Margin="6,0,0,0"
+                                                    Command="{Binding DataContext.RunAgainCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" Style="{StaticResource SecondaryButton}" Padding="8,5" FontSize="10.5" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

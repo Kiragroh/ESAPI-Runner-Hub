@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{154FE10C-5EE3-4162-BDA0-354412E26B77}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>EsapiRunnerHub</RootNamespace>
+    <AssemblyName>ESAPI-Runner-Hub</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>7.3</LangVersion>
+    <Deterministic>true</Deterministic>
+    <ApplicationIcon>..\..\assets\ESAPI-Runner-Hub.ico</ApplicationIcon>
+    <EsapiReferenceDirectory Condition=" '$(EsapiReferenceDirectory)' == '' and Exists('C:\Program Files (x86)\Varian\RTM\18.0\esapi\API\VMS.TPS.Common.Model.API.dll') ">C:\Program Files (x86)\Varian\RTM\18.0\esapi\API</EsapiReferenceDirectory>
+    <EsapiReferenceDirectory Condition=" '$(EsapiReferenceDirectory)' == '' ">$(MSBuildProjectDirectory)\..\..\..\_Assets</EsapiReferenceDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="VMS.TPS.Common.Model.API">
+      <HintPath>$(EsapiReferenceDirectory)\VMS.TPS.Common.Model.API.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="..\..\assets\ESAPI-Runner-Hub.png">
+      <Link>Assets\ESAPI-Runner-Hub.png</Link>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SettingsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Configuration\ApplicationDefinition.cs" />
+    <Compile Include="Catalog\ApplicationArtifactFilter.cs" />
+    <Compile Include="Catalog\ApplicationMetadata.cs" />
+    <Compile Include="Configuration\ConfigurationValidator.cs" />
+    <Compile Include="Configuration\HubConfiguration.cs" />
+    <Compile Include="Configuration\IniConfigurationStore.cs" />
+    <Compile Include="Context\ContextDescriptor.cs" />
+    <Compile Include="Context\ContextSelection.cs" />
+    <Compile Include="Esapi\PatientDirectoryLoadResult.cs" />
+    <Compile Include="Esapi\EsapiAssemblyLocator.cs" />
+    <Compile Include="Esapi\EsapiAuthorizationMarker.cs" />
+    <Compile Include="Esapi\ReflectionPatientDirectoryLoader.cs" />
+    <Compile Include="Esapi\ReflectionContextDirectoryLoader.cs" />
+    <Compile Include="Infrastructure\ObservableObject.cs" />
+    <Compile Include="History\LaunchHistoryEntry.cs" />
+    <Compile Include="History\LaunchHistoryStore.cs" />
+    <Compile Include="History\ProtectedContextEnvelope.cs" />
+    <Compile Include="Infrastructure\RelayCommand.cs" />
+    <Compile Include="Launching\ArgumentComposer.cs" />
+    <Compile Include="Launching\ChildProcessLauncher.cs" />
+    <Compile Include="Launching\ContextLaunchPayload.cs" />
+    <Compile Include="Launching\ContextScriptRequestComposer.cs" />
+    <Compile Include="Launching\ScriptHostSelector.cs" />
+    <Compile Include="Launching\ContextCommandLineRunner.cs" />
+    <Compile Include="Launching\LaunchRequest.cs" />
+    <Compile Include="Launching\PathProbe.cs" />
+    <Compile Include="Launching\RunningProcessInfo.cs" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Patients\PatientRecord.cs" />
+    <Compile Include="Patients\PatientSearchIndex.cs" />
+    <Compile Include="Privacy\CrashReporter.cs" />
+    <Compile Include="Privacy\TechnicalLog.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\ApplicationCardViewModel.cs" />
+    <Compile Include="ViewModels\ActivityRowViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\SettingsViewModel.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
