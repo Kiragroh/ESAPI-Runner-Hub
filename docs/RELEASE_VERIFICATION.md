@@ -1,8 +1,8 @@
-# Release verification: v0.3.5
+# Release verification: v0.3.7
 
-Date: 2026-08-08
+Date: 2026-08-21
 
-This record covers the v0.3.5 source, vendor-free release artifacts, reflection-free ESAPI write invocation, dual-host routing, and Citrix activation contract. It does not claim clinical approval of configured child applications.
+This record covers the sanitized public v0.3.7 source, vendor-free release artifacts, visible classic plug-in windows, dual-host routing, and Citrix activation contract. It does not claim clinical approval of configured child applications.
 
 ## Automated gates
 
@@ -13,7 +13,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps
 ```
 
 - x64 .NET Framework 4.8 release build against Eclipse 18 metadata references
-- 159 automated tests passed, 0 failed
+- 162 automated tests passed, 0 failed
 - CMD launcher tests passed, 0 failed
 - shell-free EXE launcher tests passed, 0 failed
 - vendor-free package validation passed
@@ -22,18 +22,18 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps
 
 ## Artifacts
 
-- Citrix binary: `dist\versions\ESAPI-Runner-Hub.v0.3.5.exe`
-- Citrix binary file version: `0.3.5.0`
-- Citrix binary SHA-256: `a45ad05e3499ee57ce0467556e88eda0fea3c26aa5189006af4ca89ca9d4ae2c`
-- Read-only host file version: `0.3.3.0`
-- Read-only host SHA-256: `15238c1aab0748bda241051d1edbd7f3cd31a492e1fa91ee0b27d245bdbd5c13`
-- Write host file version: `0.3.4.0`
-- Write host SHA-256: `e8b0cfa4053d851c147eb83bf5413cf443feb3f121ffbdc1340a3abfb078d973`
+- Citrix binary: `dist\versions\ESAPI-Runner-Hub.v0.3.7.exe`
+- Citrix binary file version: `0.3.7.0`
+- Citrix binary SHA-256: `8c5aed46c75b643f9299df81c95a53314cca6d3c4666215c5e739037ab8b8bb`
+- Read-only host file version: `0.3.4.0`
+- Read-only host SHA-256: `d5a8b9345194305bf7beaf959f5101f5fb6113abbee80689e1739fb5a4d46e0f`
+- Write host file version: `0.3.5.0`
+- Write host SHA-256: `0821b6e102545972bb5160913f588be0de387942e617a086046deef6076330c0`
 - Stable Citrix launcher file version: `0.3.3.0`
 - Stable Citrix launcher SHA-256: `cbfa57d02ae1b3d1e1592eae95c452e821c7f2c6940cde4b6e051615003a4756`
-- Release ZIP: `dist\ESAPI-Runner-Hub-v0.3.5-win-x64.zip`
-- Release ZIP SHA-256: `9658c0edee0bf0321c9426e39d43497dc2a1d03a851d77bfcd6864cba62d0cca`
-- Active pointer: `citrix\current.txt` -> `ESAPI-Runner-Hub.v0.3.5.exe`
+- Release ZIP: `dist\ESAPI-Runner-Hub-v0.3.7-win-x64.zip`
+- Release ZIP SHA-256: `c17a4bc7ec400d138845ce43f75199cf2a267fa818e0727aadca5761ef3156d3`
+- Active pointer: `citrix\current.txt` -> `ESAPI-Runner-Hub.v0.3.7.exe`
 
 ## History and UI verification
 
@@ -55,6 +55,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps
 
 - The host calls `Application.CreateApplication`, `OpenPatientById`, `SaveModifications`, `ClosePatient`, and `Dispose` through its Eclipse 18 compile-time API reference.
 - Classic `Execute(ScriptContext)` and `Execute(ScriptContext, Window)` methods are converted to typed delegates and invoked directly; public ESAPI operations are not called through `MethodInfo.Invoke`.
+- A two-parameter plug-in receives one host-owned `Window`; when the child configures content but has not already displayed it, the host calls `ShowDialog()` and remains alive until the window closes.
+- A synthetic two-parameter plug-in verifies the Window loaded event and closes itself, so the lifecycle is covered without manual interaction.
 - The synthetic Eclipse API rejects a stack containing reflection when `AddExternalPlanSetup` or `SaveModifications` is reached. The released regression passes typed plan creation, single-save, discard, and failure paths.
 - The loaded API assembly identity is checked against the host's compile-time reference before context resolution.
 
@@ -62,6 +64,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps
 
 The ignored `dist/settings.ini` remains the sole live configuration. Deployment adds `WriteScriptHostExecutable=ESAPI-Write-Script-Host.exe` while preserving existing application sections, paths, arguments, and the stable Citrix Studio application entry.
 
+## Configurable tool integration
+
+- A write-enabled Eclipse plug-in can be configured with an explicit plan or PlanSum requirement and confirm-save handling.
+- A separate read-only diagnostic can collect technical context evidence without a completion message box.
+- The example catalogue uses placeholders only and contains no institutional or clinical paths.
+
 ## Clinical boundary
 
-The v0.3.5 Hub release preserves the read host and stable Citrix launcher byte-for-byte at v0.3.3. The fixed write host is a new v0.3.4 approval candidate and must be registered, evaluated, validated, and approved as this exact SHA-256 before live write use. Each child write script remains independently governed; host approval is not approval of dynamically loaded child code.
+The v0.3.7 public release keeps the stable Citrix launcher at v0.3.3, changes the read host to v0.3.4, and changes the write host to v0.3.5 for the corrected Window lifecycle. The write host and every write-enabled child plug-in must be registered, evaluated, validated, and approved as their exact released binaries before live write use. Each child write script remains independently governed; host approval is not approval of dynamically loaded child code.
