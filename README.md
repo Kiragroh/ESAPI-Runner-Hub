@@ -47,6 +47,7 @@ flowchart LR
 - Optional patient-ID transfer by argument or child-only environment variable.
 - Applications that require, optionally accept, or ignore a patient context.
 - Direct context launch for supported `.esapi.dll` and `.cs` scripts through separate mode-locked Eclipse 18 read-only and write-enabled host processes, while reference-only cards remain available for scripts that must still start inside Eclipse.
+- Classic `Execute(ScriptContext, Window)` plug-ins receive a visible host-owned window, allowing UI tools such as ESAPI Tools / Dosimetry Helper to run directly from their catalogue card.
 - Reusable selection of course, plan, plan sum, structure set, or image, including scripts that work without a plan.
 - Catalogue filters for standalone, single-file, and binary tools, plus visible artifact type, read/write intent, compact source path, and an optional action that copies the matching STR Hub README URL without starting a browser.
 - A DPAPI-protected local activity history with **Select patient** and **Run again** as separate actions; context identifiers are encrypted for the current Windows account and commands are always recomposed from current settings.
@@ -135,7 +136,7 @@ For a published Citrix application, use `citrix\ESAPI-Runner-Hub.CitrixLauncher.
 
 The launcher can forward a Runner option supplied directly on the VDA, but productive automation does not assume that Citrix Workspace transports client-side command-line parameters. Exact workstation-driven tests use the shared request plus per-user pending marker described above and open the ordinary published shortcut without arguments. Argument contents are never logged. The legacy `cmd.exe` plus `citrix\Start-ESAPI-Runner-Hub.cmd` route remains available as a no-argument fallback.
 
-New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.4.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
+New releases use a new filename such as `ESAPI-Runner-Hub.v0.3.6.exe`. Activating or rolling back a release changes only `current.txt`; an older binary may remain open without blocking deployment of the next version. Clinic-specific Studio values and operational commands are documented in `citrix\README-Citrix.md` and are intentionally excluded from the public package documentation.
 
 ## Configuration
 

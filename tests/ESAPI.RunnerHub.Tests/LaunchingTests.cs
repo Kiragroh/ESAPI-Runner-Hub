@@ -64,7 +64,8 @@ namespace EsapiRunnerHub.Tests
 
         private static void KeepsChildFailuresIsolated()
         {
-            var fixture = TestHarness.PathFromRoot("tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
+            var fixture = TestHarness.BuiltArtifact("RunnerFixture.exe",
+                "tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
             var launcher = new ChildProcessLauncher();
 
             var exit7 = launcher.Start(new LaunchRequest("fixture", fixture, Path.GetDirectoryName(fixture), "--mode exit7"));
@@ -82,7 +83,8 @@ namespace EsapiRunnerHub.Tests
 
         private static void DetectsEarlyExit()
         {
-            var fixture = TestHarness.PathFromRoot("tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
+            var fixture = TestHarness.BuiltArtifact("RunnerFixture.exe",
+                "tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
             var process = new ChildProcessLauncher().Start(
                 new LaunchRequest("fixture", fixture, Path.GetDirectoryName(fixture), "--mode success"));
             WaitForExit(process);
@@ -108,7 +110,8 @@ namespace EsapiRunnerHub.Tests
 
         private static ApplicationDefinition Application(PatientMode mode, PatientTransport transport)
         {
-            var fixture = TestHarness.PathFromRoot("tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
+            var fixture = TestHarness.BuiltArtifact("RunnerFixture.exe",
+                "tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
             return new ApplicationDefinition
             {
                 Id = "fixture",

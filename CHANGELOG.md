@@ -2,6 +2,27 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.7] - 2026-08-21
+
+### Added
+
+- ESAPI Tools / Dosimetry Helper is listed as an Eclipse plug-in that can also be started directly with a selected plan or plan-sum context.
+- A read-only Plan Sum machine diagnostic records source plans, treatment units, beam modes, structure sets, and add-plan preflight evidence in the protected Runner log area.
+
+### Fixed
+
+- Classic two-parameter Eclipse plug-ins now receive a visible host window; the context process remains alive until that window closes.
+- The diagnostic path is unattended and no longer blocks automation with a completion message box.
+
+### Approval identity
+
+- `ESAPI-Script-Host.exe` changes to 0.3.4 and `ESAPI-Write-Script-Host.exe` changes to 0.3.5 because both host the corrected Window lifecycle.
+- The Citrix launcher remains at 0.3.3.
+
+### Validation
+
+- Automated coverage opens and closes a synthetic two-parameter Eclipse window and verifies all existing context, save, privacy, release, and Citrix contracts.
+
 ## [0.3.6] - 2026-08-13
 
 ### Public release hygiene

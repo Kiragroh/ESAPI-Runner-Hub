@@ -187,7 +187,8 @@ Enabled=true
             try
             {
                 TechnicalLog.Configure(directory);
-                var fixture = TestHarness.PathFromRoot("tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
+                var fixture = TestHarness.BuiltArtifact("RunnerFixture.exe",
+                    "tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe");
                 var configuration = new HubConfiguration();
                 configuration.Applications.Add(new ApplicationDefinition
                 {

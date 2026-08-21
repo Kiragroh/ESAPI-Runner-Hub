@@ -190,7 +190,8 @@ PatientTransport=None
             var previousPlugin = Environment.GetEnvironmentVariable(pluginVariable);
             try
             {
-                Environment.SetEnvironmentVariable(executableVariable, TestHarness.PathFromRoot("tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe"));
+                Environment.SetEnvironmentVariable(executableVariable, TestHarness.BuiltArtifact(
+                    "RunnerFixture.exe", "tests/RunnerFixture/bin/x64/Release/RunnerFixture.exe"));
                 Environment.SetEnvironmentVariable(pluginVariable, @"C:\portable\Plugin.esapi.dll");
                 var configuration = IniConfigurationStore.ParseText(@"
 [Application.tool]

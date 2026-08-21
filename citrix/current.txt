@@ -1,1 +1,1 @@
-ESAPI-Runner-Hub.v0.3.5.exe
+ESAPI-Runner-Hub.v0.3.7.exe

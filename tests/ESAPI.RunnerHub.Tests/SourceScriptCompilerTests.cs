@@ -22,7 +22,8 @@ namespace EsapiRunnerHub.Tests
                 var source = Path.Combine(directory, "Tool.cs");
                 File.WriteAllText(source, Source("One"));
                 var compiler = new SourceScriptCompiler(Path.Combine(directory, "cache"));
-                var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
+                var api = TestHarness.BuiltArtifact("VMS.TPS.Common.Model.API.dll",
+                    "tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
 
                 var first = compiler.Compile(source, api, string.Empty, new string[0]);
                 var repeated = compiler.Compile(source, api, string.Empty, new string[0]);
@@ -48,7 +49,8 @@ namespace EsapiRunnerHub.Tests
             {
                 var source = Path.Combine(directory, "Broken.cs");
                 File.WriteAllText(source, "public class Broken { string secret = \"PATIENT-SECRET\" ");
-                var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
+                var api = TestHarness.BuiltArtifact("VMS.TPS.Common.Model.API.dll",
+                    "tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
                 var exception = TestHarness.AssertThrows<InvalidOperationException>(() =>
                     new SourceScriptCompiler(Path.Combine(directory, "cache")).Compile(source, api, string.Empty, new string[0]));
 
@@ -72,7 +74,8 @@ namespace EsapiRunnerHub.Tests
                     "using System.Xml.Serialization; using System.Windows.Markup; " +
                     "public sealed class References { public IXmlSerializable Xml { get; set; } " +
                     "public IQueryAmbient Ambient { get; set; } }");
-                var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
+                var api = TestHarness.BuiltArtifact("VMS.TPS.Common.Model.API.dll",
+                    "tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
 
                 var output = new SourceScriptCompiler(Path.Combine(directory, "cache"))
                     .Compile(source, api, string.Empty, new string[0]);
@@ -94,7 +97,8 @@ namespace EsapiRunnerHub.Tests
                 File.WriteAllText(source,
                     "using Forms = System.Windows.Forms; " +
                     "public sealed class FormsReference { public Forms.DialogResult Result { get; set; } }");
-                var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
+                var api = TestHarness.BuiltArtifact("VMS.TPS.Common.Model.API.dll",
+                    "tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
 
                 var output = new SourceScriptCompiler(Path.Combine(directory, "cache"))
                     .Compile(source, api, string.Empty, new string[0]);

@@ -17,6 +17,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("execute-and-discard writable host run never asks or saves", ExecuteAndDiscardNeverAsksOrSaves);
             TestHarness.Test("failed writable host run never saves", FailedRunNeverSaves);
             TestHarness.Test("script host supplies a WPF application for UI plug-ins", SuppliesWpfApplication);
+            TestHarness.Test("classic Eclipse window plug-in is shown by the host", ShowsClassicEclipseWindow);
         }
 
         private static void InvokesEssentials()
@@ -170,6 +171,15 @@ namespace EsapiRunnerHub.Tests
             {
                 ClearMarker("SCRIPT_FIXTURE_MARKER", marker);
             }
+        }
+
+        private static void ShowsClassicEclipseWindow()
+        {
+            WithResolvedContext((script, context) =>
+            {
+                new EclipseScriptInvoker().Invoke(script, "VMS.TPS.WindowEclipseScript", context);
+                TestHarness.AssertEqual("window-shown|SYN-1001", ReadMarker());
+            });
         }
 
         private static void WithResolvedContext(Action<string, ResolvedContext> action)

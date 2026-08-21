@@ -407,7 +407,8 @@ Enabled=true
 
         private static string Fixture()
         {
-            return TestHarness.PathFromRoot("tests/RunnerFixture/bin/x64/Debug/RunnerFixture.exe");
+            return TestHarness.BuiltArtifact("RunnerFixture.exe",
+                "tests/RunnerFixture/bin/x64/Debug/RunnerFixture.exe");
         }
 
         private static void WaitForTerminal(ActivityRowViewModel row)

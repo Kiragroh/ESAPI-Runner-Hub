@@ -25,7 +25,8 @@ namespace EsapiRunnerHub.Tests
 
         private static void LoadsAndDisposesApplication()
         {
-            var apiPath = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Release/VMS.TPS.Common.Model.API.dll");
+            var apiPath = TestHarness.BuiltArtifact("VMS.TPS.Common.Model.API.dll",
+                "tests/FakeVms.Api/bin/x64/Release/VMS.TPS.Common.Model.API.dll");
             var marker = Path.Combine(Path.GetTempPath(), "esapi-runner-hub-dispose-" + Guid.NewGuid().ToString("N") + ".txt");
             Environment.SetEnvironmentVariable("FAKE_VMS_DISPOSE_MARKER", marker);
             try
@@ -52,7 +53,8 @@ namespace EsapiRunnerHub.Tests
             var root = Path.Combine(Path.GetTempPath(), "esapi-runner-hub-loader-" + Guid.NewGuid().ToString("N"));
             var apiDirectory = Path.Combine(root, "18.0", "esapi", "API");
             Directory.CreateDirectory(apiDirectory);
-            var sourceApi = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Release/VMS.TPS.Common.Model.API.dll");
+            var sourceApi = TestHarness.BuiltArtifact("VMS.TPS.Common.Model.API.dll",
+                "tests/FakeVms.Api/bin/x64/Release/VMS.TPS.Common.Model.API.dll");
             File.Copy(sourceApi, Path.Combine(apiDirectory, "VMS.TPS.Common.Model.API.dll"));
             File.Copy(sourceApi, Path.Combine(apiDirectory, "VMS.TPS.Common.Model.Types.dll"));
             try
@@ -64,13 +66,16 @@ namespace EsapiRunnerHub.Tests
             }
             finally
             {
-                Directory.Delete(root, true);
+                try { Directory.Delete(root, true); }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
             }
         }
 
         private static void PreservesRootStartupException()
         {
-            var apiPath = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Release/VMS.TPS.Common.Model.API.dll");
+            var apiPath = TestHarness.BuiltArtifact("VMS.TPS.Common.Model.API.dll",
+                "tests/FakeVms.Api/bin/x64/Release/VMS.TPS.Common.Model.API.dll");
             Environment.SetEnvironmentVariable("FAKE_VMS_THROW_CREATE", "1");
             try
             {

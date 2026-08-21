@@ -14,7 +14,8 @@ namespace EsapiRunnerHub.Tests
 
         private static void CopiesDetachedContext()
         {
-            var api = TestHarness.PathFromRoot("tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
+            var api = TestHarness.BuiltArtifact("VMS.TPS.Common.Model.API.dll",
+                "tests/FakeVms.Api/bin/x64/Debug/VMS.TPS.Common.Model.API.dll");
             var closeMarker = Path.Combine(Path.GetTempPath(), "runner-hub-close-" + Guid.NewGuid().ToString("N"));
             Environment.SetEnvironmentVariable("FAKE_VMS_CLOSE_MARKER", closeMarker);
             try

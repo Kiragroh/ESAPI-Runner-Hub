@@ -57,4 +57,19 @@ namespace VMS.TPS
             File.WriteAllText(Environment.GetEnvironmentVariable("SCRIPT_FIXTURE_MARKER"), "wpf-application-ready");
         }
     }
+
+    public sealed class WindowEclipseScript
+    {
+        public void Execute(ScriptContext context, Window window)
+        {
+            window.Title = "Synthetic Eclipse window";
+            window.Content = "Synthetic content";
+            window.Loaded += delegate
+            {
+                File.WriteAllText(Environment.GetEnvironmentVariable("SCRIPT_FIXTURE_MARKER"),
+                    "window-shown|" + context.Patient.Id);
+                window.Close();
+            };
+        }
+    }
 }

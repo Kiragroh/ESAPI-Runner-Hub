@@ -45,9 +45,11 @@ namespace EsapiScriptHost.Host
                 }
                 else if (selected.GetParameters()[1].ParameterType == typeof(Window))
                 {
+                    var window = new Window();
                     var execute = (Action<ScriptContext, Window>)Delegate.CreateDelegate(
                         typeof(Action<ScriptContext, Window>), instance, selected, true);
-                    execute(scriptContext, new Window());
+                    execute(scriptContext, window);
+                    if (!window.IsVisible && window.Content != null) window.ShowDialog();
                 }
                 else throw new InvalidOperationException("The Eclipse Execute overload has an unsupported second parameter.");
             }

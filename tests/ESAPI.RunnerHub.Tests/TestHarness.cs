@@ -57,6 +57,12 @@ namespace EsapiRunnerHub.Tests
             throw new InvalidOperationException("Repository root not found.");
         }
 
+        public static string BuiltArtifact(string fileName, string repositoryFallback)
+        {
+            var adjacent = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            return File.Exists(adjacent) ? adjacent : PathFromRoot(repositoryFallback);
+        }
+
         public static void AssertContains(string actual, string expected)
         {
             if (actual == null || !actual.Contains(expected))

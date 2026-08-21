@@ -9,7 +9,7 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
-            TestHarness.Test("release metadata identifies version 0.3.6 build 25", HasReleaseMetadata);
+            TestHarness.Test("release metadata identifies version 0.3.7 build 26", HasReleaseMetadata);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
             TestHarness.Test("release build executes the Citrix launcher contract", ExecutesCitrixLauncherContract);
@@ -34,10 +34,10 @@ namespace EsapiRunnerHub.Tests
             var assemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Properties/AssemblyInfo.cs"));
             var hostAssemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Properties/AssemblyInfo.cs"));
 
-            TestHarness.AssertContains(version, "\"version\": \"0.3.6\"");
-            TestHarness.AssertContains(version, "\"build\": 25");
-            TestHarness.AssertContains(version, "\"scriptHostVersion\": \"0.3.3\"");
-            TestHarness.AssertContains(version, "\"writeScriptHostVersion\": \"0.3.4\"");
+            TestHarness.AssertContains(version, "\"version\": \"0.3.7\"");
+            TestHarness.AssertContains(version, "\"build\": 26");
+            TestHarness.AssertContains(version, "\"scriptHostVersion\": \"0.3.4\"");
+            TestHarness.AssertContains(version, "\"writeScriptHostVersion\": \"0.3.5\"");
             TestHarness.AssertContains(version, "\"citrixLauncherVersion\": \"0.3.3\"");
             TestHarness.AssertContains(version, "\"build\": 22");
             TestHarness.AssertContains(version, "\"build\": 21");
@@ -49,19 +49,21 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(version, "\"build\": 15");
             TestHarness.AssertContains(version, "\"build\": 14");
             TestHarness.AssertContains(version, "\"build\": 11");
+            TestHarness.AssertContains(changelog, "## [0.3.7] - 2026-08-21");
             TestHarness.AssertContains(changelog, "## [0.3.6] - 2026-08-13");
+            TestHarness.AssertContains(changelog, "two-parameter Eclipse plug-ins");
             TestHarness.AssertContains(changelog, "## [0.3.5] - 2026-08-08");
             TestHarness.AssertContains(changelog, "compile-time ESAPI calls");
             TestHarness.AssertContains(changelog, "Child process exits");
             TestHarness.AssertContains(changelog, "Select patient");
             TestHarness.AssertContains(changelog, "encrypted launch history");
             TestHarness.AssertContains(changelog, "Direct context scripts");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.3.5.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.3.5.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.3.5\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.3.3.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.3.3.0\")");
-            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.3.3\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.3.7.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.3.7.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.3.7\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.3.4.0\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.3.4.0\")");
+            TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.3.4\")");
             var currentCitrixBinary = File.ReadAllText(TestHarness.PathFromRoot("citrix/current.txt")).Trim();
             TestHarness.AssertTrue(currentCitrixBinary.StartsWith("ESAPI-Runner-Hub.v", StringComparison.Ordinal));
             TestHarness.AssertTrue(currentCitrixBinary.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
@@ -138,10 +140,10 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(script, "$stableWriteHost");
             TestHarness.AssertContains(script, "$stableCitrixLauncher");
             TestHarness.AssertContains(script, "Stable component version mismatch");
-            TestHarness.AssertContains(readHostAssembly, "AssemblyVersion(\"0.3.3.0\")");
-            TestHarness.AssertContains(readHostAssembly, "AssemblyFileVersion(\"0.3.3.0\")");
-            TestHarness.AssertContains(writeHostAssembly, "AssemblyVersion(\"0.3.4.0\")");
-            TestHarness.AssertContains(writeHostAssembly, "AssemblyFileVersion(\"0.3.4.0\")");
+            TestHarness.AssertContains(readHostAssembly, "AssemblyVersion(\"0.3.4.0\")");
+            TestHarness.AssertContains(readHostAssembly, "AssemblyFileVersion(\"0.3.4.0\")");
+            TestHarness.AssertContains(writeHostAssembly, "AssemblyVersion(\"0.3.5.0\")");
+            TestHarness.AssertContains(writeHostAssembly, "AssemblyFileVersion(\"0.3.5.0\")");
             TestHarness.AssertContains(launcherAssembly, "AssemblyVersion(\"0.3.3.0\")");
             TestHarness.AssertContains(launcherAssembly, "AssemblyFileVersion(\"0.3.3.0\")");
         }

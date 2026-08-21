@@ -1,12 +1,22 @@
 {
-  "version": "0.3.6",
-  "build": 25,
-  "scriptHostVersion": "0.3.3",
-  "writeScriptHostVersion": "0.3.4",
+  "version": "0.3.7",
+  "build": 26,
+  "scriptHostVersion": "0.3.4",
+  "writeScriptHostVersion": "0.3.5",
   "citrixLauncherVersion": "0.3.3",
-  "lastUpdate": "2026-08-13",
-  "lastChange": "Public examples and metadata are institution-neutral and require explicit local configuration.",
+  "lastUpdate": "2026-08-21",
+  "lastChange": "Two-parameter Eclipse plug-ins receive a visible host window and can launch directly with a selected planning context.",
   "changelog": [
+    {
+      "build": 26,
+      "date": "2026-08-21",
+      "title": "ESAPI Runner Hub 0.3.7",
+      "changes": [
+        "The context host displays the Window configured by classic two-parameter Eclipse plug-ins and waits until it closes.",
+        "Window-based Eclipse plug-ins can be configured with direct plan or plan-sum context and confirm-save handling.",
+        "A read-only Plan Sum machine diagnostic writes protected treatment-unit evidence without blocking automation with a message box."
+      ]
+    },
     {
       "build": 25,
       "date": "2026-08-13",
