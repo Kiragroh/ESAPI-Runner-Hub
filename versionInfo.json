@@ -1,12 +1,26 @@
 {
-  "version": "0.3.7",
-  "build": 26,
+  "version": "0.3.12",
+  "build": 30,
   "scriptHostVersion": "0.3.4",
   "writeScriptHostVersion": "0.3.5",
   "citrixLauncherVersion": "0.3.3",
-  "lastUpdate": "2026-08-21",
-  "lastChange": "Two-parameter Eclipse plug-ins receive a visible host window and can launch directly with a selected planning context.",
+  "lastUpdate": "2026-09-09",
+  "lastChange": "Account-scoped roaming context, recoverable history and visible application metadata; public source synchronized 2026-09-16.",
   "changelog": [
+    {
+      "build": 30,
+      "date": "2026-09-09",
+      "title": "ESAPI Runner Hub 0.3.12",
+      "changes": [
+        "Use Windows DPAPI-NG restricted to the current account SID for roaming context where domain policy permits.",
+        "Preserve legacy DPAPI envelopes until they can be decrypted and verified on the original profile.",
+        "Merge concurrent history by identity and terminal outcome; retain backup and durable recovery snapshots.",
+        "Keep history I/O off the UI thread with local recovery and bounded close synchronization.",
+        "Show application version origin and UTC file timestamp without executing target assemblies.",
+        "Show release version, build and update date in the window title.",
+        "Preserve the separate read host, write host and Citrix launcher version contracts."
+      ]
+    },
     {
       "build": 26,
       "date": "2026-08-21",

@@ -2,6 +2,18 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.12] - 2026-09-09
+
+Public source synchronization on 2026-09-16 preserves the existing public history and sanitized examples. Intermediate operational changes are consolidated here; this is not a new clinical validation claim.
+
+- Display application version origin and UTC target-file modification time; optional metadata failure does not disable an existing target.
+- Display release identity in the window title.
+- Support configurable shared per-user history, local recovery and legacy import with exclusive locks, merge-before-save, terminal-state preservation and durable backups.
+- Protect new context envelopes with Windows DPAPI-NG bound to the account SID; migrate readable legacy DPAPI entries without discarding unreadable entries.
+- Keep history I/O off the UI thread and drain local writes during window close. Previous-session running state is unknown, not proof of interruption.
+- Document the exact SID-bound request route for optional native ClearPlan testing, independently of client argument forwarding.
+- Preserve read host 0.3.4, write host 0.3.5 and Citrix launcher 0.3.3.
+
 ## [0.3.7] - 2026-08-21
 
 ### Added

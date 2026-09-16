@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Security;
 using EsapiRunnerHub.Configuration;
 
 namespace EsapiRunnerHub.Catalog
@@ -7,6 +9,24 @@ namespace EsapiRunnerHub.Catalog
     public static class ApplicationMetadata
     {
         private const string PluginMarker = "\\plugins\\";
+
+        // Reads only the Windows version resource; never loads or executes the target assembly.
+        public static string FileVersionFor(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) ||
+                (!path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) &&
+                 !path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))) return null;
+            try
+            {
+                var metadata = FileVersionInfo.GetVersionInfo(path);
+                var version = string.IsNullOrWhiteSpace(metadata.ProductVersion) ? metadata.FileVersion : metadata.ProductVersion;
+                return string.IsNullOrWhiteSpace(version) ? null : version.Trim();
+            }
+            catch (IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+            catch (SecurityException) { return null; }
+            catch (ArgumentException) { return null; }
+        }
 
         public static ApplicationArtifactKind ArtifactFor(ApplicationDefinition definition)
         {

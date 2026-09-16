@@ -15,6 +15,7 @@ namespace EsapiRunnerHub.Configuration
             ScriptHostExecutable = "ESAPI-Script-Host.exe";
             WriteScriptHostExecutable = "ESAPI-Write-Script-Host.exe";
             HistoryFile = @"%LOCALAPPDATA%\ESAPI Runner Hub\launch-history.json";
+            HistoryFallbackFile = string.Empty;
             ContextRequestDirectory = @"%LOCALAPPDATA%\ESAPI Runner Hub\Logs\requests";
             HistoryRetentionDays = 30;
             HistoryMaxEntries = 100;
@@ -33,6 +34,8 @@ namespace EsapiRunnerHub.Configuration
         public string WriteScriptHostExecutable { get; set; }
         public string StrHubBaseUrl { get; set; }
         public string HistoryFile { get; set; }
+        public string HistoryFallbackFile { get; set; }
+        public string HistoryMigrationFile { get; set; }
         public string ContextRequestDirectory { get; set; }
         public int HistoryRetentionDays { get; set; }
         public int HistoryMaxEntries { get; set; }
@@ -40,6 +43,8 @@ namespace EsapiRunnerHub.Configuration
         public string ResolvedScriptHostExecutable { get; internal set; }
         public string ResolvedWriteScriptHostExecutable { get; internal set; }
         public string ResolvedHistoryFile { get; internal set; }
+        public string ResolvedHistoryFallbackFile { get; internal set; }
+        public string ResolvedHistoryMigrationFile { get; internal set; }
         public string ResolvedContextRequestDirectory { get; internal set; }
         public IDictionary<string, string> ExtraValues { get; private set; }
     }
@@ -71,6 +76,8 @@ namespace EsapiRunnerHub.Configuration
             Hub.ResolvedScriptHostExecutable = ResolvePath(baseDirectory, Hub.ScriptHostExecutable);
             Hub.ResolvedWriteScriptHostExecutable = ResolvePath(baseDirectory, Hub.WriteScriptHostExecutable);
             Hub.ResolvedHistoryFile = ResolvePath(baseDirectory, Hub.HistoryFile);
+            Hub.ResolvedHistoryFallbackFile = ResolvePath(baseDirectory, Hub.HistoryFallbackFile);
+            Hub.ResolvedHistoryMigrationFile = ResolvePath(baseDirectory, Hub.HistoryMigrationFile);
             Hub.ResolvedContextRequestDirectory = ResolvePath(baseDirectory, Hub.ContextRequestDirectory);
             foreach (var application in Applications)
             {

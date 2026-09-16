@@ -95,6 +95,7 @@ namespace EsapiRunnerHub.Configuration
         public string Name { get; set; }
         public string Category { get; set; }
         public string Description { get; set; }
+        public string Version { get; set; }
         public string Executable { get; set; }
         public string WorkingDirectory { get; set; }
         public string Arguments { get; set; }

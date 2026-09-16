@@ -99,8 +99,13 @@
                             <TextBox Text="{Binding LogDirectory, UpdateSourceTrigger=PropertyChanged}" ToolTip="No patient IDs, names, search text, or expanded arguments are logged." />
                             <TextBlock Text="STR Hub base URL" FontWeight="SemiBold" />
                             <TextBox Text="{Binding StrHubBaseUrl, UpdateSourceTrigger=PropertyChanged}" ToolTip="Example: https://str-hub.example/" />
-                            <TextBlock Text="Protected activity history" FontWeight="SemiBold" />
-                            <TextBox Text="{Binding HistoryFile, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Recent activity · primary file" FontWeight="SemiBold" Margin="0,8,0,0" />
+                            <TextBox Text="{Binding HistoryFile, UpdateSourceTrigger=PropertyChanged}" ToolTip="Use a protected, user-specific shared filename on Citrix. Windows environment variables such as %USERNAME% are expanded." />
+                            <TextBlock Text="Local recovery copy" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding HistoryFallbackFile, UpdateSourceTrigger=PropertyChanged}" ToolTip="Keep the previous local history path here. Existing rows are imported and new launches are also saved locally. Leave blank to disable." />
+                            <TextBlock Text="Import from previous history (optional)" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding HistoryMigrationFile, UpdateSourceTrigger=PropertyChanged}" ToolTip="Additional former history file to merge. The original is not deleted." />
+                            <TextBlock Text="Contexts stay encrypted for the Windows user. Changes apply after saving settings." Foreground="#6B7482" TextWrapping="Wrap" Margin="0,0,0,10" />
                             <TextBlock Text="Shared context debug requests" FontWeight="SemiBold" />
                             <TextBox Text="{Binding ContextRequestDirectory, UpdateSourceTrigger=PropertyChanged}" ToolTip="Protected request and result history; placing this below LogDirectory keeps all readable diagnostics together." />
                             <Grid>

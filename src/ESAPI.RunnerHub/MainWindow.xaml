@@ -1,7 +1,7 @@
 <Window x:Class="EsapiRunnerHub.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ESAPI Runner Hub" Height="900" Width="1600" MinHeight="680" MinWidth="1080"
+        Title="ESAPI Runner Hub · v0.3.12 · build 30 · updated 2026-09-09" Height="900" Width="1600" MinHeight="680" MinWidth="1080"
         WindowStartupLocation="CenterScreen" Background="#F4F1EA" FontFamily="Segoe UI"
         Icon="pack://application:,,,/Assets/ESAPI-Runner-Hub.png">
     <Window.Resources>
@@ -235,6 +235,10 @@
                                         </WrapPanel>
                                         <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="17" FontWeight="SemiBold" Margin="0,5,0,3" TextWrapping="Wrap" />
                                         <StackPanel Grid.Row="2">
+                                            <TextBlock Text="{Binding VersionLabel}" FontWeight="SemiBold" Foreground="#176C64" TextWrapping="Wrap" Margin="0,3,0,2"
+                                                       ToolTip="Catalogue version when explicitly configured; otherwise the target file's product/file version. Unavailable means no version could be read." />
+                                            <TextBlock Text="{Binding LastChangedLabel}" FontSize="10.5" Foreground="#4E5D70" TextWrapping="Wrap" Margin="0,0,0,7"
+                                                       ToolTip="Last-write timestamp of the configured target file in UTC; not the source commit or a verified deployment date." />
                                             <TextBlock Text="{Binding Description}" Foreground="{StaticResource Muted}" TextWrapping="Wrap" MaxHeight="48" />
                                             <TextBlock Text="{Binding CompactPath}" ToolTip="{Binding FullPath}" Style="{StaticResource SensitiveText}"
                                                        Foreground="#4E5D70" FontFamily="Consolas" FontSize="10" TextWrapping="Wrap" Margin="0,7,0,0" MaxHeight="38" />
@@ -288,12 +292,16 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Recent activity" FontSize="16" FontWeight="SemiBold" />
                         <TextBlock Text="  ·  protected for this Windows account, retained for 30 days" Foreground="{StaticResource Muted}" FontSize="10.5" VerticalAlignment="Center" />
                     </StackPanel>
                     <TextBlock Grid.Column="1" Text="{Binding NotificationText}" Foreground="{StaticResource Muted}" Margin="18,0,0,0" TextWrapping="Wrap" TextAlignment="Right" />
+                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding HistoryStorageStatus}" Foreground="#9B5B28"
+                               Visibility="{Binding HasHistoryStorageWarning, Converter={StaticResource BoolToVisibility}}"
+                               Margin="0,5,0,0" TextWrapping="Wrap" />
                 </Grid>
                 <Grid Grid.Row="1" Margin="0,8,0,4">
                     <Grid.ColumnDefinitions>

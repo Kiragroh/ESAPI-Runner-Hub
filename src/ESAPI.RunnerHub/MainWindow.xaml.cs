@@ -21,6 +21,9 @@ namespace EsapiRunnerHub
         private readonly string[] arguments;
         private string settingsPath;
         private bool smokeMode;
+        private bool closeAfterHistoryFlush;
+        private bool historyClosePending;
+        private readonly List<MainViewModel> historyOwners = new List<MainViewModel>();
 
         public MainWindow()
             : this(Array.Empty<string>())
@@ -32,6 +35,32 @@ namespace EsapiRunnerHub
             this.arguments = arguments ?? Array.Empty<string>();
             InitializeComponent();
             Loaded += WindowLoaded;
+            Closing += WindowClosing;
+        }
+
+        private async void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (closeAfterHistoryFlush) return;
+            if (historyOwners.Count == 0) return;
+            var localWrites = Task.WhenAll(historyOwners.Select(owner => owner.FlushLocalHistoryAsync()));
+            var synchronization = Task.WhenAll(historyOwners.Select(owner => owner.WaitForHistorySynchronizationAsync()));
+            if (localWrites.Status == TaskStatus.RanToCompletion && localWrites.Result.All(saved => saved) && synchronization.IsCompleted) return;
+            e.Cancel = true;
+            if (historyClosePending) return;
+            historyClosePending = true;
+            try
+            {
+                await Task.WhenAny(synchronization, Task.Delay(5000));
+                localWrites = Task.WhenAll(historyOwners.Select(owner => owner.FlushLocalHistoryAsync()));
+                if ((localWrites.Status != TaskStatus.RanToCompletion || !localWrites.Result.All(saved => saved)) &&
+                    MessageBox.Show(this,
+                        "Recent activity has not yet been confirmed in local recovery storage. Close anyway?",
+                        "Recent activity", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+                    return;
+                closeAfterHistoryFlush = true;
+                Close();
+            }
+            finally { historyClosePending = false; }
         }
 
         private async void WindowLoaded(object sender, RoutedEventArgs e)
@@ -60,6 +89,7 @@ namespace EsapiRunnerHub
             var viewModel = smoke
                 ? new MainViewModel(configuration, initialPatients, null, new ProtectedContextEnvelope())
                 : new MainViewModel(configuration, initialPatients);
+            historyOwners.Add(viewModel);
             viewModel.PatientSelectionChanged += async patient =>
             {
                 var patientId = patient.Id;
@@ -116,6 +146,7 @@ namespace EsapiRunnerHub
 
         private async void Settings_Click(object sender, RoutedEventArgs e)
         {
+            if (historyClosePending) return;
             var current = DataContext as MainViewModel;
             var configuration = current == null ? CreateEmptyConfiguration(settingsPath) : current.Configuration;
             var window = new SettingsWindow(configuration, settingsPath) { Owner = this };

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Infrastructure;
@@ -22,6 +23,10 @@ namespace EsapiRunnerHub.ViewModels
         private readonly ProtectedContextEnvelope contextProtector;
         private readonly Action<string> clipboardWriter;
         private readonly SynchronizationContext uiSynchronizationContext;
+        private readonly bool backgroundHistoryIo;
+        private bool historyLoading;
+        private Task<bool> localHistoryWrites = Task.FromResult(true);
+        private Task historySynchronization = Task.FromResult(true);
         private readonly List<LaunchHistoryEntry> historyEntries = new List<LaunchHistoryEntry>();
         private readonly object historyGate = new object();
         private readonly RelayCommand runAgainCommand;
@@ -46,7 +51,8 @@ namespace EsapiRunnerHub.ViewModels
         private bool isPrivacyBlurEnabled;
 
         public MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients)
-            : this(configuration, patients, CreateDefaultHistoryStore(configuration), new ProtectedContextEnvelope())
+            : this(configuration, patients, CreateDefaultHistoryStore(configuration), new ProtectedContextEnvelope(),
+                text => System.Windows.Clipboard.SetText(text), true)
         {
         }
 
@@ -58,11 +64,18 @@ namespace EsapiRunnerHub.ViewModels
 
         public MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients,
             LaunchHistoryStore historyStore, ProtectedContextEnvelope contextProtector, Action<string> clipboardWriter)
+            : this(configuration, patients, historyStore, contextProtector, clipboardWriter, false)
+        {
+        }
+
+        private MainViewModel(HubConfiguration configuration, IEnumerable<PatientRecord> patients,
+            LaunchHistoryStore historyStore, ProtectedContextEnvelope contextProtector, Action<string> clipboardWriter, bool backgroundHistoryIo)
         {
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.historyStore = historyStore;
             this.contextProtector = contextProtector ?? throw new ArgumentNullException(nameof(contextProtector));
             this.clipboardWriter = clipboardWriter ?? throw new ArgumentNullException(nameof(clipboardWriter));
+            this.backgroundHistoryIo = backgroundHistoryIo;
             uiSynchronizationContext = SynchronizationContext.Current;
             Applications = new ObservableCollection<ApplicationCardViewModel>(
                 configuration.Applications.Where(item => item.Enabled)
@@ -124,6 +137,10 @@ namespace EsapiRunnerHub.ViewModels
         public ObservableCollection<StructureSetDescriptor> StructureSets { get; private set; }
         public ObservableCollection<ImageDescriptor> Images { get; private set; }
         public ContextSelection ContextSelection { get; private set; }
+        public string HistoryStorageStatus { get { return historyLoading ? "Loading recent activity..." : historyStore == null ? string.Empty : historyStore.StatusText ?? string.Empty; } }
+        public bool HasHistoryStorageWarning { get { return !string.IsNullOrWhiteSpace(HistoryStorageStatus); } }
+        public Task<bool> FlushLocalHistoryAsync() { return localHistoryWrites; }
+        public Task WaitForHistorySynchronizationAsync() { return historySynchronization; }
         public ICommand SelectPatientCommand { get; private set; }
         public ICommand ClearPatientCommand { get; private set; }
         public ICommand StartWithPatientCommand { get; private set; }
@@ -397,7 +414,7 @@ namespace EsapiRunnerHub.ViewModels
             var application = Applications.FirstOrDefault(item => string.Equals(item.Id, applicationId, StringComparison.OrdinalIgnoreCase));
             if (application != null)
             {
-                application.SetReadiness(result.Readiness, result.Message);
+                application.SetReadiness(result);
                 RefreshRelaunchAvailability(application.Id);
             }
         }
@@ -660,16 +677,35 @@ namespace EsapiRunnerHub.ViewModels
         private void LoadHistory()
         {
             if (historyStore == null) return;
-            var historyChanged = false;
-            foreach (var entry in historyStore.Load())
+            if (backgroundHistoryIo)
             {
-                var card = Applications.FirstOrDefault(item => string.Equals(item.Id, entry.ApplicationId, StringComparison.OrdinalIgnoreCase));
-                if (entry.State == LaunchHistoryState.Starting || entry.State == LaunchHistoryState.Running)
+                historyLoading = true;
+                historySynchronization = Task.Run(() =>
                 {
-                    entry.State = LaunchHistoryState.Interrupted;
-                    entry.FinishedUtc = entry.FinishedUtc ?? DateTime.UtcNow;
-                    historyChanged = true;
-                }
+                    var loaded = historyStore.Load();
+                    RunOnUi(() =>
+                    {
+                        ApplyLoadedHistory(loaded);
+                        historyLoading = false;
+                        RefreshHistoryStorageStatus();
+                    });
+                });
+                return;
+            }
+            ApplyLoadedHistory(historyStore.Load());
+        }
+
+        private void ApplyLoadedHistory(IEnumerable<LaunchHistoryEntry> loaded)
+        {
+            foreach (var persistedEntry in loaded)
+            {
+                // Availability and unknown previous-session process state are display-only.
+                // Another Runner may still own the live launch; never rewrite its outcome.
+                var entry = CloneHistoryEntry(persistedEntry);
+                // A delayed startup read must never clear or replace launches added meanwhile.
+                lock (historyGate)
+                    if (historyEntries.Any(item => item.HistoryId == entry.HistoryId)) continue;
+                var card = Applications.FirstOrDefault(item => string.Equals(item.Id, entry.ApplicationId, StringComparison.OrdinalIgnoreCase));
                 ContextSelection selection = null;
                 var protectedContextAvailable = entry.LaunchMode == LaunchMode.WithoutPatient;
                 if (!protectedContextAvailable)
@@ -687,15 +723,16 @@ namespace EsapiRunnerHub.ViewModels
                 if (card == null)
                 {
                     entry.State = LaunchHistoryState.Unavailable;
-                    historyChanged = true;
                 }
-                historyEntries.Add(entry);
-                var row = new ActivityRowViewModel(entry, DescribeContext(entry.LaunchMode, selection), protectedContextAvailable);
+                lock (historyGate) historyEntries.Add(persistedEntry);
+                var row = new ActivityRowViewModel(entry, DescribeContext(entry.LaunchMode, selection), protectedContextAvailable, true);
                 UpdateReplayAvailability(row, card);
                 UpdatePatientSelectionAvailability(row);
-                Activities.Add(row);
+                var position = 0;
+                while (position < Activities.Count && Activities[position].Entry.StartedUtc >= entry.StartedUtc) position++;
+                Activities.Insert(position, row);
             }
-            if (historyChanged) PersistHistory();
+            RefreshHistoryStorageStatus();
             runAgainCommand.RaiseCanExecuteChanged();
             selectHistoryPatientCommand.RaiseCanExecuteChanged();
         }
@@ -788,6 +825,11 @@ namespace EsapiRunnerHub.ViewModels
                 row.SetReplayAvailability(false, "Protected context is unavailable");
                 return;
             }
+            if (row.PreviousSessionStateUnknown)
+            {
+                row.SetReplayAvailability(false, "Previous session is not monitored; select the patient and start from the catalogue if needed");
+                return;
+            }
             if (row.State == LaunchHistoryState.Starting || row.State == LaunchHistoryState.Running)
             {
                 row.SetReplayAvailability(false, "The application is still running");
@@ -800,8 +842,44 @@ namespace EsapiRunnerHub.ViewModels
         {
             if (historyStore == null) return;
             List<LaunchHistoryEntry> snapshot;
-            lock (historyGate) snapshot = historyEntries.ToList();
-            historyStore.Save(snapshot);
+            lock (historyGate) snapshot = historyEntries.Select(CloneHistoryEntry).ToList();
+            if (!backgroundHistoryIo)
+            {
+                historyStore.Save(snapshot);
+                RefreshHistoryStorageStatus();
+                return;
+            }
+            var previousLocal = localHistoryWrites;
+            localHistoryWrites = Task.Run(async () =>
+            {
+                await previousLocal.ConfigureAwait(false);
+                return historyStore.SaveLocalRecovery(snapshot);
+            });
+            var staged = localHistoryWrites;
+            var synchronize = Task.Run(async () =>
+            {
+                await staged.ConfigureAwait(false);
+                historyStore.Save(snapshot);
+                RunOnUi(RefreshHistoryStorageStatus);
+            });
+            historySynchronization = Task.WhenAll(historySynchronization, synchronize);
+        }
+
+        private static LaunchHistoryEntry CloneHistoryEntry(LaunchHistoryEntry entry)
+        {
+            return new LaunchHistoryEntry
+            {
+                HistoryId = entry.HistoryId, ApplicationId = entry.ApplicationId, ApplicationName = entry.ApplicationName,
+                ArtifactLabel = entry.ArtifactLabel, AccessLabel = entry.AccessLabel, StartedUtc = entry.StartedUtc,
+                FinishedUtc = entry.FinishedUtc, State = entry.State, ExitCode = entry.ExitCode,
+                LaunchMode = entry.LaunchMode, ProtectedContext = entry.ProtectedContext
+            };
+        }
+
+        private void RefreshHistoryStorageStatus()
+        {
+            RaisePropertyChanged(nameof(HistoryStorageStatus));
+            RaisePropertyChanged(nameof(HasHistoryStorageWarning));
         }
 
         private void RunOnUi(Action action)
@@ -832,7 +910,8 @@ namespace EsapiRunnerHub.ViewModels
         {
             if (configuration == null || string.IsNullOrWhiteSpace(configuration.Hub.ResolvedHistoryFile)) return null;
             return new LaunchHistoryStore(configuration.Hub.ResolvedHistoryFile,
-                configuration.Hub.HistoryRetentionDays, configuration.Hub.HistoryMaxEntries);
+                configuration.Hub.HistoryRetentionDays, configuration.Hub.HistoryMaxEntries,
+                configuration.Hub.ResolvedHistoryFallbackFile, configuration.Hub.ResolvedHistoryMigrationFile);
         }
 
         private ContextSelection CopySelectionFor(ScopeMode scopeMode)

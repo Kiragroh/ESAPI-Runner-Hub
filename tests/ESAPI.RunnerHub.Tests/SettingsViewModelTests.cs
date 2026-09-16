@@ -15,6 +15,31 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("settings editor validates and atomically reloads saved INI", SavesAndReloads);
             TestHarness.Test("settings editor exposes executable and Eclipse plug-in kinds", ExposesLaunchKinds);
             TestHarness.Test("settings editor exposes context host options and path", ExposesContextHostOptions);
+            TestHarness.Test("settings editor exposes and saves shared history recovery paths", SavesHistoryRecoveryPaths);
+        }
+
+        private static void SavesHistoryRecoveryPaths()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "runner-history-settings-" + Guid.NewGuid().ToString("N"));
+            var path = Path.Combine(directory, "settings.ini");
+            try
+            {
+                var viewModel = new SettingsViewModel(new HubConfiguration(), path);
+                foreach (var name in new[] { "HistoryFallbackFile", "HistoryMigrationFile" })
+                {
+                    var property = viewModel.GetType().GetProperty(name);
+                    TestHarness.AssertTrue(property != null && property.CanWrite, name + " is not editable in SettingsViewModel.");
+                    property.SetValue(viewModel, Path.Combine(directory, name + ".json"), null);
+                    TestHarness.AssertContains(File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/SettingsWindow.xaml")),
+                        "{Binding " + name + ", UpdateSourceTrigger=PropertyChanged}");
+                }
+                string error;
+                TestHarness.AssertTrue(viewModel.TrySave(out error), error);
+                var reloaded = IniConfigurationStore.Load(path);
+                TestHarness.AssertEqual(Path.Combine(directory, "HistoryFallbackFile.json"), reloaded.Hub.HistoryFallbackFile);
+                TestHarness.AssertEqual(Path.Combine(directory, "HistoryMigrationFile.json"), reloaded.Hub.HistoryMigrationFile);
+            }
+            finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
         }
 
         private static void AddsEditsAndDeletes()

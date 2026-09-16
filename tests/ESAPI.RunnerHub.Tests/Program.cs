@@ -3,8 +3,9 @@ namespace EsapiRunnerHub.Tests
     internal static class Program
     {
         [System.STAThread]
-        private static int Main()
+        private static int Main(string[] args)
         {
+            if (args.Length == 3 && args[0] == "--history-worker") return LaunchHistoryTests.RunWorker(args[1], args[2]);
             System.AppDomain.CurrentDomain.AssemblyResolve += (sender, arguments) =>
             {
                 if (!string.Equals(new System.Reflection.AssemblyName(arguments.Name).Name,

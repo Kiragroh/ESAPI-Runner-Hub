@@ -16,6 +16,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("CLI starts an ordered read-only context series from one private environment value", RunsEnvironmentContextSeries);
             TestHarness.Test("CLI refuses a write-enabled context series", RejectsWriteEnabledContextSeries);
             TestHarness.Test("CLI replays the latest protected context without identifiers in arguments", ReplaysLatestContext);
+            TestHarness.Test("CLI latest context imports the configured history fallback", ReplaysFallbackContext);
             TestHarness.Test("CLI runs an exact shared context request and writes a result file", RunsSharedContextRequest);
             TestHarness.Test("CLI accepts a Windows PowerShell UTF-8 request file", RunsBomEncodedSharedContextRequest);
             TestHarness.Test("CLI refuses another Windows identity's request without consuming it", RejectsForeignOwnerRequest);
@@ -44,6 +45,16 @@ namespace EsapiRunnerHub.Tests
 
         private static void ReplaysLatestContext()
         {
+            ReplaysContext(false);
+        }
+
+        private static void ReplaysFallbackContext()
+        {
+            ReplaysContext(true);
+        }
+
+        private static void ReplaysContext(bool fromFallback)
+        {
             WithFixture((settingsPath, historyPath) =>
             {
                 var selection = new ContextSelection
@@ -59,7 +70,10 @@ namespace EsapiRunnerHub.Tests
                     State = LaunchHistoryState.Exited, LaunchMode = LaunchMode.Context,
                     ProtectedContext = new ProtectedContextEnvelope().Protect(selection)
                 };
-                new LaunchHistoryStore(historyPath, 30, 100).Save(new[] { entry });
+                if (fromFallback)
+                    File.WriteAllText(settingsPath, File.ReadAllText(settingsPath).Replace("[Hub]",
+                        "[Hub]\nHistoryFallbackFile=" + historyPath + ".local"));
+                new LaunchHistoryStore(fromFallback ? historyPath + ".local" : historyPath, 30, 100).Save(new[] { entry });
 
                 var arguments = new[] { "--replay-latest", "direct", "--settings", settingsPath };
                 TestHarness.AssertFalse(string.Join(" ", arguments).Contains("SYN-REPLAY"));

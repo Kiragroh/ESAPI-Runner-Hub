@@ -26,6 +26,16 @@ The user-scoped request interface also makes a specific patient/course/plan test
 
 ## Architecture
 
+### ClearPlan: portable tests versus native checks
+
+| Work | Runner's role |
+| --- | --- |
+| ClearPlan core tests (495 in the documented snapshot) and simulator | Not required; synthetic/detached testing runs without ESAPI |
+| Native ESAPI checks and interactive GUI under a licensed, authorized VDA | Optional host route with exact patient/course/plan selection and isolated read-only children |
+| Clinical acceptance, rendered GUI and report review | Separate verification; a successful child exit is not sufficient |
+
+The shared Windows-SID-bound request route does not depend on Citrix client argument forwarding. ClearPlan can also run inside Eclipse or another suitable approved host; Runner is not universally required for clinical use and does not bypass security, licensing or approval. Native requests, helper outputs and screenshots remain private. See [Native ClearPlan testing](docs/NATIVE_TESTING.md) for the reproducible procedure and evidence boundaries.
+
 ```mermaid
 flowchart LR
     INI["settings.ini"] --> HUB["ESAPI Runner Hub"]
@@ -50,8 +60,8 @@ flowchart LR
 - Classic `Execute(ScriptContext, Window)` plug-ins receive a visible host-owned window, allowing UI tools such as ESAPI Tools / Dosimetry Helper to run directly from their catalogue card.
 - Reusable selection of course, plan, plan sum, structure set, or image, including scripts that work without a plan.
 - Catalogue filters for standalone, single-file, and binary tools, plus visible artifact type, read/write intent, compact source path, and an optional action that copies the matching STR Hub README URL without starting a browser.
-- A DPAPI-protected local activity history with **Select patient** and **Run again** as separate actions; context identifiers are encrypted for the current Windows account and commands are always recomposed from current settings.
-- Automatic recovery of stale `Starting` or `Running` rows as `Interrupted`, so a prior Hub interruption does not permanently disable replay.
+- An account-SID-scoped DPAPI-NG activity history with optional shared storage, local recovery, legacy import and durable backups. **Select patient** and **Run again** remain separate; commands are recomposed from current settings.
+- Previous-session `Starting` or `Running` rows display unknown state without overwriting another process's outcome. Direct replay remains disabled for these unmonitored rows.
 - Automatic host selection from `WriteMode`: `ReadOnly` uses the unprivileged host; `ConfirmSave` and `ExecuteAndDiscard` use the separately approved write host.
 - Releases keep separate `scriptHostVersion`, `writeScriptHostVersion`, and `citrixLauncherVersion` contracts and reuse existing version-matched helper binaries, so an unchanged approved host or stable Citrix entry point is not rebuilt merely because another component changes.
 - Explicit save/discard confirmation for `ConfirmSave`; `ExecuteAndDiscard` runs with write authorization but closes without saving and without a save question.
@@ -176,7 +186,7 @@ No live ESAPI object is retained in the Hub. A direct child opens the selected i
 
 ## Privacy and resilience
 
-Patient names, search text, commands, environments, and child output are not persisted. Recent launch identifiers needed for **Select patient** and **Run again** are serialized minimally and encrypted with Windows DPAPI in `CurrentUser` scope; the default local file retains at most 100 records for 30 days. Selecting a history patient decrypts the ID only on demand, resolves it against the current in-memory ESAPI directory, and never launches an application. Logs contain UTC time, event category, configured application ID, and exception type only. A slow optional UNC path disables only its own application card.
+Technical logs do not persist patient names, search text, commands, environments, or child output. Recent launch identifiers needed for **Select patient** and **Run again** are minimally serialized and encrypted using account-SID-scoped Windows DPAPI-NG. Legacy CurrentUser-DPAPI envelopes remain readable where their original profile keys are available and are upgraded only after successful verification. The default local history retains at most 100 records for 30 days; optional user-specific shared storage has local recovery and merge-before-save. Domain-host roaming requires local validation. Selecting a history patient resolves the decrypted ID against the current in-memory directory and never launches an application. Shared request JSON and target-generated native evidence are separate, potentially identifiable artifacts and require protected storage. A slow optional UNC path disables only its own application card; optional version metadata timeout does not disable a confirmed existing target.
 
 Crash isolation protects the Hub from child failures; it does not guarantee that every pair of ESAPI applications may safely access Eclipse concurrently. Follow the validation and concurrency requirements of each target application.
 

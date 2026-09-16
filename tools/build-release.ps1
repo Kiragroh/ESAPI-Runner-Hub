@@ -153,6 +153,9 @@ try {
     & $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File $exeLauncherTests -LauncherPath $exeLauncher -FixturePath $fixture
     if ($LASTEXITCODE -ne 0) { throw "Citrix EXE launcher tests failed with exit code $LASTEXITCODE." }
 
+    & $windowsPowerShell -NoProfile -STA -File (Join-Path $PSScriptRoot 'test-history-window-lifecycle.ps1') -RunnerAssembly (Join-Path $buildOutput 'ESAPI-Runner-Hub.exe')
+    if ($LASTEXITCODE -ne 0) { throw "History window lifecycle checks failed with exit code $LASTEXITCODE." }
+
     $stableReadHost = Resolve-StableComponentBinary `
         -BuiltPath (Join-Path $buildOutput 'ESAPI-Script-Host.exe') `
         -LivePath (Join-Path $distRoot 'ESAPI-Script-Host.exe') `
@@ -181,6 +184,7 @@ try {
         (Join-Path $repoRoot 'assets\ESAPI-Runner-Hub.png') = (Join-Path $packageRoot 'assets\ESAPI-Runner-Hub.png')
         (Join-Path $repoRoot 'docs\CLINICAL_VALIDATION.md') = (Join-Path $packageRoot 'docs\CLINICAL_VALIDATION.md')
         (Join-Path $repoRoot 'docs\CONTEXT_DEBUGGING.md') = (Join-Path $packageRoot 'docs\CONTEXT_DEBUGGING.md')
+        (Join-Path $repoRoot 'docs\NATIVE_TESTING.md') = (Join-Path $packageRoot 'docs\NATIVE_TESTING.md')
     }
     foreach ($source in $copies.Keys) {
         if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Release source missing: $source" }

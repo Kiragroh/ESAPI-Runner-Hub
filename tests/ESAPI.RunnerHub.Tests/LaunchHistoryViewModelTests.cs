@@ -25,9 +25,17 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("replay command refreshes when asynchronous readiness arrives", RefreshesReplayCommand);
             TestHarness.Test("replay rows explain every unavailable state", ExplainsReplayAvailability);
             TestHarness.Test("running activity cannot be replayed until terminal", DisablesReplayWhileRunning);
-            TestHarness.Test("stale running history recovers as interrupted", RecoversInterruptedHistory);
+            TestHarness.Test("stale running history stays explicitly unmonitored", RecoversInterruptedHistory);
             TestHarness.Test("history patient selection never replays the application", SelectsHistoryPatientWithoutReplay);
             TestHarness.Test("history patient selection explains unavailable patients", ExplainsUnavailableHistoryPatients);
+            TestHarness.Test("history default view model imports configured local fallback", ImportsConfiguredFallback);
+            TestHarness.Test("history storage failure is visible independently of launch messages", ShowsStorageFailure);
+            TestHarness.Test("history unavailable share does not block UI construction", DoesNotBlockUiConstruction);
+            TestHarness.Test("history closing drains queued local writes before shutdown", DrainsHistoryOnClose);
+            TestHarness.Test("history delayed load preserves new launches and stages them locally", PreservesLaunchDuringLoad);
+            TestHarness.Test("history opening another runner never persists inferred interruption", DoesNotPersistInferredInterruption);
+            TestHarness.Test("history prior-session live state is unknown and never replayed blindly", DisablesUnmonitoredReplay);
+            TestHarness.Test("history shutdown drains owners retained across settings reload", DrainsAllHistoryOwners);
         }
 
         private static void PersistsStandaloneLifecycle()
@@ -247,7 +255,7 @@ Enabled=true
 
                 viewModel.UpdateApplicationReadiness("fixture", new PathProbeResult(PathReadiness.Ready, "Ready"));
                 TestHarness.AssertFalse(viewModel.RunAgainCommand.CanExecute(row));
-                TestHarness.AssertEqual("The application is still running", ReplayText(row));
+                TestHarness.AssertContains(ReplayText(row), "Previous session is not monitored");
 
                 row.Entry.State = LaunchHistoryState.Exited;
                 row.Refresh();
@@ -256,6 +264,125 @@ Enabled=true
                 TestHarness.AssertTrue(viewModel.RunAgainCommand.CanExecute(row));
                 TestHarness.AssertEqual("Ready to run again", ReplayText(row));
             });
+        }
+
+        private static void ImportsConfiguredFallback()
+        {
+            WithHistory((store, directory) =>
+            {
+                var local = Path.Combine(directory, "previous-local.json");
+                new LaunchHistoryStore(local, 30, 100).Save(new[] { ExitedEntry("migrated", "fixture", LaunchMode.WithoutPatient, null) });
+                var configuration = IniConfigurationStore.ParseText("[Hub]\nHistoryFile=shared.json\nHistoryFallbackFile=previous-local.json\n",
+                    Path.Combine(directory, "settings.ini"));
+                var viewModel = new MainViewModel(configuration, new PatientRecord[0]);
+                TestHarness.AssertTrue(viewModel.WaitForHistorySynchronizationAsync().Wait(5000));
+                TestHarness.AssertTrue(SpinWait.SpinUntil(() => !viewModel.HistoryStorageStatus.Contains("Loading"), 5000));
+                TestHarness.AssertEqual("migrated", viewModel.Activities.Single().Entry.HistoryId);
+                TestHarness.AssertTrue(viewModel.WaitForHistorySynchronizationAsync().Wait(5000));
+            });
+        }
+
+        private static void ShowsStorageFailure()
+        {
+            WithHistory((store, directory) =>
+            {
+                var path = Path.Combine(directory, "corrupt.json");
+                File.WriteAllText(path, "{synthetic corruption");
+                var viewModel = CreateStandaloneViewModel(new LaunchHistoryStore(path, 30, 100), Fixture(), "--mode success");
+                TestHarness.AssertContains(viewModel.HistoryStorageStatus, "could not be loaded");
+                TestHarness.AssertTrue(viewModel.HasHistoryStorageWarning);
+            });
+        }
+
+        private static void DoesNotBlockUiConstruction()
+        {
+            WithHistory((store, directory) =>
+            {
+                var path = Path.Combine(directory, "locked.json");
+                var configuration = IniConfigurationStore.ParseText("[Hub]\nHistoryFile=locked.json\nHistoryFallbackFile=local.json\n",
+                    Path.Combine(directory, "settings.ini"));
+                MainViewModel viewModel;
+                using (new FileStream(path + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                {
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    viewModel = new MainViewModel(configuration, new PatientRecord[0]);
+                    TestHarness.AssertTrue(watch.Elapsed < TimeSpan.FromSeconds(1), "History I/O blocked UI construction.");
+                }
+                TestHarness.AssertTrue(SpinWait.SpinUntil(() => !viewModel.HistoryStorageStatus.Contains("Loading"), 5000));
+            });
+        }
+
+        private static void DrainsHistoryOnClose()
+        {
+            var code = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml.cs"));
+            TestHarness.AssertContains(code, "Closing += WindowClosing");
+            TestHarness.AssertContains(code, "FlushLocalHistoryAsync()");
+            TestHarness.AssertContains(code, "Task.Delay(5000)");
+        }
+
+        private static void PreservesLaunchDuringLoad()
+        {
+            WithHistory((store, directory) =>
+            {
+                var path = Path.Combine(directory, "shared.json");
+                var old = ExitedEntry("previous", "fixture", LaunchMode.WithoutPatient, null);
+                old.StartedUtc = DateTime.UtcNow.AddMinutes(-1);
+                new LaunchHistoryStore(path, 30, 100).Save(new[] { old });
+                var configuration = IniConfigurationStore.ParseText("[Hub]\nHistoryFile=shared.json\nHistoryFallbackFile=local.json\n" +
+                    "[Application.fixture]\nName=Fixture\nExecutable=" + Fixture() + "\nArguments=--mode success\nPatientMode=Optional\n",
+                    Path.Combine(directory, "settings.ini"));
+                MainViewModel viewModel;
+                using (new FileStream(path + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                {
+                    viewModel = new MainViewModel(configuration, new PatientRecord[0]);
+                    Ready(viewModel);
+                    viewModel.StartWithoutPatientCommand.Execute(viewModel.Applications.Single());
+                    TestHarness.AssertEqual(1, viewModel.Activities.Count);
+                    TestHarness.AssertTrue(viewModel.FlushLocalHistoryAsync().Wait(2000), "Local recovery staging did not complete within 2 seconds.");
+                    TestHarness.AssertTrue(viewModel.FlushLocalHistoryAsync().Result, "Local recovery staging failed.");
+                    TestHarness.AssertEqual(1, new LaunchHistoryStore(Path.Combine(directory, "local.json"), 30, 100).Load().Count);
+                }
+                TestHarness.AssertTrue(SpinWait.SpinUntil(() => !viewModel.HistoryStorageStatus.Contains("Loading"), 8000), "Delayed history load did not complete within 8 seconds.");
+                TestHarness.AssertTrue(viewModel.WaitForHistorySynchronizationAsync().Wait(8000), "Shared history synchronization did not complete within 8 seconds.");
+                TestHarness.AssertEqual(2, viewModel.Activities.Count);
+                TestHarness.AssertEqual(2, viewModel.Activities.Select(row => row.Entry.HistoryId).Distinct().Count());
+            });
+        }
+
+        private static void DoesNotPersistInferredInterruption()
+        {
+            WithHistory((store, directory) =>
+            {
+                var running = ExitedEntry("live-elsewhere", "fixture", LaunchMode.WithoutPatient, null);
+                running.State = LaunchHistoryState.Running;
+                running.FinishedUtc = null;
+                store.Save(new[] { running });
+                CreateStandaloneViewModel(store, Fixture(), "--mode success");
+                TestHarness.AssertEqual(LaunchHistoryState.Running, store.Load().Single().State);
+            });
+        }
+
+        private static void DisablesUnmonitoredReplay()
+        {
+            WithHistory((store, directory) =>
+            {
+                var running = ExitedEntry("other-runner", "fixture", LaunchMode.WithoutPatient, null);
+                running.State = LaunchHistoryState.Running;
+                running.FinishedUtc = null;
+                store.Save(new[] { running });
+                var viewModel = CreateStandaloneViewModel(store, Fixture(), "--mode success");
+                Ready(viewModel);
+                TestHarness.AssertContains(viewModel.Activities.Single().Status, "status unknown");
+                TestHarness.AssertFalse(viewModel.RunAgainCommand.CanExecute(viewModel.Activities.Single()));
+            });
+        }
+
+        private static void DrainsAllHistoryOwners()
+        {
+            var code = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml.cs"));
+            TestHarness.AssertContains(code, "historyOwners.Add(viewModel)");
+            TestHarness.AssertContains(code, "historyOwners.Select(owner => owner.FlushLocalHistoryAsync())");
+            TestHarness.AssertContains(code, "historyOwners.Select(owner => owner.WaitForHistorySynchronizationAsync())");
         }
 
         private static void RecoversInterruptedHistory()
@@ -279,16 +406,16 @@ Enabled=true
                 foreach (var historyId in new[] { "starting", "running" })
                 {
                     var row = viewModel.Activities.Single(item => item.Entry.HistoryId == historyId);
-                    TestHarness.AssertEqual(LaunchHistoryState.Interrupted, row.State);
-                    TestHarness.AssertEqual("Interrupted", row.Status);
-                    TestHarness.AssertTrue(viewModel.RunAgainCommand.CanExecute(row));
+                    TestHarness.AssertEqual(historyId == "starting" ? LaunchHistoryState.Starting : LaunchHistoryState.Running, row.State);
+                    TestHarness.AssertEqual("Previous session · status unknown", row.Status);
+                    TestHarness.AssertFalse(viewModel.RunAgainCommand.CanExecute(row));
                 }
                 TestHarness.AssertEqual(LaunchHistoryState.Exited,
                     viewModel.Activities.Single(item => item.Entry.HistoryId == "exited").State);
 
                 var persisted = store.Load().ToDictionary(item => item.HistoryId);
-                TestHarness.AssertEqual(LaunchHistoryState.Interrupted, persisted["starting"].State);
-                TestHarness.AssertEqual(LaunchHistoryState.Interrupted, persisted["running"].State);
+                TestHarness.AssertEqual(LaunchHistoryState.Starting, persisted["starting"].State);
+                TestHarness.AssertEqual(LaunchHistoryState.Running, persisted["running"].State);
                 TestHarness.AssertEqual(LaunchHistoryState.Exited, persisted["exited"].State);
             });
         }

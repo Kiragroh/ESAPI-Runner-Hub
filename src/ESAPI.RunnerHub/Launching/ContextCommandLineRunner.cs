@@ -268,7 +268,8 @@ namespace EsapiRunnerHub.Launching
         private static ContextSelection ReadLatestContext(HubConfiguration configuration, string applicationId)
         {
             var entry = new LaunchHistoryStore(configuration.Hub.ResolvedHistoryFile,
-                    configuration.Hub.HistoryRetentionDays, configuration.Hub.HistoryMaxEntries)
+                    configuration.Hub.HistoryRetentionDays, configuration.Hub.HistoryMaxEntries,
+                    configuration.Hub.ResolvedHistoryFallbackFile, configuration.Hub.ResolvedHistoryMigrationFile)
                 .Load()
                 .Where(item => item.LaunchMode == LaunchMode.Context &&
                                string.Equals(item.ApplicationId, applicationId, StringComparison.OrdinalIgnoreCase) &&

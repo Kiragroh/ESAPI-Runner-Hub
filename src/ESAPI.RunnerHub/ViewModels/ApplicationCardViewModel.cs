@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using System.Windows;
 using EsapiRunnerHub.Configuration;
 using EsapiRunnerHub.Infrastructure;
@@ -14,6 +16,8 @@ namespace EsapiRunnerHub.ViewModels
         private string statusText;
         private PatientRecord selectedPatient;
         private ContextSelection contextSelection;
+        private string fileVersion;
+        private DateTime? fileLastWriteTimeUtc;
 
         public ApplicationCardViewModel(ApplicationDefinition definition)
             : this(definition, string.Empty)
@@ -41,6 +45,23 @@ namespace EsapiRunnerHub.ViewModels
         public string Name { get { return Definition.Name; } }
         public string Category { get { return string.IsNullOrWhiteSpace(Definition.Category) ? "Other" : Definition.Category; } }
         public string Description { get { return Definition.Description; } }
+        public string VersionLabel
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(Definition.Version)) return "Version: " + Definition.Version.Trim() + " (catalogue)";
+                return string.IsNullOrWhiteSpace(fileVersion) ? "Version: unavailable" : "Version: " + fileVersion + " (file)";
+            }
+        }
+        public string LastChangedLabel
+        {
+            get
+            {
+                return "File changed: " + (fileLastWriteTimeUtc.HasValue
+                    ? fileLastWriteTimeUtc.Value.ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture)
+                    : "unavailable");
+            }
+        }
         public ApplicationArtifactKind ArtifactKind { get; private set; }
         public ApplicationAccessMode AccessMode { get; private set; }
         public string ArtifactLabel { get; private set; }
@@ -149,6 +170,15 @@ namespace EsapiRunnerHub.ViewModels
         public string WithoutPatientLabel
         {
             get { return Definition.PatientMode == PatientMode.None ? "Start" : "Start without patient"; }
+        }
+
+        public void SetReadiness(PathProbeResult result)
+        {
+            fileVersion = result.FileVersion;
+            fileLastWriteTimeUtc = result.FileLastWriteTimeUtc;
+            RaisePropertyChanged(nameof(VersionLabel));
+            RaisePropertyChanged(nameof(LastChangedLabel));
+            SetReadiness(result.Readiness, result.Message);
         }
 
         public void SetReadiness(PathReadiness value, string message)

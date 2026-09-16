@@ -12,6 +12,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.Test("catalogue metadata and history settings round trip", RoundTripsCatalogueSettings);
             TestHarness.Test("history retention and Hub identifiers are validated", ValidatesHistorySettings);
             TestHarness.Test("settings editor exposes catalogue metadata", SettingsEditorExposesMetadata);
+            TestHarness.Test("history fallback and migration paths expand and round trip", ResolvesHistoryRecoveryPaths);
         }
 
         private static void RoundTripsCatalogueSettings()
@@ -49,6 +50,22 @@ PatientTransport=None
             TestHarness.AssertContains(serialized, "HubScriptId=62");
             TestHarness.AssertContains(serialized, "HistoryRetentionDays=30");
             TestHarness.AssertContains(serialized, "HistoryMaxEntries=100");
+        }
+
+        private static void ResolvesHistoryRecoveryPaths()
+        {
+            var configuration = IniConfigurationStore.ParseText(@"[Hub]
+HistoryFile=%TEMP%\%USERNAME%-shared-history.json
+HistoryFallbackFile=%LOCALAPPDATA%\ESAPI Runner Hub\launch-history.json
+HistoryMigrationFile=legacy\%USERNAME%-launch-history.json
+", @"C:\portable\settings.ini");
+            TestHarness.AssertEqual(System.Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\ESAPI Runner Hub\launch-history.json"),
+                configuration.Hub.ResolvedHistoryFallbackFile);
+            TestHarness.AssertEqual(System.Environment.ExpandEnvironmentVariables(@"C:\portable\legacy\%USERNAME%-launch-history.json"),
+                configuration.Hub.ResolvedHistoryMigrationFile);
+            var serialized = IniConfigurationStore.Serialize(configuration);
+            TestHarness.AssertContains(serialized, "HistoryFallbackFile=%LOCALAPPDATA%");
+            TestHarness.AssertContains(serialized, "HistoryMigrationFile=legacy");
         }
 
         private static void ValidatesHistorySettings()

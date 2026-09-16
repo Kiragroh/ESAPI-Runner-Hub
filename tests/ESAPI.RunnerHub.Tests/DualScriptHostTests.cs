@@ -132,6 +132,9 @@ namespace EsapiRunnerHub.Tests
 
         private static string FindApiReference(string startDirectory)
         {
+            // Portable synthetic builds place their VMS-shaped fixture beside the tests.
+            var adjacent = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "VMS.TPS.Common.Model.API.dll");
+            if (File.Exists(adjacent)) return adjacent;
             var current = new DirectoryInfo(startDirectory);
             while (current != null)
             {

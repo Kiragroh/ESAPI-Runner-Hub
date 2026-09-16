@@ -14,12 +14,14 @@ namespace EsapiRunnerHub.ViewModels
         private string replayAvailabilityText = "Application path is unavailable";
         private string patientSelectionAvailabilityText = "No patient stored for this run";
         private int? processId;
+        private readonly bool previousSession;
 
-        public ActivityRowViewModel(LaunchHistoryEntry entry, string contextSummary, bool protectedContextAvailable = true)
+        public ActivityRowViewModel(LaunchHistoryEntry entry, string contextSummary, bool protectedContextAvailable = true, bool previousSession = false)
         {
             Entry = entry ?? throw new ArgumentNullException(nameof(entry));
             ContextSummary = contextSummary ?? string.Empty;
             this.protectedContextAvailable = protectedContextAvailable;
+            this.previousSession = previousSession;
         }
 
         public LaunchHistoryEntry Entry { get; private set; }
@@ -36,6 +38,7 @@ namespace EsapiRunnerHub.ViewModels
         {
             get
             {
+                if (PreviousSessionStateUnknown) return "Previous session · status unknown";
                 if (Entry.State == LaunchHistoryState.Exited)
                     return Entry.ExitCode.GetValueOrDefault() == 0 ? "Completed" : "Exited · code " + Entry.ExitCode.GetValueOrDefault();
                 if (Entry.State == LaunchHistoryState.Interrupted) return "Interrupted";
@@ -45,6 +48,10 @@ namespace EsapiRunnerHub.ViewModels
             }
         }
         public bool CanRunAgain { get { return canRunAgain; } }
+        public bool PreviousSessionStateUnknown
+        {
+            get { return previousSession && (State == LaunchHistoryState.Starting || State == LaunchHistoryState.Running || State == LaunchHistoryState.Interrupted); }
+        }
         public bool CanSelectPatient { get { return canSelectPatient; } }
         public bool ProtectedContextAvailable { get { return protectedContextAvailable; } }
         public string ReplayAvailabilityText { get { return replayAvailabilityText; } }

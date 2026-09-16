@@ -91,6 +91,8 @@ namespace EsapiRunnerHub.Configuration
             Append(builder, "WriteScriptHostExecutable", configuration.Hub.WriteScriptHostExecutable);
             Append(builder, "StrHubBaseUrl", configuration.Hub.StrHubBaseUrl);
             Append(builder, "HistoryFile", configuration.Hub.HistoryFile);
+            Append(builder, "HistoryFallbackFile", configuration.Hub.HistoryFallbackFile);
+            Append(builder, "HistoryMigrationFile", configuration.Hub.HistoryMigrationFile);
             Append(builder, "ContextRequestDirectory", configuration.Hub.ContextRequestDirectory);
             Append(builder, "HistoryRetentionDays", configuration.Hub.HistoryRetentionDays.ToString(CultureInfo.InvariantCulture));
             Append(builder, "HistoryMaxEntries", configuration.Hub.HistoryMaxEntries.ToString(CultureInfo.InvariantCulture));
@@ -103,6 +105,7 @@ namespace EsapiRunnerHub.Configuration
                 Append(builder, "Name", application.Name);
                 Append(builder, "Category", application.Category);
                 Append(builder, "Description", application.Description);
+                Append(builder, "Version", application.Version);
                 Append(builder, "LaunchKind", application.LaunchKind.ToString());
                 Append(builder, "ScriptEngine", application.ScriptEngine.ToString());
                 Append(builder, "ContextRequirement", application.ContextRequirement.ToString());
@@ -188,6 +191,8 @@ namespace EsapiRunnerHub.Configuration
                     case "writescripthostexecutable": hub.WriteScriptHostExecutable = pair.Value; break;
                     case "strhubbaseurl": hub.StrHubBaseUrl = pair.Value; break;
                     case "historyfile": hub.HistoryFile = pair.Value; break;
+                    case "historyfallbackfile": hub.HistoryFallbackFile = pair.Value; break;
+                    case "historymigrationfile": hub.HistoryMigrationFile = pair.Value; break;
                     case "contextrequestdirectory": hub.ContextRequestDirectory = pair.Value; break;
                     case "historyretentiondays": hub.HistoryRetentionDays = ParseInt(pair.Key, pair.Value); break;
                     case "historymaxentries": hub.HistoryMaxEntries = ParseInt(pair.Key, pair.Value); break;
@@ -205,6 +210,7 @@ namespace EsapiRunnerHub.Configuration
                     case "name": application.Name = pair.Value; break;
                     case "category": application.Category = pair.Value; break;
                     case "description": application.Description = pair.Value; break;
+                    case "version": application.Version = pair.Value; break;
                     case "executable": application.Executable = pair.Value; break;
                     case "workingdirectory": application.WorkingDirectory = pair.Value; break;
                     case "arguments": application.Arguments = pair.Value; break;
