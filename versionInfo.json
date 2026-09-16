@@ -1,12 +1,23 @@
 {
-  "version": "0.3.12",
-  "build": 30,
+  "version": "0.3.13",
+  "build": 31,
+  "releaseStatus": "Source-only development candidate; not deployed or clinically validated.",
   "scriptHostVersion": "0.3.4",
   "writeScriptHostVersion": "0.3.5",
   "citrixLauncherVersion": "0.3.3",
-  "lastUpdate": "2026-09-09",
-  "lastChange": "Account-scoped roaming context, recoverable history and visible application metadata; public source synchronized 2026-09-16.",
+  "lastUpdate": "2026-09-16",
+  "lastChange": "Keep shared history I/O from blocking the local recovery continuation chain; source-only candidate, no deployment.",
   "changelog": [
+    {
+      "build": 31,
+      "date": "2026-09-16",
+      "title": "ESAPI Runner Hub 0.3.13 - source-only development candidate",
+      "changes": [
+        "Queue shared history Save separately after local staging so blocked shared I/O cannot inline-block subsequent local recovery.",
+        "Retain the unchanged two-second regression deadline and all helper-host versions.",
+        "No clinical runtime, Citrix pointer, deployment or native validation changed."
+      ]
+    },
     {
       "build": 30,
       "date": "2026-09-09",

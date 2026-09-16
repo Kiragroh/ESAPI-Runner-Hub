@@ -2,6 +2,13 @@
 
 All notable changes to ESAPI Runner Hub are documented here.
 
+## [0.3.13] - 2026-09-16
+
+Source-only development candidate, build 31; no deployment, release asset or clinical validation is implied.
+
+- Queue shared history Save separately after local staging so a shared lock cannot inline-block the next local recovery continuation.
+- Keep the existing two-second regression deadline and unchanged helper-host identities. Earlier native ClearPlan captures used operational 0.3.12, not this candidate.
+
 ## [0.3.12] - 2026-09-09
 
 Public source synchronization on 2026-09-16 preserves the existing public history and sanitized examples. Intermediate operational changes are consolidated here; this is not a new clinical validation claim.

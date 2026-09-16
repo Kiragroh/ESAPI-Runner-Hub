@@ -30,6 +30,8 @@ The SID check is request ownership validation within a trusted, correctly ACL-pr
 
 ## History in 0.3.12
 
+The subsequent public **0.3.13/build 31 source-only development candidate** separates shared-save scheduling from local task completion. Its regression checks are synthetic; no deployment or new native ClearPlan run was performed. Earlier native captures remain evidence for operational 0.3.12 only. See [verification evidence](VERIFICATION_20260916.md).
+
 New saved context envelopes use Windows DPAPI-NG scoped to the current account SID. Cross-domain-host decryption depends on the Windows/domain environment and must be validated locally. Legacy CurrentUser-DPAPI envelopes are upgraded only when readable and verified; unavailable opaque entries are retained.
 
 `HistoryFile` is the primary file; optional `HistoryFallbackFile` supplies local recovery and `HistoryMigrationFile` imports previous history without deleting it. Exclusive file locks, merge-before-save, backups and separate durable snapshots protect concurrent history and completed outcomes. The defaults remain local, 30 days and 100 rows; shared paths must be configured as user-specific protected locations.

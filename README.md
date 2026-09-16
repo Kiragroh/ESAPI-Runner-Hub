@@ -1,5 +1,7 @@
 # ESAPI Runner Hub
 
+> **Source-only development candidate: 0.3.13, build 31.** This revision includes a history-scheduling fix verified with synthetic tests. It has not been deployed or clinically validated. The earlier native ClearPlan captures used operational Runner 0.3.12. See [verification evidence](docs/VERIFICATION_20260916.md).
+
 ![ESAPI Runner Hub logo](assets/ESAPI-Runner-Hub.png)
 
 ESAPI Runner Hub is a portable Windows catalogue for launching ESAPI runner applications, standalone executables, compiled ESAPI binaries, and single-file C# scripts from one place. It loads the Eclipse patient directory once, searches the detached local index immediately, lets the user choose course, plan, plan sum, structure set, or image context, and keeps every application isolated in its own process.

@@ -859,7 +859,8 @@ namespace EsapiRunnerHub.ViewModels
             var synchronize = Task.Run(async () =>
             {
                 await staged.ConfigureAwait(false);
-                historyStore.Save(snapshot);
+                // Shared I/O must not inline-block completion of the local recovery chain.
+                await Task.Run(() => historyStore.Save(snapshot)).ConfigureAwait(false);
                 RunOnUi(RefreshHistoryStorageStatus);
             });
             historySynchronization = Task.WhenAll(historySynchronization, synchronize);

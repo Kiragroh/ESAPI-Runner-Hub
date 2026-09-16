@@ -9,7 +9,7 @@ namespace EsapiRunnerHub.Tests
     {
         public static void Register()
         {
-            TestHarness.Test("release metadata identifies version 0.3.12 build 30", HasReleaseMetadata);
+            TestHarness.Test("release metadata identifies version 0.3.13 build 31", HasReleaseMetadata);
             TestHarness.Test("main window title shows release version build and update date", MainWindowTitleShowsReleaseIdentity);
             TestHarness.Test("release build never deletes the portable settings directory", PreservesPortableSettingsDirectory);
             TestHarness.Test("release build publishes immutable versioned Citrix binaries", PublishesImmutableCitrixBinary);
@@ -35,8 +35,8 @@ namespace EsapiRunnerHub.Tests
             var assemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/Properties/AssemblyInfo.cs"));
             var hostAssemblyInfo = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.ScriptHost/Properties/AssemblyInfo.cs"));
 
-            TestHarness.AssertContains(version, "\"version\": \"0.3.12\"");
-            TestHarness.AssertContains(version, "\"build\": 30");
+            TestHarness.AssertContains(version, "\"version\": \"0.3.13\"");
+            TestHarness.AssertContains(version, "\"build\": 31");
             TestHarness.AssertContains(version, "\"scriptHostVersion\": \"0.3.4\"");
             TestHarness.AssertContains(version, "\"writeScriptHostVersion\": \"0.3.5\"");
             TestHarness.AssertContains(version, "\"citrixLauncherVersion\": \"0.3.3\"");
@@ -50,7 +50,7 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(version, "\"build\": 15");
             TestHarness.AssertContains(version, "\"build\": 14");
             TestHarness.AssertContains(version, "\"build\": 11");
-            TestHarness.AssertContains(changelog, "## [0.3.12] - 2026-09-09");
+            TestHarness.AssertContains(changelog, "## [0.3.13] - 2026-09-16");
             TestHarness.AssertContains(changelog, "window title");
             TestHarness.AssertContains(changelog, "exact SID-bound request");
             TestHarness.AssertContains(changelog, "two-parameter Eclipse plug-ins");
@@ -59,9 +59,9 @@ namespace EsapiRunnerHub.Tests
             TestHarness.AssertContains(changelog, "Select patient");
             TestHarness.AssertContains(changelog, "encrypted launch history");
             TestHarness.AssertContains(changelog, "Direct context scripts");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.3.12.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.3.12.0\")");
-            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.3.12\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyVersion(\"0.3.13.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyFileVersion(\"0.3.13.0\")");
+            TestHarness.AssertContains(assemblyInfo, "AssemblyInformationalVersion(\"0.3.13\")");
             TestHarness.AssertContains(hostAssemblyInfo, "AssemblyVersion(\"0.3.4.0\")");
             TestHarness.AssertContains(hostAssemblyInfo, "AssemblyFileVersion(\"0.3.4.0\")");
             TestHarness.AssertContains(hostAssemblyInfo, "AssemblyInformationalVersion(\"0.3.4\")");
@@ -75,7 +75,7 @@ namespace EsapiRunnerHub.Tests
         {
             var xaml = File.ReadAllText(TestHarness.PathFromRoot("src/ESAPI.RunnerHub/MainWindow.xaml"));
             TestHarness.AssertContains(xaml,
-                "Title=\"ESAPI Runner Hub · v0.3.12 · build 30 · updated 2026-09-09\"");
+                "Title=\"ESAPI Runner Hub · v0.3.13 · build 31 · updated 2026-09-16 · development\"");
         }
 
         private static void PreservesPortableSettingsDirectory()
